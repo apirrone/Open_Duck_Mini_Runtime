@@ -43,7 +43,7 @@ class HWI:
         }
 
         # current based position
-        self.dxl_io.set_operating_mode({id: 0x3 for id in self.joints.values()})
+        self.dxl_io.set_operating_mode({id: 0x5 for id in self.joints.values()})
 
     def set_low_torque(self):
         self.dxl_io.set_pid_gain({id: [100, 0, 0] for id in self.joints.values()})
@@ -53,7 +53,7 @@ class HWI:
         # 128 P factor
         # 16 D factor
         self.dxl_io.set_pid_gain(
-            {id: [10 * 128, 0, int(0.5 * 16)] for id in self.joints.values()}
+            {id: [1 * 128, 0, int(0.5 * 16)] for id in self.joints.values()}
         )
         for name in ["neck_pitch", "head_pitch", "head_yaw"]:
             self.dxl_io.set_pid_gain({self.joints[name]: [150, 0, 0]})

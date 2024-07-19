@@ -10,6 +10,7 @@ from scipy.spatial.transform import Rotation as R
 from mini_bdx_runtime.hwi import HWI
 from mini_bdx_runtime.onnx_infer import OnnxInfer
 from mini_bdx_runtime.rl_utils import (
+    action_to_pd_targets,
     isaac_joints_order,
     isaac_to_mujoco,
     make_action_dict,
@@ -23,7 +24,7 @@ class RLWalk:
         self,
         onnx_model_path: str,
         serial_port: str = "/dev/ttyUSB0",
-        control_freq: float = 60,
+        control_freq: float = 30,
         debug_no_imu: bool = False,
     ):
         self.debug_no_imu = debug_no_imu
@@ -71,6 +72,40 @@ class RLWalk:
             ]
         )
         self.isaac_init_pos = np.array(mujoco_to_isaac(self.mujoco_init_pos))
+        self.pd_action_offset = [
+            0.0,
+            -0.57,
+            0.52,
+            0.0,
+            0.0,
+            -0.57,
+            0.0,
+            0.0,
+            0.48,
+            -0.48,
+            0.0,
+            -0.57,
+            0.52,
+            0.0,
+            0.0,
+        ]
+        self.pd_action_scale = [
+            0.98,
+            1.4,
+            1.47,
+            2.93,
+            2.2,
+            1.04,
+            0.98,
+            2.93,
+            2.26,
+            2.26,
+            0.98,
+            1.4,
+            1.47,
+            2.93,
+            2.2,
+        ]
 
     def get_imu_data(self):
         raw_orientation = self.imu.quaternion  # quat
@@ -139,18 +174,19 @@ class RLWalk:
         while True:
             start = time.time()
             commands = [0.0, 0.0, 0.0]
-            obs = self.get_obs(commands)  # taks a lot of time
-            # obs = saved_obs[i]
+            # obs = self.get_obs(commands)  # taks a lot of time
+            obs = saved_obs[i]
             obs = np.clip(obs, self.obs_clip[0], self.obs_clip[1])
+
             action = self.policy.infer(obs)
-            action = np.clip(action, self.action_clip[0], self.action_clip[1])
-            # self.prev_action = action.copy() # here or
-            action = action + self.isaac_init_pos
             self.prev_action = action.copy()  # here ? # Maybe here
+            action = action_to_pd_targets(
+                action, self.pd_action_offset, self.pd_action_scale
+            )  # order OK
+            # action = action + self.isaac_init_pos
+            action = np.clip(action, self.action_clip[0], self.action_clip[1])
 
             robot_action = isaac_to_mujoco(action)
-            # robot_action = robot_action[:13]  # removing the antennas
-            # print(robot_action)
             action_dict = make_action_dict(robot_action, mujoco_joints_order)
             self.hwi.set_position_all(action_dict)
             i += 1
