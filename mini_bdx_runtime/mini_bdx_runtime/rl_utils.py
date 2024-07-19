@@ -92,14 +92,9 @@ def mujoco_to_isaac(joints):
     return new_joints
 
 
-# TODO
-# def _action_to_pd_targets(self, action):
-#     pd_tar = self._pd_action_scale * action
-#     return pd_tar
-
-
-def action_to_pd_targets(action, pd_action_offset, pd_action_scale):
-    return pd_action_offset + pd_action_scale * action
+# TODO ADD BACK
+def action_to_pd_targets(action, offset, scale):
+    return offset + scale * action
 
 
 def make_action_dict(action, joints_order):
