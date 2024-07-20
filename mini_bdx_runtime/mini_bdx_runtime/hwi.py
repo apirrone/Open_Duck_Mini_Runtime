@@ -30,12 +30,14 @@ class HWI:
             "right_hip_yaw": 0.0012322806287681889,
             "right_hip_roll": 0.02326413299385176,
             "right_hip_pitch": 0.897352997720036,
-            "right_knee": -1.6590427732988653,
+            # "right_knee": -1.6590427732988653,
+            "right_knee": -1.1590427732988653,
             "right_ankle": 0.7617041101973798,
             "left_hip_yaw": -0.0012322806287510275,
             "left_hip_roll": 0.02326413299396169,
             "left_hip_pitch": 0.9488873968876821,
-            "left_knee": -1.6490097909463939,
+            # "left_knee": -1.6490097909463939,
+            "left_knee": -1.1490097909463939,
             "left_ankle": 0.7001367286772635,
             "neck_pitch": -0.1835609559422233,
             "head_pitch": -0.1834247585248765,
@@ -72,44 +74,6 @@ class HWI:
     def goto_zero(self):
         goal = {joint: 0 for joint in self.joints.values()}
         self.dxl_io.set_goal_position(goal)
-
-    # def goto_init(self):
-    #     present_position = list(self.dxl_io.get_present_position(self.joints.values()))
-    #     for i in range(len(present_position)):
-    #         present_position[i] = np.deg2rad(present_position[i])
-    #     print(present_position)
-
-    #     init = {
-    #         "right_hip_yaw": -0.0012322806287681889,
-    #         "right_hip_roll": -0.02326413299385176,
-    #         "right_hip_pitch": -0.897352997720036,
-    #         "right_knee": 1.6590427732988653,
-    #         "right_ankle": -0.7617041101973798,
-    #         "left_hip_yaw": 0.0012322806287510275,
-    #         "left_hip_roll": -0.02326413299396169,
-    #         "left_hip_pitch": -0.9488873968876821,
-    #         "left_knee": 1.6490097909463939,
-    #         "left_ankle": -0.7001367286772635,
-    #         "neck_pitch": 0.1835609559422233,
-    #         "head_pitch": 0.1834247585248765,
-    #         "head_yaw": 9.174169188795582e-16,
-    #     }
-    #     init_position = list(init.values())
-    #     n_steps = 100
-    #     interp_funcs = [
-    #         interp1d([0, 1], [p, g]) for p, g in zip(present_position, init_position)
-    #     ]
-    #     interpolated_values = np.array(
-    #         [[f(i / n_steps) for f in interp_funcs] for i in range(n_steps + 1)]
-    #     )
-
-    #     for values in interpolated_values:
-    #         goal = {
-    #             joint: np.rad2deg(position)
-    #             for joint, position in zip(self.joints.keys(), values)
-    #         }
-    #         self.set_position_all(goal)
-    #         time.sleep(0.1)
 
     def set_position_all(self, joints_positions):
         """

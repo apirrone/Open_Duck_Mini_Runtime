@@ -1,6 +1,6 @@
 from itertools import repeat
-import numpy as np
 
+import numpy as np
 import pypot.dynamixel.conversion as conv
 from pypot.dynamixel.io.abstract_io import (
     AbstractDxlIO,
