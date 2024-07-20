@@ -50,6 +50,12 @@ class HWI:
     def set_pid_all(self, pid):
         self.dxl_io.set_pid_gain({id: pid for id in self.joints.values()})
 
+    def set_pid(self, pid, joint_name):
+        self.dxl_io.set_pid_gain({self.joints[joint_name]: pid})
+
+    def set_pid_all(self, pid):
+        self.dxl_io.set_pid_gain({id: pid for id in self.joints.values()})
+
     def set_low_torque(self):
         self.dxl_io.set_pid_gain({id: [100, 0, 0] for id in self.joints.values()})
 
