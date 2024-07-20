@@ -129,8 +129,8 @@ class RLWalk:
         dof_pos = self.hwi.get_present_positions()  # rad
         dof_vel = self.hwi.get_present_velocities()  # rev/min
 
-        dof_pos_scaled = dof_pos * self.dof_pos_scale
-        dof_vel_scaled = dof_vel * self.dof_vel_scale
+        dof_pos_scaled = list(np.array(dof_pos) * self.dof_pos_scale)
+        dof_vel_scaled = list(np.array(dof_vel) * self.dof_vel_scale)
 
         # adding fake antennas
 
