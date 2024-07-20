@@ -80,7 +80,7 @@ class RLWalk:
         #     )
         # )
         # self.robot_command_value = []
-        self.imu_data = []
+        # self.imu_data = []
 
     def imu_worker(self):
         while True:
@@ -112,7 +112,7 @@ class RLWalk:
             final_ang_vel = [-raw_ang_vel[1], raw_ang_vel[0], raw_ang_vel[2]]
 
             self.imu_queue.put((final_orientation_quat, final_ang_vel))
-            print("new imu data")
+            # print("new imu data")
             time.sleep(1 / self.control_freq)
 
     def get_imu_data(self):
@@ -131,8 +131,8 @@ class RLWalk:
             orientation_quat = [1, 0, 0, 0]
             ang_vel = [0, 0, 0]
 
-        self.imu_data.append([orientation_quat, ang_vel])
-        pickle.dump(self.imu_data, open("imu_data.pkl", "wb"))
+        # self.imu_data.append([orientation_quat, ang_vel])
+        # pickle.dump(self.imu_data, open("imu_data.pkl", "wb"))
 
         dof_pos = self.hwi.get_present_positions()  # rad
         dof_vel = self.hwi.get_present_velocities()  # rev/min
@@ -165,7 +165,7 @@ class RLWalk:
     def start(self):
         self.hwi.turn_on()
         # pid = [1000, 0, 500]
-        pid = [10, 0, 5]
+        pid = [100, 0, 50]
         self.hwi.set_pid_all(pid)
 
         time.sleep(2)
