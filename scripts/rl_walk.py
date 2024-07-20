@@ -49,7 +49,8 @@ class RLWalk:
         self.action_clip = (-1, 1)
         self.obs_clip = (-5, 5)
 
-        self.obs_size = 55
+        # self.obs_size = 55
+        self.obs_size = 54  # fake lin vel
         self.action_size = 15
 
         self.prev_action = np.zeros(self.action_size)
@@ -173,9 +174,12 @@ class RLWalk:
         dof_pos_scaled = mujoco_to_isaac(dof_pos_scaled)
         dof_vel_scaled = mujoco_to_isaac(dof_vel_scaled)
 
+        fake_lin_vel = [0.02, 0, 0]
+
         return np.concatenate(
             [
-                orientation_quat,
+                fake_lin_vel,
+                # orientation_quat,
                 ang_vel,
                 dof_pos_scaled,
                 dof_vel_scaled,
