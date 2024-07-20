@@ -11,10 +11,12 @@ from scipy.spatial.transform import Rotation as R
 
 from mini_bdx_runtime.hwi import HWI
 from mini_bdx_runtime.onnx_infer import OnnxInfer
-from mini_bdx_runtime.rl_utils import (action_to_pd_targets,
-                                       isaac_joints_order, isaac_to_mujoco,
-                                       make_action_dict, mujoco_joints_order,
-                                       mujoco_to_isaac)
+from mini_bdx_runtime.rl_utils import (
+    isaac_to_mujoco,
+    make_action_dict,
+    mujoco_joints_order,
+    mujoco_to_isaac,
+)
 
 
 class RLWalk:
@@ -22,7 +24,7 @@ class RLWalk:
         self,
         onnx_model_path: str,
         serial_port: str = "/dev/ttyUSB0",
-        control_freq: float = 30,
+        control_freq: float = 60,
         debug_no_imu: bool = False,
     ):
         self.debug_no_imu = debug_no_imu
@@ -50,60 +52,34 @@ class RLWalk:
         self.mujoco_init_pos = np.array(
             [
                 # right_leg
-                0.013627156377842975,
-                0.07738878096596595,
-                0.5933527914082196,
-                -1.630548419252953,
-                0.8621333440557593,
+                -0.014,
+                0.08,
+                0.53,
+                -1.62,
+                0.91,
                 # left leg
-                -0.013946457213457239,
-                0.07918837709879874,
-                0.5325073962634973,
-                -1.6225192902713386,
-                0.9149246381274986,
+                0.013,
+                0.077,
+                0.59,
+                -1.63,
+                0.86,
                 # head
-                -0.17453292519943295,
-                -0.17453292519943295,
-                8.65556854322817e-27,
-                0,
-                0,
+                -0.17,
+                -0.17,
+                0.0,
+                0.0,
+                0.0,
             ]
         )
         self.isaac_init_pos = np.array(mujoco_to_isaac(self.mujoco_init_pos))
-        self.pd_action_offset = [
-            0.0,
-            -0.57,
-            0.52,
-            0.0,
-            0.0,
-            -0.57,
-            0.0,
-            0.0,
-            0.48,
-            -0.48,
-            0.0,
-            -0.57,
-            0.52,
-            0.0,
-            0.0,
-        ]
-        self.pd_action_scale = [
-            0.98,
-            1.4,
-            1.47,
-            2.93,
-            2.2,
-            1.04,
-            0.98,
-            2.93,
-            2.26,
-            2.26,
-            0.98,
-            1.4,
-            1.47,
-            2.93,
-            2.2,
-        ]
+
+        # self.muj_command_value = pickle.load(
+        #     open(
+        #         "/home/antoine/MISC/mini_BDX/experiments/mujoco/mujoco_command_value.pkl",
+        #         "rb",
+        #     )
+        # )
+        # self.robot_command_value = []
 
     def imu_worker(self):
         while True:
@@ -181,12 +157,14 @@ class RLWalk:
 
     def start(self):
         self.hwi.turn_on()
-        pid = [100, 0, 8]
+        pid = [1000, 0, 500]
         self.hwi.set_pid_all(pid)
+
+        time.sleep(5)
 
     def run(self):
         # saved_obs = pickle.load(open("saved_obs.pkl", "rb"))
-        i = 10
+        i = 0
         while True:
             start = time.time()
             commands = [0.0, 0.0, 0.0]
@@ -195,20 +173,34 @@ class RLWalk:
             obs = np.clip(obs, self.obs_clip[0], self.obs_clip[1])
 
             action = self.policy.infer(obs)
-            self.prev_action = action.copy()  # here ? # Maybe here
-            # action = action_to_pd_targets(
-            #     action, self.pd_action_offset, self.pd_action_scale
-            # )  # order OK
+
             action = np.clip(action, self.action_clip[0], self.action_clip[1])
+            self.prev_action = action.copy()  # here ? # Maybe here
             action = self.isaac_init_pos + action
 
             robot_action = isaac_to_mujoco(action)
-            # print(robot_action)
+
+            # robot_action = self.muj_command_value[i][1]
             action_dict = make_action_dict(robot_action, mujoco_joints_order)
             self.hwi.set_position_all(action_dict)
+            robot_action_fake_antennas = list(robot_action) + [0, 0]
+
+            # present_positions_fake_antennas = list(self.hwi.get_present_positions()) + [
+            #     0,
+            #     0,
+            # ]
+            # self.robot_command_value.append(
+            #     [robot_action_fake_antennas, present_positions_fake_antennas]
+            # )
+
             i += 1
             took = time.time() - start
+            print(took)
             time.sleep((max(1 / self.control_freq - took, 0)))
+            # if i > len(self.muj_command_value) - 1:
+            #     break
+
+        # pickle.dump(self.robot_command_value, open("robot_command_value.pkl", "wb"))
 
 
 if __name__ == "__main__":
@@ -218,6 +210,6 @@ if __name__ == "__main__":
     parser.add_argument("--onnx_model_path", type=str, required=True)
     args = parser.parse_args()
 
-    rl_walk = RLWalk(args.onnx_model_path)
+    rl_walk = RLWalk(args.onnx_model_path, debug_no_imu=False)
     rl_walk.start()
     rl_walk.run()
