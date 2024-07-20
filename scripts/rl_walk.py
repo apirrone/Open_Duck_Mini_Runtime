@@ -159,7 +159,7 @@ class RLWalk:
         pid = [1000, 0, 500]
         self.hwi.set_pid_all(pid)
 
-        time.sleep(5)
+        time.sleep(2)
 
     def run(self):
         # saved_obs = pickle.load(open("saved_obs.pkl", "rb"))
