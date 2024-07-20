@@ -11,14 +11,10 @@ from scipy.spatial.transform import Rotation as R
 
 from mini_bdx_runtime.hwi import HWI
 from mini_bdx_runtime.onnx_infer import OnnxInfer
-from mini_bdx_runtime.rl_utils import (
-    action_to_pd_targets,
-    isaac_joints_order,
-    isaac_to_mujoco,
-    make_action_dict,
-    mujoco_joints_order,
-    mujoco_to_isaac,
-)
+from mini_bdx_runtime.rl_utils import (action_to_pd_targets,
+                                       isaac_joints_order, isaac_to_mujoco,
+                                       make_action_dict, mujoco_joints_order,
+                                       mujoco_to_isaac)
 
 
 class RLWalk:
@@ -125,7 +121,7 @@ class RLWalk:
                 raw_orientation[1],
                 raw_orientation[2],
             ]
-            print(quat)
+
             try:
                 rot_mat = R.from_quat(quat).as_matrix()
             except:
@@ -140,7 +136,6 @@ class RLWalk:
             final_ang_vel = [-raw_ang_vel[1], raw_ang_vel[0], raw_ang_vel[2]]
 
             self.imu_queue.put((final_orientation_quat, final_ang_vel))
-            print("IMU data put in queue : ", final_orientation_quat, final_ang_vel)
             time.sleep(1 / self.control_freq)
 
     def get_imu_data(self):
@@ -210,9 +205,9 @@ class RLWalk:
             action = np.clip(action, self.action_clip[0], self.action_clip[1])
 
             robot_action = isaac_to_mujoco(action)
-            print(robot_action)
+            # print(robot_action)
             action_dict = make_action_dict(robot_action, mujoco_joints_order)
-            # self.hwi.set_position_all(action_dict)
+            self.hwi.set_position_all(action_dict)
             i += 1
             took = time.time() - start
             time.sleep((max(1 / self.control_freq - took, 0)))
