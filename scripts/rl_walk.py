@@ -135,7 +135,7 @@ class RLWalk:
             final_ang_vel = [-raw_ang_vel[1], raw_ang_vel[0], raw_ang_vel[2]]
 
             self.imu_queue.put((final_orientation_quat, final_ang_vel))
-
+            print("IMU data put in queue : ", final_orientation_quat, final_ang_vel)
             time.sleep(1 / self.control_freq)
 
     def get_imu_data(self):
@@ -202,6 +202,7 @@ class RLWalk:
             action = np.clip(action, self.action_clip[0], self.action_clip[1])
 
             robot_action = isaac_to_mujoco(action)
+            print(robot_action)
             action_dict = make_action_dict(robot_action, mujoco_joints_order)
             # self.hwi.set_position_all(action_dict)
             i += 1
