@@ -64,6 +64,7 @@ class HWI:
         self.set_position_all(self.init_pos)
         time.sleep(1)
         self.set_high_torque()
+        time.sleep(1)
 
     def turn_off(self):
         self.dxl_io.disable_torque(self.joints.values())

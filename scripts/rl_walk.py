@@ -1,5 +1,7 @@
 import pickle
 import time
+from queue import Queue
+from threading import Thread
 
 import adafruit_bno055
 import FramesViewer.utils as fv_utils
@@ -32,9 +34,12 @@ class RLWalk:
         self.policy = OnnxInfer(self.onnx_model_path)
         self.hwi = HWI(serial_port)
         if not self.debug_no_imu:
-            self.uart = serial.Serial("/dev/ttyS0")
+            self.uart = serial.Serial("/dev/ttyS0", baudrate=115200)
             self.imu = adafruit_bno055.BNO055_UART(self.uart)
             self.imu.mode = adafruit_bno055.NDOF_MODE
+            self.last_imu_data = ([0, 0, 0, 0], [0, 0, 0])
+            self.imu_queue = Queue()
+            Thread(target=self.imu_worker, daemon=True).start()
 
         self.control_freq = control_freq
 
@@ -107,28 +112,39 @@ class RLWalk:
             2.2,
         ]
 
+    def imu_worker(self):
+        while True:
+            raw_orientation = self.imu.quaternion  # quat
+            raw_ang_vel = self.imu.gyro  # xyz
+
+            # convert to correct axes
+            quat = [
+                raw_orientation[3],
+                raw_orientation[0],
+                raw_orientation[1],
+                raw_orientation[2],
+            ]
+            rot_mat = R.from_quat(quat).as_matrix()
+
+            tmp = np.eye(4)
+            tmp[:3, :3] = rot_mat
+            tmp = fv_utils.rotateInSelf(tmp, [0, 0, 90])
+            final_orientation_mat = tmp[:3, :3]
+            final_orientation_quat = R.from_matrix(final_orientation_mat).as_quat()
+
+            final_ang_vel = [-raw_ang_vel[1], raw_ang_vel[0], raw_ang_vel[2]]
+
+            self.imu_queue.put((final_orientation_quat, final_ang_vel))
+
+            time.sleep(1 / self.control_freq)
+
     def get_imu_data(self):
-        raw_orientation = self.imu.quaternion  # quat
-        raw_ang_vel = self.imu.gyro  # xyz
+        try:
+            self.last_imu_data = self.imu_queue.get(False)  # non blocking
+        except Exception:
+            pass
 
-        # convert to correct axes
-        quat = [
-            raw_orientation[3],
-            raw_orientation[0],
-            raw_orientation[1],
-            raw_orientation[2],
-        ]
-        rot_mat = R.from_quat(quat).as_matrix()
-
-        tmp = np.eye(4)
-        tmp[:3, :3] = rot_mat
-        tmp = fv_utils.rotateInSelf(tmp, [0, 0, 90])
-        final_orientation_mat = tmp[:3, :3]
-        final_orientation_quat = R.from_matrix(final_orientation_mat).as_quat()
-
-        final_ang_vel = [-raw_ang_vel[1], raw_ang_vel[0], raw_ang_vel[2]]
-
-        return final_orientation_quat, final_ang_vel
+        return self.last_imu_data
 
     def get_obs(self, commands):
         # Don't forget to re invert the angles from the hwi
@@ -200,6 +216,6 @@ if __name__ == "__main__":
     parser.add_argument("--onnx_model_path", type=str, required=True)
     args = parser.parse_args()
 
-    rl_walk = RLWalk(args.onnx_model_path, debug_no_imu=True)
+    rl_walk = RLWalk(args.onnx_model_path)
     rl_walk.start()
     rl_walk.run()
