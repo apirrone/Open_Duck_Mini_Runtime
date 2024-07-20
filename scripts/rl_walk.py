@@ -138,7 +138,7 @@ class RLWalk:
         dof_vel = self.hwi.get_present_velocities()  # rev/min
 
         dof_pos_scaled = list(
-            np.array(dof_pos - self.mujoco_init_pos) * self.dof_pos_scale
+            np.array(dof_pos - self.mujoco_init_pos[:13]) * self.dof_pos_scale
         )
         dof_vel_scaled = list(np.array(dof_vel) * self.dof_vel_scale)
 
