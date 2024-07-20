@@ -24,7 +24,7 @@ class RLWalk:
         self,
         onnx_model_path: str,
         serial_port: str = "/dev/ttyUSB0",
-        control_freq: float = 60,
+        control_freq: float = 30,
         debug_no_imu: bool = False,
     ):
         self.debug_no_imu = debug_no_imu
@@ -181,7 +181,7 @@ class RLWalk:
 
             # robot_action = self.muj_command_value[i][1]
             action_dict = make_action_dict(robot_action, mujoco_joints_order)
-            # self.hwi.set_position_all(action_dict)
+            self.hwi.set_position_all(action_dict)
             # robot_action_fake_antennas = list(robot_action) + [0, 0]
 
             # present_positions_fake_antennas = list(self.hwi.get_present_positions()) + [
