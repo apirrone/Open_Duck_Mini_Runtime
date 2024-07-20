@@ -96,7 +96,8 @@ class RLWalk:
 
             try:
                 rot_mat = R.from_quat(quat).as_matrix()
-            except:
+            except Exception as e:
+                print(e)
                 continue
 
             tmp = np.eye(4)
