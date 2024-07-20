@@ -124,7 +124,11 @@ class RLWalk:
                 raw_orientation[1],
                 raw_orientation[2],
             ]
-            rot_mat = R.from_quat(quat).as_matrix()
+            print(quat)
+            try:
+                rot_mat = R.from_quat(quat).as_matrix()
+            except:
+                continue
 
             tmp = np.eye(4)
             tmp[:3, :3] = rot_mat
