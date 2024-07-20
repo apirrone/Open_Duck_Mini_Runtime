@@ -65,6 +65,7 @@ class HWI:
     def turn_on(self):
         self.set_low_torque()
         self.dxl_io.enable_torque(self.joints.values())
+        time.sleep(1)
         self.set_position_all(self.init_pos)
         time.sleep(1)
         # self.set_high_torque()
