@@ -11,14 +11,10 @@ from scipy.spatial.transform import Rotation as R
 
 from mini_bdx_runtime.hwi import HWI
 from mini_bdx_runtime.onnx_infer import OnnxInfer
-from mini_bdx_runtime.rl_utils import (
-    action_to_pd_targets,
-    isaac_joints_order,
-    isaac_to_mujoco,
-    make_action_dict,
-    mujoco_joints_order,
-    mujoco_to_isaac,
-)
+from mini_bdx_runtime.rl_utils import (action_to_pd_targets,
+                                       isaac_joints_order, isaac_to_mujoco,
+                                       make_action_dict, mujoco_joints_order,
+                                       mujoco_to_isaac)
 
 
 class RLWalk:
@@ -185,6 +181,8 @@ class RLWalk:
 
     def start(self):
         self.hwi.turn_on()
+        pid = [100, 0, 8]
+        self.hwi.set_pid_all(pid)
 
     def run(self):
         # saved_obs = pickle.load(open("saved_obs.pkl", "rb"))
@@ -192,17 +190,17 @@ class RLWalk:
         while True:
             start = time.time()
             commands = [0.0, 0.0, 0.0]
-            obs = self.get_obs(commands)  # taks a lot of time
+            obs = self.get_obs(commands)
             # obs = saved_obs[i]
             obs = np.clip(obs, self.obs_clip[0], self.obs_clip[1])
 
             action = self.policy.infer(obs)
             self.prev_action = action.copy()  # here ? # Maybe here
-            action = action_to_pd_targets(
-                action, self.pd_action_offset, self.pd_action_scale
-            )  # order OK
-            # action = action + self.isaac_init_pos
+            # action = action_to_pd_targets(
+            #     action, self.pd_action_offset, self.pd_action_scale
+            # )  # order OK
             action = np.clip(action, self.action_clip[0], self.action_clip[1])
+            action = self.isaac_init_pos + action
 
             robot_action = isaac_to_mujoco(action)
             # print(robot_action)

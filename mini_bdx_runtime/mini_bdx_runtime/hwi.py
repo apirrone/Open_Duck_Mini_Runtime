@@ -3,9 +3,8 @@ import time
 
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.interpolate import interp1d
-
 from mini_bdx.io_330 import Dxl330IO
+from scipy.interpolate import interp1d
 
 
 class HWI:
