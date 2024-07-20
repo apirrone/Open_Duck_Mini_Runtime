@@ -84,7 +84,7 @@ class RLWalk:
     def imu_worker(self):
         while True:
             raw_orientation = self.imu.quaternion  # quat
-            raw_ang_vel = self.imu.gyro  # xyz
+            raw_ang_vel = np.deg2rad(self.imu.gyro)  # xyz
 
             # convert to correct axes
             quat = [
