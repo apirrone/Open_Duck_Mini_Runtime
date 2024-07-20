@@ -1,22 +1,10 @@
-from itertools import repeat
-
-import numpy as np
 import pypot.dynamixel.conversion as conv
-from pypot.dynamixel.io.abstract_io import (
-    AbstractDxlIO,
-    DxlCommunicationError,
-    DxlTimeoutError,
-    _DxlAccess,
-    _DxlControl,
-)
+from pypot.dynamixel.io.abstract_io import AbstractDxlIO, _DxlAccess, _DxlControl
 from pypot.dynamixel.protocol import v2 as v2
 
 max_pos = 4096
 max_deg = 360
 max_current = 1750
-
-max_vel = 2048
-max_rpm = 123
 
 
 def dxl_to_degree(value, model):
@@ -41,8 +29,7 @@ def degree_to_dxl(value, model):
 def dxl_to_velocity(value, model):
     if value > 2 ** (4 * 8 - 1):
         value = value - 2 ** (4 * 8)
-    # Does not look too stupid, but don't really know why
-    return value / (0.229 / np.pi)
+    return value
 
 
 class Dxl330IO(AbstractDxlIO):

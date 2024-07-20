@@ -110,15 +110,19 @@ class HWI:
         factor = np.ones(len(present_position)) * -1
         return present_position * factor
 
-    def get_present_velocities(self) -> List[float]:
+    def get_present_velocities(self, rad_s=True) -> List[float]:
+        """
+        Returns the present velocities in rad/s or rev/min
+        """
         # rev/min
-        present_velocities = list(
-            np.around(
-                np.deg2rad((self.dxl_io.get_present_velocity(self.joints.values()))), 3
-            )
+        present_velocities = np.array(
+            self.dxl_io.get_present_velocity(self.joints.values())
         )
+        if rad_s:
+            present_velocities = (2 * np.pi * present_velocities) / 60  # rad/s
+
         factor = np.ones(len(present_velocities)) * -1
-        return present_velocities * factor
+        return list(present_velocities * factor)
 
     def get_operating_modes(self):
         return self.dxl_io.get_operating_mode(self.joints.values())
