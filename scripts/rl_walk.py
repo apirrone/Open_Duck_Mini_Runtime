@@ -128,7 +128,6 @@ class RLWalk:
 
         dof_pos = self.hwi.get_present_positions()  # rad
         dof_vel = self.hwi.get_present_velocities()  # rev/min
-        dof_vel = (2 * np.pi * dof_vel) / 60  # rad/s
 
         dof_pos_scaled = dof_pos * self.dof_pos_scale
         dof_vel_scaled = dof_vel * self.dof_vel_scale
