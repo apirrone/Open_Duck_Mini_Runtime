@@ -2,8 +2,9 @@ import pickle
 import time
 
 import numpy as np
-from mini_bdx.io_330 import Dxl330IO
 from scipy.interpolate import interp1d
+
+from mini_bdx_runtime.io_330 import Dxl330IO
 
 
 class HWI:
