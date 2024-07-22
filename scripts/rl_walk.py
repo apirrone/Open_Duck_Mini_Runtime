@@ -86,7 +86,7 @@ class RLWalk:
 
     def imu_worker(self):
         while True:
-            start = time.time()
+            # start = time.time()
             raw_orientation = self.imu.quaternion  # quat
             raw_ang_vel = np.deg2rad(self.imu.gyro)  # xyz
 
@@ -123,7 +123,7 @@ class RLWalk:
             final_ang_vel = [-raw_ang_vel[1], raw_ang_vel[0], raw_ang_vel[2]]
 
             self.imu_queue.put((final_orientation_quat, final_ang_vel))
-            print("imu worker took", time.time() - start)
+            # print("imu worker took", time.time() - start)
             time.sleep(1 / self.control_freq)
 
     def get_imu_data(self):
@@ -193,7 +193,7 @@ class RLWalk:
             start = time.time()
             commands = [0.0, 0.0, 0.0]
             obs = self.get_obs(commands)
-            robot_computed_obs.append(obs)
+            # robot_computed_obs.append(obs)
             obs = saved_obs[i]
             obs = np.clip(obs, self.obs_clip[0], self.obs_clip[1])
 
