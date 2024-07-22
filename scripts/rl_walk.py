@@ -139,7 +139,9 @@ class RLWalk:
         # Plot the computed observations when replaying with the saved observations to see
 
         if not self.debug_no_imu:
+            start = time.time()
             orientation_quat, ang_vel = self.get_imu_data()
+            print("get_imu_data took", time.time() - start)
         else:
             orientation_quat = [1, 0, 0, 0]
             ang_vel = [0, 0, 0]
@@ -193,7 +195,6 @@ class RLWalk:
             start = time.time()
             commands = [0.0, 0.0, 0.0]
             obs = self.get_obs(commands)
-            print("get_obs took", time.time() - start)
             robot_computed_obs.append(obs)
             obs = saved_obs[i]
             obs = np.clip(obs, self.obs_clip[0], self.obs_clip[1])
