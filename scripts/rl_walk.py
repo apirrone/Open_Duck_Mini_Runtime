@@ -176,13 +176,15 @@ class RLWalk:
         time.sleep(5)
 
     def run(self):
-        # saved_obs = pickle.load(open("saved_obs.pkl", "rb"))
+        saved_obs = pickle.load(open("saved_obs.pkl", "rb"))
         i = 0
+        robot_computed_obs = []
         while True:
             start = time.time()
             commands = [0.0, 0.0, 0.0]
             obs = self.get_obs(commands)
-            # obs = saved_obs[i]
+            robot_computed_obs.append(obs)
+            obs = saved_obs[i]
             obs = np.clip(obs, self.obs_clip[0], self.obs_clip[1])
 
             action = self.policy.infer(obs)
@@ -210,10 +212,10 @@ class RLWalk:
             took = time.time() - start
             print(took)
             time.sleep((max(1 / self.control_freq - took, 0)))
-            # if i > len(self.muj_command_value) - 1:
-            #     break
+            if i > len(saved_obs) - 1:
+                break
 
-        # pickle.dump(self.robot_command_value, open("robot_command_value.pkl", "wb"))
+        pickle.dump(robot_computed_obs, open("robot_computed_obs.pkl", "wb"))
 
 
 if __name__ == "__main__":
