@@ -100,10 +100,15 @@ class RLWalk:
             try:
                 rot_mat = R.from_quat(quat).as_matrix()
                 if self.zero_yaw is None:
-                    self.zero_yaw = R.from_matrix(rot_mat).as_euler("xyz")[2]
+                    self.zero_yaw = R.from_matrix(rot_mat).as_euler(
+                        "xyz", degrees=False
+                    )[2]
 
                 rot_mat = (
-                    R.from_euler("xyz", [0, 0, -self.zero_yaw]).as_matrix() @ rot_mat
+                    R.from_euler(
+                        "xyz", [0, 0, -self.zero_yaw], degrees=False
+                    ).as_matrix()
+                    @ rot_mat
                 )
             except Exception as e:
                 print(e)
