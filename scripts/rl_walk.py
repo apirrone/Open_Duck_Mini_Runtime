@@ -46,6 +46,7 @@ class RLWalk:
         self.dof_vel_scale = 0.05
         self.action_clip = (-1, 1)
         self.obs_clip = (-5, 5)
+        self.zero_yaw = None
 
         self.prev_action = np.zeros(15)
 
@@ -88,7 +89,7 @@ class RLWalk:
             raw_orientation = self.imu.quaternion  # quat
             raw_ang_vel = np.deg2rad(self.imu.gyro)  # xyz
 
-            # convert to correct axes
+            # convert to correct axes. (??)
             quat = [
                 raw_orientation[3],
                 raw_orientation[0],
@@ -98,6 +99,12 @@ class RLWalk:
 
             try:
                 rot_mat = R.from_quat(quat).as_matrix()
+                if self.zero_yaw is None:
+                    self.zero_yaw = R.from_matrix(rot_mat).as_euler("xyz")[2]
+
+                rot_mat = (
+                    R.from_euler("xyz", [0, 0, -self.zero_yaw]).as_matrix() @ rot_mat
+                )
             except Exception as e:
                 print(e)
                 continue
