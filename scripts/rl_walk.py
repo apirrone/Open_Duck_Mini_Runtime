@@ -125,7 +125,9 @@ class RLWalk:
         return self.last_imu_data
 
     def get_obs(self, commands):
-        # Don't forget to re invert the angles from the hwi
+        # TODO There is something wrong here.
+        # Plot the computed observations when replaying with the saved observations to see
+
         if not self.debug_no_imu:
             orientation_quat, ang_vel = self.get_imu_data()
         else:
