@@ -32,7 +32,7 @@ class RLWalk:
         self.policy = OnnxInfer(self.onnx_model_path)
         self.hwi = HWI(serial_port)
         if not self.debug_no_imu:
-            self.uart = serial.Serial("/dev/ttyS0", baudrate=115200)
+            self.uart = serial.Serial("/dev/ttyS0")  # , baudrate=115200)
             self.imu = adafruit_bno055.BNO055_UART(self.uart)
             self.imu.mode = adafruit_bno055.NDOF_MODE
             self.last_imu_data = ([0, 0, 0, 0], [0, 0, 0])
