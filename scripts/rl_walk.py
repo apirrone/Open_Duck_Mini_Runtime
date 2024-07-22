@@ -124,7 +124,7 @@ class RLWalk:
 
             self.imu_queue.put((final_orientation_quat, final_ang_vel))
             # print("imu worker took", time.time() - start)
-            time.sleep(1 / self.control_freq)
+            time.sleep(1 / (self.control_freq / 2))
 
     def get_imu_data(self):
         try:
@@ -224,7 +224,7 @@ class RLWalk:
                 "FPS",
                 np.around(1 / took, 3),
                 "-- target",
-                np.around(1 / self.control_freq, 3),
+                self.control_freq,
             )
             time.sleep((max(1 / self.control_freq - took, 0)))
             if i > len(saved_obs) - 1:
