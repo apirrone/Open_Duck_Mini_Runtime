@@ -139,9 +139,7 @@ class RLWalk:
         # Plot the computed observations when replaying with the saved observations to see
 
         if not self.debug_no_imu:
-            start = time.time()
             orientation_quat, ang_vel = self.get_imu_data()
-            print("get_imu_data took", time.time() - start)
         else:
             orientation_quat = [1, 0, 0, 0]
             ang_vel = [0, 0, 0]
@@ -222,7 +220,12 @@ class RLWalk:
 
             i += 1
             took = time.time() - start
-            # print(took)
+            print(
+                "FPS",
+                np.around(1 / took, 3),
+                "-- target",
+                np.around(1 / self.control_freq, 3),
+            )
             time.sleep((max(1 / self.control_freq - took, 0)))
             if i > len(saved_obs) - 1:
                 break
