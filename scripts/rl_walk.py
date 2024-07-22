@@ -193,7 +193,8 @@ class RLWalk:
             start = time.time()
             commands = [0.0, 0.0, 0.0]
             obs = self.get_obs(commands)
-            # robot_computed_obs.append(obs)
+            print("get_obs took", time.time() - start)
+            robot_computed_obs.append(obs)
             obs = saved_obs[i]
             obs = np.clip(obs, self.obs_clip[0], self.obs_clip[1])
 
@@ -220,7 +221,7 @@ class RLWalk:
 
             i += 1
             took = time.time() - start
-            print(took)
+            # print(took)
             time.sleep((max(1 / self.control_freq - took, 0)))
             if i > len(saved_obs) - 1:
                 break
