@@ -11,12 +11,8 @@ from scipy.spatial.transform import Rotation as R
 
 from mini_bdx_runtime.hwi import HWI
 from mini_bdx_runtime.onnx_infer import OnnxInfer
-from mini_bdx_runtime.rl_utils import (
-    isaac_to_mujoco,
-    make_action_dict,
-    mujoco_joints_order,
-    mujoco_to_isaac,
-)
+from mini_bdx_runtime.rl_utils import (isaac_to_mujoco, make_action_dict,
+                                       mujoco_joints_order, mujoco_to_isaac)
 
 
 class RLWalk:
@@ -26,6 +22,7 @@ class RLWalk:
         serial_port: str = "/dev/ttyUSB0",
         control_freq: float = 30,
         debug_no_imu: bool = False,
+        action_scale=0.1,
     ):
         self.debug_no_imu = debug_no_imu
         self.onnx_model_path = onnx_model_path
@@ -48,7 +45,7 @@ class RLWalk:
         self.action_clip = (-1, 1)
         self.obs_clip = (-5, 5)
         self.zero_yaw = None
-        self.action_scale = 1.0
+        self.action_scale = action_scale
 
         self.prev_action = np.zeros(15)
 
@@ -261,8 +258,11 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--onnx_model_path", type=str, required=True)
+    parser.add_argument("-a", "--action_scale", type=float, default=0.1)
     args = parser.parse_args()
 
-    rl_walk = RLWalk(args.onnx_model_path, debug_no_imu=False)
+    rl_walk = RLWalk(
+        args.onnx_model_path, debug_no_imu=False, action_scale=args.action_scale
+    )
     rl_walk.start()
     rl_walk.run()
