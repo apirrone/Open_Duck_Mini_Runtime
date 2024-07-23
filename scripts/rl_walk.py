@@ -121,6 +121,11 @@ class RLWalk:
             final_orientation_quat = R.from_matrix(final_orientation_mat).as_quat()
 
             final_ang_vel = [-raw_ang_vel[1], raw_ang_vel[0], raw_ang_vel[2]]
+            final_ang_vel = list(
+                np.array(final_ang_vel)
+                * self.angularVelocityScale
+                / (1 / self.control_freq)
+            )
 
             self.imu_queue.put((final_orientation_quat, final_ang_vel))
             # print("imu worker took", time.time() - start)
@@ -144,7 +149,6 @@ class RLWalk:
             orientation_quat = [1, 0, 0, 0]
             ang_vel = [0, 0, 0]
 
-        ang_vel = np.array(ang_vel) / (1 / 30)
         print(ang_vel)
 
         # self.imu_data.append([orientation_quat, ang_vel])
