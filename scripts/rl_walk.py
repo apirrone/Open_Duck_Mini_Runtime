@@ -48,7 +48,7 @@ class RLWalk:
         self.action_clip = (-1, 1)
         self.obs_clip = (-5, 5)
         self.zero_yaw = None
-        self.action_scale = 0.5
+        self.action_scale = 1.0
 
         self.prev_action = np.zeros(15)
 
@@ -213,7 +213,7 @@ class RLWalk:
                 if obs is None:
                     break
                 robot_computed_obs.append(obs)
-                # obs = saved_obs[i]
+                obs = saved_obs[i]
                 obs = np.clip(obs, self.obs_clip[0], self.obs_clip[1])
 
                 action = self.policy.infer(obs)
