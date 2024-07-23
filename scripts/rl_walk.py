@@ -248,8 +248,8 @@ class RLWalk:
                 #     self.control_freq,
                 # )
                 time.sleep((max(1 / self.control_freq - took, 0)))
-                if i > len(saved_obs) - 1:
-                    break
+                # if i > len(saved_obs) - 1:
+                #     break
         except KeyboardInterrupt:
             pass
 
