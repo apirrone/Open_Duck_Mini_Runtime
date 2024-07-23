@@ -179,7 +179,7 @@ class RLWalk:
 
     def start(self):
         self.hwi.turn_on()
-        pid = [500, 0, 100]
+        pid = [300, 0, 100]
         # pid = [100, 0, 50]
         self.hwi.set_pid_all(pid)
 
@@ -191,7 +191,7 @@ class RLWalk:
         robot_computed_obs = []
         while True:
             start = time.time()
-            commands = [0.0, 0.0, 0.0]
+            commands = [0.1, 0.0, 0.0]
             obs = self.get_obs(commands)
             robot_computed_obs.append(obs)
             obs = saved_obs[i]
