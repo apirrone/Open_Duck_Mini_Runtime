@@ -144,7 +144,7 @@ class RLWalk:
             orientation_quat = [1, 0, 0, 0]
             ang_vel = [0, 0, 0]
 
-        print(ang_vel(*1 / 30))
+        print(ang_vel * (1 / 30))
 
         # self.imu_data.append([orientation_quat, ang_vel])
         # pickle.dump(self.imu_data, open("imu_data.pkl", "wb"))
