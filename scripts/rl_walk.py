@@ -240,6 +240,7 @@ class RLWalk:
             pass
 
         pickle.dump(robot_computed_obs, open("robot_computed_obs.pkl", "wb"))
+        time.sleep(1)
 
 
 if __name__ == "__main__":
