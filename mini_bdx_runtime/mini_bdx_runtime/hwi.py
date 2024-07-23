@@ -80,7 +80,7 @@ class HWI:
             self.dxl_io.set_pid_gain({self.joints[name]: [150, 0, 0]})
 
     def turn_on(self):
-        self.set_low_torque()
+        # self.set_low_torque()
         self.dxl_io.enable_torque(self.joints.values())
         time.sleep(1)
         self.set_position_all(self.init_pos)
