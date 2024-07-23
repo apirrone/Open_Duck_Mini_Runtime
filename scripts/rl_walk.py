@@ -149,8 +149,6 @@ class RLWalk:
             orientation_quat = [1, 0, 0, 0]
             ang_vel = [0, 0, 0]
 
-        print(ang_vel)
-
         # self.imu_data.append([orientation_quat, ang_vel])
         # pickle.dump(self.imu_data, open("imu_data.pkl", "wb"))
 
@@ -227,12 +225,12 @@ class RLWalk:
 
             i += 1
             took = time.time() - start
-            print(
-                "FPS",
-                np.around(1 / took, 3),
-                "-- target",
-                self.control_freq,
-            )
+            # print(
+            #     "FPS",
+            #     np.around(1 / took, 3),
+            #     "-- target",
+            #     self.control_freq,
+            # )
             time.sleep((max(1 / self.control_freq - took, 0)))
             if i > len(saved_obs) - 1:
                 break
