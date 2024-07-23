@@ -89,7 +89,6 @@ class RLWalk:
             # start = time.time()
             raw_orientation = self.imu.quaternion  # quat
             raw_ang_vel = np.deg2rad(self.imu.gyro)  # xyz
-            raw_ang_vel = np.deg2rad(self.imu.gyro)  # xyz
 
             # convert to correct axes. (??)
             quat = [
@@ -145,7 +144,7 @@ class RLWalk:
             orientation_quat = [1, 0, 0, 0]
             ang_vel = [0, 0, 0]
 
-        print(ang_vel)
+        print(ang_vel(*1 / 30))
 
         # self.imu_data.append([orientation_quat, ang_vel])
         # pickle.dump(self.imu_data, open("imu_data.pkl", "wb"))
