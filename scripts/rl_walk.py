@@ -194,46 +194,49 @@ class RLWalk:
         saved_obs = pickle.load(open("mujoco_saved_obs.pkl", "rb"))
         i = 0
         robot_computed_obs = []
-        while True:
-            start = time.time()
-            commands = [0.1, 0.0, 0.0]
-            obs = self.get_obs(commands)
-            robot_computed_obs.append(obs)
-            # obs = saved_obs[i]
-            obs = np.clip(obs, self.obs_clip[0], self.obs_clip[1])
+        try:
+            while True:
+                start = time.time()
+                commands = [0.1, 0.0, 0.0]
+                obs = self.get_obs(commands)
+                robot_computed_obs.append(obs)
+                # obs = saved_obs[i]
+                obs = np.clip(obs, self.obs_clip[0], self.obs_clip[1])
 
-            action = self.policy.infer(obs)
+                action = self.policy.infer(obs)
 
-            action = np.clip(action, self.action_clip[0], self.action_clip[1])
-            self.prev_action = action.copy()  # here ? # Maybe here
-            action = self.isaac_init_pos + action
+                action = np.clip(action, self.action_clip[0], self.action_clip[1])
+                self.prev_action = action.copy()  # here ? # Maybe here
+                action = self.isaac_init_pos + action
 
-            robot_action = isaac_to_mujoco(action)
+                robot_action = isaac_to_mujoco(action)
 
-            # robot_action = self.muj_command_value[i][1]
-            action_dict = make_action_dict(robot_action, mujoco_joints_order)
-            self.hwi.set_position_all(action_dict)
-            # robot_action_fake_antennas = list(robot_action) + [0, 0]
+                # robot_action = self.muj_command_value[i][1]
+                action_dict = make_action_dict(robot_action, mujoco_joints_order)
+                self.hwi.set_position_all(action_dict)
+                # robot_action_fake_antennas = list(robot_action) + [0, 0]
 
-            # present_positions_fake_antennas = list(self.hwi.get_present_positions()) + [
-            #     0,
-            #     0,
-            # ]
-            # self.robot_command_value.append(
-            #     [robot_action_fake_antennas, present_positions_fake_antennas]
-            # )
+                # present_positions_fake_antennas = list(self.hwi.get_present_positions()) + [
+                #     0,
+                #     0,
+                # ]
+                # self.robot_command_value.append(
+                #     [robot_action_fake_antennas, present_positions_fake_antennas]
+                # )
 
-            i += 1
-            took = time.time() - start
-            # print(
-            #     "FPS",
-            #     np.around(1 / took, 3),
-            #     "-- target",
-            #     self.control_freq,
-            # )
-            time.sleep((max(1 / self.control_freq - took, 0)))
-            if i > len(saved_obs) - 1:
-                break
+                i += 1
+                took = time.time() - start
+                # print(
+                #     "FPS",
+                #     np.around(1 / took, 3),
+                #     "-- target",
+                #     self.control_freq,
+                # )
+                time.sleep((max(1 / self.control_freq - took, 0)))
+                if i > len(saved_obs) - 1:
+                    break
+        except KeyboardInterrupt:
+            pass
 
         pickle.dump(robot_computed_obs, open("robot_computed_obs.pkl", "wb"))
 
