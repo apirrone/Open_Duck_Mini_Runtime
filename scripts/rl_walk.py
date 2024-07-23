@@ -122,9 +122,8 @@ class RLWalk:
 
             final_ang_vel = [-raw_ang_vel[1], raw_ang_vel[0], raw_ang_vel[2]]
             final_ang_vel = list(
-                np.array(final_ang_vel)
+                (np.array(final_ang_vel) / (1 / self.control_freq))
                 * self.angularVelocityScale
-                / (1 / self.control_freq)
             )
 
             self.imu_queue.put((final_orientation_quat, final_ang_vel))
