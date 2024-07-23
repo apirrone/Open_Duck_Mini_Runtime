@@ -11,8 +11,12 @@ from scipy.spatial.transform import Rotation as R
 
 from mini_bdx_runtime.hwi import HWI
 from mini_bdx_runtime.onnx_infer import OnnxInfer
-from mini_bdx_runtime.rl_utils import (isaac_to_mujoco, make_action_dict,
-                                       mujoco_joints_order, mujoco_to_isaac)
+from mini_bdx_runtime.rl_utils import (
+    isaac_to_mujoco,
+    make_action_dict,
+    mujoco_joints_order,
+    mujoco_to_isaac,
+)
 
 
 class RLWalk:
@@ -210,7 +214,7 @@ class RLWalk:
                 if obs is None:
                     break
                 robot_computed_obs.append(obs)
-                obs = saved_obs[i]
+                # obs = saved_obs[i]
                 obs = np.clip(obs, self.obs_clip[0], self.obs_clip[1])
 
                 action = self.policy.infer(obs)
