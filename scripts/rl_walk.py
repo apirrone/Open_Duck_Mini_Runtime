@@ -89,6 +89,7 @@ class RLWalk:
             # start = time.time()
             raw_orientation = self.imu.quaternion  # quat
             raw_ang_vel = np.deg2rad(self.imu.gyro)  # xyz
+            raw_ang_vel = np.deg2rad(self.imu.gyro)  # xyz
 
             # convert to correct axes. (??)
             quat = [
@@ -143,6 +144,8 @@ class RLWalk:
         else:
             orientation_quat = [1, 0, 0, 0]
             ang_vel = [0, 0, 0]
+
+        print(ang_vel)
 
         # self.imu_data.append([orientation_quat, ang_vel])
         # pickle.dump(self.imu_data, open("imu_data.pkl", "wb"))
@@ -207,7 +210,7 @@ class RLWalk:
 
             # robot_action = self.muj_command_value[i][1]
             action_dict = make_action_dict(robot_action, mujoco_joints_order)
-            self.hwi.set_position_all(action_dict)
+            # self.hwi.set_position_all(action_dict)
             # robot_action_fake_antennas = list(robot_action) + [0, 0]
 
             # present_positions_fake_antennas = list(self.hwi.get_present_positions()) + [
