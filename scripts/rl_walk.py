@@ -58,7 +58,7 @@ class RLWalk:
                 -0.014,
                 0.08,
                 0.53,
-                # -1.62,
+                -1.62,
                 -1.32,
                 0.91,
                 # left leg
@@ -185,7 +185,7 @@ class RLWalk:
 
     def start(self):
         self.hwi.turn_on()
-        pid = [300, 0, 100]
+        pid = [300, 0, 0]
         # pid = [100, 0, 50]
         self.hwi.set_pid_all(pid)
 
