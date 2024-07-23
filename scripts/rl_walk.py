@@ -46,35 +46,37 @@ class RLWalk:
         # self.dof_vel_scale = 0.05
         self.dof_vel_scale = 0.001
         self.action_clip = (-1, 1)
-        # self.action_clip = (-0.5, 0.5)
         self.obs_clip = (-5, 5)
         self.zero_yaw = None
+        self.action_scale = 0.1
 
         self.prev_action = np.zeros(15)
 
-        self.mujoco_init_pos = np.array(
-            [
-                # right_leg
-                -0.014,
-                0.08,
-                0.53,
-                -1.62,
-                -1.32,
-                0.91,
-                # left leg
-                0.013,
-                0.077,
-                0.59,
-                -1.33,
-                0.86,
-                # head
-                -0.17,
-                -0.17,
-                0.0,
-                0.0,
-                0.0,
-            ]
-        )
+        self.mujoco_init_pos = list(self.hwi.init_pos.values()) + [0, 0]
+
+        # self.mujoco_init_pos = np.array(
+        #     [
+        #         # right_leg
+        #         -0.014,
+        #         0.08,
+        #         0.53,
+        #         -1.62,
+        #         -1.32,
+        #         0.91,
+        #         # left leg
+        #         0.013,
+        #         0.077,
+        #         0.59,
+        #         -1.33,
+        #         0.86,
+        #         # head
+        #         -0.17,
+        #         -0.17,
+        #         0.0,
+        #         0.0,
+        #         0.0,
+        #     ]
+        # )
         self.isaac_init_pos = np.array(mujoco_to_isaac(self.mujoco_init_pos))
 
         # self.muj_command_value = pickle.load(
@@ -205,6 +207,7 @@ class RLWalk:
                 obs = np.clip(obs, self.obs_clip[0], self.obs_clip[1])
 
                 action = self.policy.infer(obs)
+                action = action * self.action_scale
 
                 action = np.clip(action, self.action_clip[0], self.action_clip[1])
                 self.prev_action = action.copy()  # here ? # Maybe here
