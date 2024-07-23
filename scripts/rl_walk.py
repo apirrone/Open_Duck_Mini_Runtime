@@ -48,7 +48,7 @@ class RLWalk:
         self.action_clip = (-1, 1)
         self.obs_clip = (-5, 5)
         self.zero_yaw = None
-        self.action_scale = 0.5
+        self.action_scale = 0.4
 
         self.prev_action = np.zeros(15)
 
@@ -187,7 +187,7 @@ class RLWalk:
 
     def start(self):
         self.hwi.turn_on()
-        pid = [1000, 0, 100]
+        pid = [500, 0, 100]
         # pid = [100, 0, 50]
         self.hwi.set_pid_all(pid)
 
