@@ -48,7 +48,7 @@ class RLWalk:
         self.action_clip = (-1, 1)
         self.obs_clip = (-5, 5)
         self.zero_yaw = None
-        self.action_scale = 0.4
+        self.action_scale = 0.3
 
         self.prev_action = np.zeros(15)
 
@@ -91,8 +91,13 @@ class RLWalk:
     def imu_worker(self):
         while True:
             # start = time.time()
-            raw_orientation = self.imu.quaternion  # quat
-            raw_ang_vel = np.deg2rad(self.imu.gyro)  # xyz
+            try:
+                raw_orientation = self.imu.quaternion  # quat
+                raw_ang_vel = np.deg2rad(self.imu.gyro)  # xyz
+            except Exception as e:
+                print(e)
+                self.imu_queue.put(([1, 0, 0, 0], [0, 0, 0]))
+                continue
 
             # convert to correct axes. (??)
             quat = [
@@ -148,6 +153,9 @@ class RLWalk:
 
         if not self.debug_no_imu:
             orientation_quat, ang_vel = self.get_imu_data()
+            if ang_vel == [0, 0, 0] or orientation_quat == [1, 0, 0, 0]:
+                print("IMU ERROR")
+                return None
         else:
             orientation_quat = [1, 0, 0, 0]
             ang_vel = [0, 0, 0]
@@ -202,6 +210,8 @@ class RLWalk:
                 start = time.time()
                 commands = [0.1, 0.0, 0.0]
                 obs = self.get_obs(commands)
+                if obs is None:
+                    break
                 robot_computed_obs.append(obs)
                 # obs = saved_obs[i]
                 obs = np.clip(obs, self.obs_clip[0], self.obs_clip[1])
