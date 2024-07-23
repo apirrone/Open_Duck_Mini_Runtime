@@ -96,7 +96,7 @@ class RLWalk:
                 raw_ang_vel = np.deg2rad(self.imu.gyro)  # xyz
             except Exception as e:
                 print(e)
-                self.imu_queue.put(([1, 0, 0, 0], [0, 0, 0]))
+                self.imu_queue.put((None, None))
                 continue
 
             # convert to correct axes. (??)
@@ -153,7 +153,7 @@ class RLWalk:
 
         if not self.debug_no_imu:
             orientation_quat, ang_vel = self.get_imu_data()
-            if ang_vel == [0, 0, 0] or orientation_quat == [1, 0, 0, 0]:
+            if ang_vel is None or orientation_quat is None:
                 print("IMU ERROR")
                 return None
         else:
