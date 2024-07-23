@@ -96,7 +96,7 @@ class RLWalk:
                 raw_ang_vel = np.deg2rad(self.imu.gyro)  # xyz
             except Exception as e:
                 print(e)
-                self.imu_queue.put((None, None))
+                # self.imu_queue.put((None, None))
                 continue
 
             # convert to correct axes. (??)
