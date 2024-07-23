@@ -43,12 +43,12 @@ class RLWalk:
 
         self.angularVelocityScale = 0.25
         self.dof_pos_scale = 1.0
-        # self.dof_vel_scale = 0.05
-        self.dof_vel_scale = 0.001
+        self.dof_vel_scale = 0.05
+        # self.dof_vel_scale = 0.001
         self.action_clip = (-1, 1)
         self.obs_clip = (-5, 5)
         self.zero_yaw = None
-        self.action_scale = 0.1
+        self.action_scale = 0.5
 
         self.prev_action = np.zeros(15)
 
@@ -187,7 +187,7 @@ class RLWalk:
 
     def start(self):
         self.hwi.turn_on()
-        pid = [500, 0, 10]
+        pid = [1000, 0, 100]
         # pid = [100, 0, 50]
         self.hwi.set_pid_all(pid)
 
