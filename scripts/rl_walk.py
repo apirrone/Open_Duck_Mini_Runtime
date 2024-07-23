@@ -179,14 +179,14 @@ class RLWalk:
 
     def start(self):
         self.hwi.turn_on()
-        pid = [1000, 0, 200]
+        pid = [500, 0, 100]
         # pid = [100, 0, 50]
         self.hwi.set_pid_all(pid)
 
         time.sleep(5)
 
     def run(self):
-        saved_obs = pickle.load(open("saved_obs.pkl", "rb"))
+        saved_obs = pickle.load(open("mujoco_saved_obs.pkl", "rb"))
         i = 0
         robot_computed_obs = []
         while True:
