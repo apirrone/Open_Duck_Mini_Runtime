@@ -201,7 +201,7 @@ class RLWalk:
             commands = [0.1, 0.0, 0.0]
             obs = self.get_obs(commands)
             robot_computed_obs.append(obs)
-            obs = saved_obs[i]
+            # obs = saved_obs[i]
             obs = np.clip(obs, self.obs_clip[0], self.obs_clip[1])
 
             action = self.policy.infer(obs)
