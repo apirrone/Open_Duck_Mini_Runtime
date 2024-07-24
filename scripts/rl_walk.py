@@ -155,31 +155,45 @@ class RLWalk:
         robot_computed_obs = []
         try:
             print("Starting")
+            commands = [0.0, 0.0, 0.0]
             while True:
                 start = time.time()
-                commands = [0.0, 0.0, 0.0]
+                get_obs_time = time.time()
                 obs = self.get_obs(commands)
+                print("Get obs took", time.time() - get_obs_time)
                 if obs is None:
                     break
+
+                robot_computed_obs_time = time.time()
                 robot_computed_obs.append(obs)
+                print("Robot computed obs took", time.time() - robot_computed_obs_time)
                 # obs = saved_obs[i]
                 obs = np.clip(obs, self.obs_clip[0], self.obs_clip[1])
 
+                infer_time = time.time()
                 action = self.policy.infer(obs)
+                print("Infer took", time.time() - infer_time)
 
                 action = action * self.action_scale
                 action = np.clip(action, self.action_clip[0], self.action_clip[1])
 
+                action_filter_time = time.time()
                 self.action_filter.push(action)
                 action = self.action_filter.get_filtered_action()
+                print("Action filter took", time.time() - action_filter_time)
 
                 self.prev_action = action.copy()  # here ? # Maybe here
                 action = self.isaac_init_pos + action
 
                 robot_action = isaac_to_mujoco(action)
 
+                action_dict_time = time.time()
                 action_dict = make_action_dict(robot_action, mujoco_joints_order)
+                print("Action dict took", time.time() - action_dict_time)
+
+                set_position_time = time.time()
                 self.hwi.set_position_all(action_dict)
+                print("Set position took", time.time() - set_position_time)
 
                 i += 1
                 took = time.time() - start
@@ -190,6 +204,7 @@ class RLWalk:
                     self.control_freq,
                 )
                 time.sleep((max(1 / self.control_freq - took, 0)))
+                print("===")
                 # if i > len(saved_obs) - 1:
                 #     break
         except KeyboardInterrupt:
