@@ -7,7 +7,7 @@ from mini_bdx_runtime.io_330 import Dxl330IO
 
 
 class HWI:
-    def __init__(self, usb_port="/dev/ttyUSB1", baudrate=2000000):
+    def __init__(self, usb_port="/dev/ttyUSB1", baudrate=3000000):
         self.dxl_io = Dxl330IO(usb_port, baudrate=baudrate, use_sync_read=False)
         self.joints = {
             "right_hip_yaw": 10,
