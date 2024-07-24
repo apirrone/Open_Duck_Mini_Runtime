@@ -98,6 +98,7 @@ class RLWalk:
         # TODO There is something wrong here.
         # Plot the computed observations when replaying with the saved observations to see
 
+        get_imu_data_time = time.time()
         if not self.debug_no_imu:
             orientation_quat, ang_vel = self.get_imu_data()
             if ang_vel is None or orientation_quat is None:
@@ -106,9 +107,14 @@ class RLWalk:
         else:
             orientation_quat = [1, 0, 0, 0]
             ang_vel = [0, 0, 0]
+        print("get_imu_data_time", time.time() - get_imu_data_time)
 
+        dof_pos_time = time.time()
         dof_pos = self.hwi.get_present_positions()  # rad
+        print("dof_pos_time", time.time() - dof_pos_time)
+        dof_vel_time = time.time()
         dof_vel = self.hwi.get_present_velocities()  # rev/min
+        print("dof_vel_time", time.time() - dof_vel_time)
 
         dof_pos_scaled = list(
             np.array(dof_pos - self.mujoco_init_pos[:13]) * self.dof_pos_scale
@@ -155,57 +161,42 @@ class RLWalk:
         robot_computed_obs = []
         try:
             print("Starting")
-            commands = [0.0, 0.0, 0.0]
             while True:
                 start = time.time()
-                get_obs_time = time.time()
+                commands = [0.0, 0.0, 0.0]
                 obs = self.get_obs(commands)
-                print("Get obs took", time.time() - get_obs_time)
                 if obs is None:
                     break
-
-                robot_computed_obs_time = time.time()
                 robot_computed_obs.append(obs)
-                print("Robot computed obs took", time.time() - robot_computed_obs_time)
                 # obs = saved_obs[i]
                 obs = np.clip(obs, self.obs_clip[0], self.obs_clip[1])
 
-                infer_time = time.time()
                 action = self.policy.infer(obs)
-                print("Infer took", time.time() - infer_time)
 
                 action = action * self.action_scale
                 action = np.clip(action, self.action_clip[0], self.action_clip[1])
 
-                action_filter_time = time.time()
                 self.action_filter.push(action)
                 action = self.action_filter.get_filtered_action()
-                print("Action filter took", time.time() - action_filter_time)
 
                 self.prev_action = action.copy()  # here ? # Maybe here
                 action = self.isaac_init_pos + action
 
                 robot_action = isaac_to_mujoco(action)
 
-                action_dict_time = time.time()
                 action_dict = make_action_dict(robot_action, mujoco_joints_order)
-                print("Action dict took", time.time() - action_dict_time)
-
-                set_position_time = time.time()
                 self.hwi.set_position_all(action_dict)
-                print("Set position took", time.time() - set_position_time)
 
                 i += 1
                 took = time.time() - start
-                print("all took", took)
                 print(
                     "FPS",
                     np.around(1 / took, 3),
                     "-- target",
                     self.control_freq,
                 )
-                time.sleep((max(1 / self.control_freq - took, 0)))
                 print("===")
+                time.sleep((max(1 / self.control_freq - took, 0)))
                 # if i > len(saved_obs) - 1:
                 #     break
         except KeyboardInterrupt:
