@@ -166,12 +166,12 @@ class RLWalk:
                 action = self.action_filter.get_filtered_action()
 
                 self.prev_action = action.copy()  # here ? # Maybe here
-                action = self.isaac_init_pos - action
+                action = self.isaac_init_pos + action
 
                 robot_action = isaac_to_mujoco(action)
 
                 action_dict = make_action_dict(robot_action, mujoco_joints_order)
-                self.hwi.set_position_all(action_dict)
+                # self.hwi.set_position_all(action_dict)
 
                 i += 1
                 took = time.time() - start
