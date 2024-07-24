@@ -90,7 +90,7 @@ class RLWalk:
                 print(e)
                 continue
 
-            # rot_mat = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]]) @ rot_mat
+            rot_mat = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]]) @ rot_mat
 
             # tmp = np.eye(4)
             # tmp[:3, :3] = rot_mat
