@@ -94,6 +94,10 @@ class HWI:
         goal = {joint: 0 for joint in self.joints.values()}
         self.dxl_io.set_goal_position(goal)
 
+    def goto_zero(self):
+        goal = {joint: 0 for joint in self.joints.values()}
+        self.dxl_io.set_goal_position(goal)
+
     def set_position_all(self, joints_positions):
         """
         joints_positions is a dictionary with joint names as keys and joint positions as values

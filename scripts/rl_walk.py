@@ -136,7 +136,11 @@ class RLWalk:
     def start(self):
         self.hwi.turn_on()
         pid = [1000, 0, 300]
-        # pid = [100, 0, 50]
+        pid = [100, 0, 50]
+        self.hwi.set_pid_all(pid)
+        self.hwi.goto_zero()
+        time.sleep(1)
+        pid = [1000, 0, 300]
         self.hwi.set_pid_all(pid)
 
         time.sleep(5)
