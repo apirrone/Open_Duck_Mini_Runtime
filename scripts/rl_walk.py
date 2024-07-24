@@ -12,6 +12,7 @@ from scipy.spatial.transform import Rotation as R
 from mini_bdx_runtime.hwi import HWI
 from mini_bdx_runtime.onnx_infer import OnnxInfer
 from mini_bdx_runtime.rl_utils import (
+    ActionFilter,
     isaac_to_mujoco,
     make_action_dict,
     mujoco_joints_order,
@@ -24,7 +25,7 @@ class RLWalk:
         self,
         onnx_model_path: str,
         serial_port: str = "/dev/ttyUSB0",
-        control_freq: float = 60,
+        control_freq: float = 30,
         debug_no_imu: bool = False,
         action_scale=0.1,
     ):
@@ -32,6 +33,7 @@ class RLWalk:
         self.onnx_model_path = onnx_model_path
         self.policy = OnnxInfer(self.onnx_model_path)
         self.hwi = HWI(serial_port)
+        self.action_filter = ActionFilter(window_size=10)
         if not self.debug_no_imu:
             self.uart = serial.Serial("/dev/ttyS0")  # , baudrate=115200)
             self.imu = adafruit_bno055.BNO055_UART(self.uart)
@@ -54,50 +56,15 @@ class RLWalk:
         self.prev_action = np.zeros(15)
 
         self.mujoco_init_pos = list(self.hwi.init_pos.values()) + [0, 0]
-
-        # self.mujoco_init_pos = np.array(
-        #     [
-        #         # right_leg
-        #         -0.014,
-        #         0.08,
-        #         0.53,
-        #         -1.62,
-        #         -1.32,
-        #         0.91,
-        #         # left leg
-        #         0.013,
-        #         0.077,
-        #         0.59,
-        #         -1.33,
-        #         0.86,
-        #         # head
-        #         -0.17,
-        #         -0.17,
-        #         0.0,
-        #         0.0,
-        #         0.0,
-        #     ]
-        # )
         self.isaac_init_pos = np.array(mujoco_to_isaac(self.mujoco_init_pos))
-
-        # self.muj_command_value = pickle.load(
-        #     open(
-        #         "/home/antoine/MISC/mini_BDX/experiments/mujoco/mujoco_command_value.pkl",
-        #         "rb",
-        #     )
-        # )
-        # self.robot_command_value = []
-        # self.imu_data = []
 
     def imu_worker(self):
         while True:
-            # start = time.time()
             try:
                 raw_orientation = self.imu.quaternion  # quat
                 raw_ang_vel = np.deg2rad(self.imu.gyro)  # xyz
             except Exception as e:
                 print(e)
-                # self.imu_queue.put((None, None))
                 continue
 
             # convert to correct axes. (??)
@@ -140,7 +107,6 @@ class RLWalk:
             )
 
             self.imu_queue.put((final_orientation_quat, final_ang_vel))
-            # print("imu worker took", time.time() - start)
             time.sleep(1 / (self.control_freq / 2))
 
     def get_imu_data(self):
@@ -164,9 +130,6 @@ class RLWalk:
             orientation_quat = [1, 0, 0, 0]
             ang_vel = [0, 0, 0]
 
-        # self.imu_data.append([orientation_quat, ang_vel])
-        # pickle.dump(self.imu_data, open("imu_data.pkl", "wb"))
-
         dof_pos = self.hwi.get_present_positions()  # rad
         dof_vel = self.hwi.get_present_velocities()  # rev/min
 
@@ -176,18 +139,14 @@ class RLWalk:
         dof_vel_scaled = list(np.array(dof_vel) * self.dof_vel_scale)
 
         # adding fake antennas
-
         dof_pos_scaled = np.concatenate([dof_pos_scaled, [0, 0]])
         dof_vel_scaled = np.concatenate([dof_vel_scaled, [0, 0]])
 
         dof_pos_scaled = mujoco_to_isaac(dof_pos_scaled)
         dof_vel_scaled = mujoco_to_isaac(dof_vel_scaled)
 
-        fake_lin_vel = [0.02, 0, 0]
-
         return np.concatenate(
             [
-                # fake_lin_vel,
                 orientation_quat,
                 ang_vel,
                 dof_pos_scaled,
@@ -229,18 +188,11 @@ class RLWalk:
 
                 robot_action = isaac_to_mujoco(action)
 
-                # robot_action = self.muj_command_value[i][1]
+                self.action_filter.push(robot_action)
+                robot_action = self.action_filter.get_filtered_action()
+
                 action_dict = make_action_dict(robot_action, mujoco_joints_order)
                 self.hwi.set_position_all(action_dict)
-                # robot_action_fake_antennas = list(robot_action) + [0, 0]
-
-                # present_positions_fake_antennas = list(self.hwi.get_present_positions()) + [
-                #     0,
-                #     0,
-                # ]
-                # self.robot_command_value.append(
-                #     [robot_action_fake_antennas, present_positions_fake_antennas]
-                # )
 
                 i += 1
                 took = time.time() - start

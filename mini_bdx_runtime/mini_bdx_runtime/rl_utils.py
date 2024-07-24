@@ -5,6 +5,7 @@
 #
 # We need to reorder the joints to match the IsaacGymEnvs order
 #
+import numpy as np
 
 mujoco_joints_order = [
     "right_hip_yaw",
@@ -104,3 +105,26 @@ def make_action_dict(action, joints_order):
             action_dict[joints_order[i]] = a
 
     return action_dict
+
+
+class ActionFilter:
+    def __init__(self, window_size=10):
+        self.window_size = window_size
+        self.action_buffer = []
+
+    def push(self, action):
+        self.action_buffer.append(action)
+        if len(self.action_buffer) > self.window_size:
+            self.action_buffer.pop(0)
+
+    def get_filtered_action(self):
+        return np.mean(self.action_buffer, axis=0)
+
+
+# if __name__ == "__main__":
+#     af = ActionFilter(window_size=10)
+#     while True:
+#         action = np.random.rand(15)
+
+#         af.push(action)
+#         print(af.get_filtered_action())
