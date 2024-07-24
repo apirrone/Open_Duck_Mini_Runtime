@@ -69,7 +69,7 @@ class RLWalk:
                 print(e)
                 continue
 
-            # quat = raw_orientation
+            quat = raw_orientation
 
             # convert to correct axes. (??)
             # quat = [
@@ -78,19 +78,19 @@ class RLWalk:
             #     raw_orientation[1],
             #     raw_orientation[2],
             # ]
-            quat = [
-                raw_orientation[1],
-                raw_orientation[2],
-                raw_orientation[3],
-                raw_orientation[0],
-            ]
-            try:
-                rot_mat = R.from_quat(quat).as_matrix()
-            except Exception as e:
-                print(e)
-                continue
+            # quat = [
+            #     raw_orientation[1],
+            #     raw_orientation[2],
+            #     raw_orientation[3],
+            #     raw_orientation[0],
+            # ]
+            # try:
+            #     rot_mat = R.from_quat(quat).as_matrix()
+            # except Exception as e:
+            #     print(e)
+            #     continue
 
-            rot_mat = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]]) @ rot_mat
+            # rot_mat = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]]) @ rot_mat
 
             # tmp = np.eye(4)
             # tmp[:3, :3] = rot_mat
@@ -102,9 +102,9 @@ class RLWalk:
             # final_orientation_mat = tmp[:3, :3]
             # final_orientation_quat = R.from_matrix(final_orientation_mat).as_quat()
 
-            final_orientation_mat = rot_mat
-            final_orientation_quat = R.from_matrix(final_orientation_mat).as_quat()
-            # final_orientation_quat = quat
+            # final_orientation_mat = rot_mat
+            # final_orientation_quat = R.from_matrix(final_orientation_mat).as_quat()
+            final_orientation_quat = quat
 
             final_ang_vel = [-raw_ang_vel[1], raw_ang_vel[0], raw_ang_vel[2]]
             final_ang_vel = list(
