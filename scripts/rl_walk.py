@@ -149,7 +149,7 @@ class RLWalk:
             print("Starting")
             while True:
                 start = time.time()
-                commands = [0.1, 0.0, 0.0]
+                commands = [0.0, 0.0, 0.0]
                 obs = self.get_obs(commands)
                 if obs is None:
                     break
