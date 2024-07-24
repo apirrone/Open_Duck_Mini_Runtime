@@ -142,7 +142,7 @@ class RLWalk:
         time.sleep(5)
 
     def run(self):
-        saved_obs = pickle.load(open("mujoco_saved_obs.pkl", "rb"))
+        # saved_obs = pickle.load(open("mujoco_saved_obs.pkl", "rb"))
         i = 0
         robot_computed_obs = []
         try:
