@@ -24,7 +24,7 @@ class RLWalk:
         self,
         onnx_model_path: str,
         serial_port: str = "/dev/ttyUSB0",
-        control_freq: float = 30,
+        control_freq: float = 60,
         debug_no_imu: bool = False,
         action_scale=0.1,
     ):
@@ -222,9 +222,9 @@ class RLWalk:
 
                 action = self.policy.infer(obs)
 
+                action = action * self.action_scale
                 action = np.clip(action, self.action_clip[0], self.action_clip[1])
                 self.prev_action = action.copy()  # here ? # Maybe here
-                action = action * self.action_scale
                 action = self.isaac_init_pos + action
 
                 robot_action = isaac_to_mujoco(action)
