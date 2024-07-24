@@ -141,7 +141,7 @@ class RLWalk:
 
     def start(self):
         self.hwi.turn_on()
-        pid = [1000, 100, 100]
+        pid = [1000, 0, 500]
         # pid = [100, 0, 50]
         self.hwi.set_pid_all(pid)
         for name in ["neck_pitch", "head_pitch", "head_yaw"]:
