@@ -65,12 +65,16 @@ class RLWalk:
             try:
                 raw_orientation = self.imu.quaternion  # quat
                 raw_ang_vel = np.deg2rad(self.imu.gyro)  # xyz
+                euler = R.from_quat(raw_orientation).as_euler("xyz")
             except Exception as e:
                 print(e)
                 continue
 
-            quat = raw_orientation
+            euler = [euler[1], euler[2], euler[0]]
+            euler[2] = 0
+            final_orientation_quat = R.from_euler("xyz", euler).as_quat()
 
+            # quat = raw_orientation
             # convert to correct axes. (??)
             # quat = [
             #     raw_orientation[3],
@@ -104,7 +108,7 @@ class RLWalk:
 
             # final_orientation_mat = rot_mat
             # final_orientation_quat = R.from_matrix(final_orientation_mat).as_quat()
-            final_orientation_quat = quat
+            # final_orientation_quat = quat
 
             final_ang_vel = [-raw_ang_vel[1], raw_ang_vel[0], raw_ang_vel[2]]
             final_ang_vel = list(
