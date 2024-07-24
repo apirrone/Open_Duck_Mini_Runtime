@@ -197,6 +197,7 @@ class RLWalk:
 
                 i += 1
                 took = time.time() - start
+                print("all took", took)
                 print(
                     "FPS",
                     np.around(1 / took, 3),
