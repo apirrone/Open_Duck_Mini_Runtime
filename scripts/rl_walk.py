@@ -70,13 +70,18 @@ class RLWalk:
                 continue
 
             # convert to correct axes. (??)
+            # quat = [
+            #     raw_orientation[3],
+            #     raw_orientation[0],
+            #     raw_orientation[1],
+            #     raw_orientation[2],
+            # ]
             quat = [
-                raw_orientation[3],
-                raw_orientation[0],
                 raw_orientation[1],
                 raw_orientation[2],
+                raw_orientation[3],
+                raw_orientation[0],
             ]
-
             try:
                 rot_mat = R.from_quat(quat).as_matrix()
             except Exception as e:
