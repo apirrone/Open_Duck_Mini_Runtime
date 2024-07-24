@@ -142,7 +142,7 @@ class RLWalk:
         time.sleep(5)
 
     def run(self):
-        # saved_obs = pickle.load(open("mujoco_saved_obs.pkl", "rb"))
+        saved_obs = pickle.load(open("mujoco_saved_obs.pkl", "rb"))
         i = 0
         robot_computed_obs = []
         try:
@@ -154,7 +154,7 @@ class RLWalk:
                 if obs is None:
                     break
                 robot_computed_obs.append(obs)
-                # obs = saved_obs[i]
+                obs = saved_obs[i]
                 obs = np.clip(obs, self.obs_clip[0], self.obs_clip[1])
 
                 action = self.policy.infer(obs)
