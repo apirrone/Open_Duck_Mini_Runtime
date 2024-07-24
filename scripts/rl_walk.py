@@ -119,14 +119,17 @@ class RLWalk:
             tmp = np.eye(4)
             tmp[:3, :3] = rot_mat
             tmp = fv_utils.rotateInSelf(tmp, [0, 0, 90])
-            if self.zero_yaw is None:
-                self.zero_yaw = R.from_matrix(tmp[:3, :3]).as_euler(
-                    "xyz", degrees=False
-                )[2]
-            tmp[:3, :3] = (
-                R.from_euler("xyz", [0, 0, -self.zero_yaw], degrees=False).as_matrix()
-                @ tmp[:3, :3]
-            )
+            tmp_euler = R.from_matrix(tmp[:3, :3]).as_euler("xyz", degrees=False)
+            tmp_euler[2] = 0
+            tmp[:3, :3] = R.from_euler("xyz", tmp_euler, degrees=False).as_matrix()
+            # if self.zero_yaw is None:
+            #     self.zero_yaw = R.from_matrix(tmp[:3, :3]).as_euler(
+            #         "xyz", degrees=False
+            #     )[2]
+            # tmp[:3, :3] = (
+            #     R.from_euler("xyz", [0, 0, -self.zero_yaw], degrees=False).as_matrix()
+            #     @ tmp[:3, :3]
+            # )
             final_orientation_mat = tmp[:3, :3]
             final_orientation_quat = R.from_matrix(final_orientation_mat).as_quat()
 
