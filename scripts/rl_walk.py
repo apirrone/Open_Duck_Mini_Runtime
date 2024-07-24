@@ -70,45 +70,12 @@ class RLWalk:
                 print(e)
                 continue
 
+            # Converting to correct axes
             euler = [euler[1], euler[2], euler[0]]
+            # zero yaw
             euler[2] = 0
+
             final_orientation_quat = R.from_euler("xyz", euler).as_quat()
-
-            # quat = raw_orientation
-            # convert to correct axes. (??)
-            # quat = [
-            #     raw_orientation[3],
-            #     raw_orientation[0],
-            #     raw_orientation[1],
-            #     raw_orientation[2],
-            # ]
-            # quat = [
-            #     raw_orientation[1],
-            #     raw_orientation[2],
-            #     raw_orientation[3],
-            #     raw_orientation[0],
-            # ]
-            # try:
-            #     rot_mat = R.from_quat(quat).as_matrix()
-            # except Exception as e:
-            #     print(e)
-            #     continue
-
-            # rot_mat = np.array([[1, 0, 0], [0, -1, 0], [0, 0, -1]]) @ rot_mat
-
-            # tmp = np.eye(4)
-            # tmp[:3, :3] = rot_mat
-            # tmp = fv_utils.rotateInSelf(tmp, [0, 0, 90])
-            # tmp_euler = R.from_matrix(tmp[:3, :3]).as_euler("xyz", degrees=False)
-            # tmp_euler[2] = 0
-            # tmp[:3, :3] = R.from_euler("xyz", tmp_euler, degrees=False).as_matrix()
-
-            # final_orientation_mat = tmp[:3, :3]
-            # final_orientation_quat = R.from_matrix(final_orientation_mat).as_quat()
-
-            # final_orientation_mat = rot_mat
-            # final_orientation_quat = R.from_matrix(final_orientation_mat).as_quat()
-            # final_orientation_quat = quat
 
             final_ang_vel = [-raw_ang_vel[1], raw_ang_vel[0], raw_ang_vel[2]]
             final_ang_vel = list(
@@ -194,13 +161,14 @@ class RLWalk:
 
                 action = action * self.action_scale
                 action = np.clip(action, self.action_clip[0], self.action_clip[1])
+
+                self.action_filter.push(action)
+                action = self.action_filter.get_filtered_action()
+
                 self.prev_action = action.copy()  # here ? # Maybe here
                 action = self.isaac_init_pos + action
 
                 robot_action = isaac_to_mujoco(action)
-
-                self.action_filter.push(robot_action)
-                robot_action = self.action_filter.get_filtered_action()
 
                 action_dict = make_action_dict(robot_action, mujoco_joints_order)
                 self.hwi.set_position_all(action_dict)
