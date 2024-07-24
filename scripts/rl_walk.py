@@ -142,6 +142,8 @@ class RLWalk:
         time.sleep(1)
         pid = [1000, 0, 300]
         self.hwi.set_pid_all(pid)
+        time.sleep(1)
+        exit()
 
         time.sleep(5)
 
