@@ -199,7 +199,7 @@ class RLWalk:
 
     def start(self):
         self.hwi.turn_on()
-        pid = [500, 0, 50]
+        pid = [500, 0, 300]
         # pid = [100, 0, 50]
         self.hwi.set_pid_all(pid)
 
@@ -221,10 +221,10 @@ class RLWalk:
                 obs = np.clip(obs, self.obs_clip[0], self.obs_clip[1])
 
                 action = self.policy.infer(obs)
-                action = action * self.action_scale
 
                 action = np.clip(action, self.action_clip[0], self.action_clip[1])
                 self.prev_action = action.copy()  # here ? # Maybe here
+                action = action * self.action_scale
                 action = self.isaac_init_pos + action
 
                 robot_action = isaac_to_mujoco(action)
