@@ -84,7 +84,7 @@ class RLWalk:
             )
 
             self.imu_queue.put((final_orientation_quat, final_ang_vel))
-            time.sleep(1 / (self.control_freq / 2))
+            time.sleep(1 / self.control_freq)
 
     def get_imu_data(self):
         try:
@@ -138,6 +138,8 @@ class RLWalk:
         pid = [1000, 0, 300]
         # pid = [100, 0, 50]
         self.hwi.set_pid_all(pid)
+        for name in ["neck_pitch", "head_pitch", "head_yaw"]:
+            self.hwi.set_pid([100, 0, 0], name)
         # self.hwi.goto_zero()
         # time.sleep(1)
         # pid = [1000, 0, 300]
