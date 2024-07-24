@@ -98,7 +98,7 @@ class RLWalk:
         # TODO There is something wrong here.
         # Plot the computed observations when replaying with the saved observations to see
 
-        get_imu_data_time = time.time()
+        # get_imu_data_time = time.time()
         if not self.debug_no_imu:
             orientation_quat, ang_vel = self.get_imu_data()
             if ang_vel is None or orientation_quat is None:
@@ -107,14 +107,14 @@ class RLWalk:
         else:
             orientation_quat = [1, 0, 0, 0]
             ang_vel = [0, 0, 0]
-        print("get_imu_data_time", time.time() - get_imu_data_time)
+        # print("get_imu_data_time", time.time() - get_imu_data_time)
 
-        dof_pos_time = time.time()
+        # dof_pos_time = time.time()
         dof_pos = self.hwi.get_present_positions()  # rad
-        print("dof_pos_time", time.time() - dof_pos_time)
-        dof_vel_time = time.time()
+        # print("dof_pos_time", time.time() - dof_pos_time)
+        # dof_vel_time = time.time()
         dof_vel = self.hwi.get_present_velocities()  # rev/min
-        print("dof_vel_time", time.time() - dof_vel_time)
+        # print("dof_vel_time", time.time() - dof_vel_time)
 
         dof_pos_scaled = list(
             np.array(dof_pos - self.mujoco_init_pos[:13]) * self.dof_pos_scale
@@ -141,7 +141,7 @@ class RLWalk:
 
     def start(self):
         self.hwi.turn_on()
-        pid = [1000, 0, 100]
+        pid = [1000, 100, 100]
         # pid = [100, 0, 50]
         self.hwi.set_pid_all(pid)
         for name in ["neck_pitch", "head_pitch", "head_yaw"]:
@@ -189,13 +189,13 @@ class RLWalk:
 
                 i += 1
                 took = time.time() - start
-                print(
-                    "FPS",
-                    np.around(1 / took, 3),
-                    "-- target",
-                    self.control_freq,
-                )
-                print("===")
+                # print(
+                #     "FPS",
+                #     np.around(1 / took, 3),
+                #     "-- target",
+                #     self.control_freq,
+                # )
+                # print("===")
                 time.sleep((max(1 / self.control_freq - took, 0)))
                 # if i > len(saved_obs) - 1:
                 #     break
