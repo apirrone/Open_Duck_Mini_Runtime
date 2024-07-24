@@ -38,7 +38,8 @@ class RLWalk:
             self.uart = serial.Serial("/dev/ttyS0")  # , baudrate=115200)
             self.imu = adafruit_bno055.BNO055_UART(self.uart)
             # self.imu.mode = adafruit_bno055.NDOF_MODE
-            self.imu.mode = adafruit_bno055.GYRONLY_MODE
+            # self.imu.mode = adafruit_bno055.GYRONLY_MODE
+            self.imu.mode = adafruit_bno055.IMUPLUS_MODE
             self.last_imu_data = ([0, 0, 0, 0], [0, 0, 0])
             self.imu_queue = Queue()
             Thread(target=self.imu_worker, daemon=True).start()
