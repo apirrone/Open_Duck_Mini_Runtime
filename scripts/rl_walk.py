@@ -31,6 +31,7 @@ class RLWalk:
         pid=[1000, 0, 500],
         window_size=20,
         action_scale=0.1,
+        cutoff_requency=10.0,
     ):
         self.debug_no_imu = debug_no_imu
         self.onnx_model_path = onnx_model_path
@@ -38,7 +39,7 @@ class RLWalk:
         self.hwi = HWI(serial_port)
         # self.action_filter = ActionFilter(window_size=window_size)
         self.action_filter = LowPassActionFilter(
-            control_freq=control_freq, cutoff_frequency=10.0
+            control_freq=control_freq, cutoff_frequency=cutoff_requency
         )
         if not self.debug_no_imu:
             self.uart = serial.Serial("/dev/ttyS0")  # , baudrate=115200)
@@ -216,7 +217,8 @@ if __name__ == "__main__":
     parser.add_argument("-i", type=int, default=0)
     parser.add_argument("-d", type=int, default=500)
     parser.add_argument("-w", type=int, default=20)
-    parser.add_argument("-c", type=int, default=60)
+    parser.add_argument("-c", "--control_freq", type=int, default=60)
+    parser.add_argument("--cutoff_frequency", type=int, default=10)
     args = parser.parse_args()
     pid = [args.p, args.i, args.d]
 
@@ -227,6 +229,7 @@ if __name__ == "__main__":
         pid=pid,
         window_size=args.w,
         control_freq=args.c,
+        cutoff_requency=args.cutoff_frequency,
     )
     rl_walk.start()
     rl_walk.run()
