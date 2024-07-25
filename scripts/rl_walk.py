@@ -111,7 +111,7 @@ class RLWalk:
             orientation_quat = [1, 0, 0, 0]
             ang_vel = [0, 0, 0]
 
-        print(ang_vel)
+        print(np.around(np.rad2deg(ang_vel), 2))
         print("==")
         # print("get_imu_data_time", time.time() - get_imu_data_time)
 
