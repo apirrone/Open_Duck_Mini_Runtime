@@ -25,7 +25,7 @@ class RLWalk:
         self,
         onnx_model_path: str,
         serial_port: str = "/dev/ttyUSB0",
-        control_freq: float = 30,
+        control_freq: float = 60,
         debug_no_imu: bool = False,
         action_scale=0.1,
     ):
