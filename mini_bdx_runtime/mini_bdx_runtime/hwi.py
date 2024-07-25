@@ -25,38 +25,41 @@ class HWI:
             "head_yaw": 32,
         }
         # self.init_pos = {
-        #     "right_hip_yaw": 0.0012322806287681889,
-        #     "right_hip_roll": 0.02326413299385176,
-        #     "right_hip_pitch": 0.897352997720036,
-        #     "right_knee": -1.3590427732988653,
-        #     "right_ankle": 0.7617041101973798,
-        #     "left_hip_yaw": -0.0012322806287510275,
-        #     "left_hip_roll": 0.02326413299396169,
-        #     "left_hip_pitch": 0.9488873968876821,
-        #     "left_knee": -1.3490097909463939,
-        #     "left_ankle": 0.7001367286772635,
-        #     "neck_pitch": -0.1835609559422233,
-        #     "head_pitch": -0.1834247585248765,
-        #     "head_yaw": -9.174169188795582e-16,
+        #     "right_hip_yaw": -0.014,  # [rad]
+        #     "right_hip_roll": 0.08,  # [rad]
+        #     "right_hip_pitch": 0.53,  # [rad]
+        #     "right_knee": -1.32,  # [rad]
+        #     # "right_knee": -1.22,  # [rad]
+        #     "right_ankle": 0.91,  # [rad]
+        #     "left_hip_yaw": 0.013,  # [rad]
+        #     "left_hip_roll": 0.077,  # [rad]
+        #     "left_hip_pitch": 0.59,  # [rad]
+        #     "left_knee": -1.33,  # [rad]
+        #     # "left_knee": -1.23,  # [rad]
+        #     "left_ankle": 0.86,  # [rad]
+        #     "neck_pitch": -0.17,  # [rad]
+        #     "head_pitch": -0.17,  # [rad]
+        #     "head_yaw": 0.0,  # [rad]
+        #     # "left_antenna": 0.0,  # [rad]
+        #     # "right_antenna": 0.0,  # [rad]
         # }
+
         self.init_pos = {
-            "right_hip_yaw": -0.014,  # [rad]
-            "right_hip_roll": 0.08,  # [rad]
-            "right_hip_pitch": 0.53,  # [rad]
-            "right_knee": -1.32,  # [rad]
-            # "right_knee": -1.22,  # [rad]
-            "right_ankle": 0.91,  # [rad]
-            "left_hip_yaw": 0.013,  # [rad]
-            "left_hip_roll": 0.077,  # [rad]
-            "left_hip_pitch": 0.59,  # [rad]
-            "left_knee": -1.33,  # [rad]
-            # "left_knee": -1.23,  # [rad]
-            "left_ankle": 0.86,  # [rad]
-            "neck_pitch": -0.17,  # [rad]
-            "head_pitch": -0.17,  # [rad]
-            "head_yaw": 0.0,  # [rad]
-            # "left_antenna": 0.0,  # [rad]
-            # "right_antenna": 0.0,  # [rad]
+            "right_hip_yaw": -0.03624976502864328,
+            "right_hip_roll": -0.030487325306535976,
+            "right_hip_pitch": 0.2680420987834846,
+            "right_knee": -0.8597523079921773,
+            "right_ankle": 0.5923669552154145,
+            "left_hip_yaw": -0.03626380039794039,
+            "left_hip_roll": 0.05183131941573333,
+            "left_hip_pitch": 0.21064045281267854,
+            "left_knee": -0.7046338428321195,
+            "left_ankle": 0.4946507135822463,
+            "neck_pitch": -0.17453292519943295,
+            "head_pitch": -0.17453292519943295,
+            "head_yaw": -9.078965724447393e-27,
+            # "left_antenna": 3.057972940930474e-27,
+            # "right_antenna": -3.0891094577753605e-27,
         }
 
         # current based position
