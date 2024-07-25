@@ -205,11 +205,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--onnx_model_path", type=str, required=True)
     parser.add_argument("-a", "--action_scale", type=float, default=0.1)
-    parser.add_argument("-p", type=float, default=1000)
-    parser.add_argument("-i", type=float, default=0)
-    parser.add_argument("-d", type=float, default=500)
-    parser.add_argument("-w", type=float, default=20)
-    parser.add_argument("-c", type=float, default=60)
+    parser.add_argument("-p", type=int, default=1000)
+    parser.add_argument("-i", type=int, default=0)
+    parser.add_argument("-d", type=int, default=500)
+    parser.add_argument("-w", type=int, default=20)
+    parser.add_argument("-c", type=int, default=60)
     args = parser.parse_args()
     pid = [args.p, args.i, args.d]
 
