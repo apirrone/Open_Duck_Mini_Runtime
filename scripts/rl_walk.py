@@ -11,13 +11,9 @@ from scipy.spatial.transform import Rotation as R
 
 from mini_bdx_runtime.hwi import HWI
 from mini_bdx_runtime.onnx_infer import OnnxInfer
-from mini_bdx_runtime.rl_utils import (
-    ActionFilter,
-    isaac_to_mujoco,
-    make_action_dict,
-    mujoco_joints_order,
-    mujoco_to_isaac,
-)
+from mini_bdx_runtime.rl_utils import (ActionFilter, isaac_to_mujoco,
+                                       make_action_dict, mujoco_joints_order,
+                                       mujoco_to_isaac)
 
 
 class RLWalk:
@@ -33,7 +29,7 @@ class RLWalk:
         self.onnx_model_path = onnx_model_path
         self.policy = OnnxInfer(self.onnx_model_path)
         self.hwi = HWI(serial_port)
-        self.action_filter = ActionFilter(window_size=3)
+        self.action_filter = ActionFilter(window_size=5)
         if not self.debug_no_imu:
             self.uart = serial.Serial("/dev/ttyS0")  # , baudrate=115200)
             self.imu = adafruit_bno055.BNO055_UART(self.uart)
@@ -144,8 +140,8 @@ class RLWalk:
         pid = [1000, 0, 500]
         # pid = [100, 0, 50]
         self.hwi.set_pid_all(pid)
-        for name in ["neck_pitch", "head_pitch", "head_yaw"]:
-            self.hwi.set_pid([100, 0, 0], name)
+        # for name in ["neck_pitch", "head_pitch", "head_yaw"]:
+        #     self.hwi.set_pid([100, 0, 0], name)
         # self.hwi.goto_zero()
         # time.sleep(1)
         # pid = [1000, 0, 300]
