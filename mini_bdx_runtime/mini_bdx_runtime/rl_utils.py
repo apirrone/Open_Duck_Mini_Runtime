@@ -121,6 +121,29 @@ class ActionFilter:
         return np.mean(self.action_buffer, axis=0)
 
 
+class LowPassActionFilter:
+    def __init__(self, control_freq, cutoff_frequency=30.0):
+        self.last_action = 0
+        self.current_action = 0
+        self.control_freq = float(control_freq)
+        self.cutoff_frequency = float(cutoff_frequency)
+        self.alpha = self.compute_alpha()
+
+    def compute_alpha(self):
+        return (1.0 / self.cuttoff_frequency) / (
+            1.0 / self.control_freq + 1.0 / self.cuttoff_frequency
+        )
+
+    def push(self, action):
+        self.current_action = action
+
+    def get_filtered_action(self):
+        self.last_action = (
+            self.alpha * self.last_action + (1 - self.alpha) * self.current_action
+        )
+        return self.last_action
+
+
 # if __name__ == "__main__":
 #     af = ActionFilter(window_size=10)
 #     while True:

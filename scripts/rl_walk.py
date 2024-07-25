@@ -13,6 +13,7 @@ from mini_bdx_runtime.hwi import HWI
 from mini_bdx_runtime.onnx_infer import OnnxInfer
 from mini_bdx_runtime.rl_utils import (
     ActionFilter,
+    LowPassActionFilter,
     isaac_to_mujoco,
     make_action_dict,
     mujoco_joints_order,
@@ -35,7 +36,8 @@ class RLWalk:
         self.onnx_model_path = onnx_model_path
         self.policy = OnnxInfer(self.onnx_model_path)
         self.hwi = HWI(serial_port)
-        self.action_filter = ActionFilter(window_size=window_size)
+        # self.action_filter = ActionFilter(window_size=window_size)
+        self.action_filter = LowPassActionFilter(control_freq=control_freq)
         if not self.debug_no_imu:
             self.uart = serial.Serial("/dev/ttyS0")  # , baudrate=115200)
             self.imu = adafruit_bno055.BNO055_UART(self.uart)
