@@ -110,6 +110,9 @@ class RLWalk:
         else:
             orientation_quat = [1, 0, 0, 0]
             ang_vel = [0, 0, 0]
+
+        print(ang_vel)
+        print("==")
         # print("get_imu_data_time", time.time() - get_imu_data_time)
 
         # dof_pos_time = time.time()
