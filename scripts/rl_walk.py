@@ -27,13 +27,15 @@ class RLWalk:
         serial_port: str = "/dev/ttyUSB0",
         control_freq: float = 60,
         debug_no_imu: bool = False,
+        pid=[1000, 0, 500],
+        window_size=20,
         action_scale=0.1,
     ):
         self.debug_no_imu = debug_no_imu
         self.onnx_model_path = onnx_model_path
         self.policy = OnnxInfer(self.onnx_model_path)
         self.hwi = HWI(serial_port)
-        self.action_filter = ActionFilter(window_size=20)
+        self.action_filter = ActionFilter(window_size=window_size)
         if not self.debug_no_imu:
             self.uart = serial.Serial("/dev/ttyS0")  # , baudrate=115200)
             self.imu = adafruit_bno055.BNO055_UART(self.uart)
@@ -45,6 +47,7 @@ class RLWalk:
             Thread(target=self.imu_worker, daemon=True).start()
 
         self.control_freq = control_freq
+        self.pid = pid
 
         self.angularVelocityScale = 0.25
         self.dof_pos_scale = 1.0
@@ -141,17 +144,7 @@ class RLWalk:
 
     def start(self):
         self.hwi.turn_on()
-        pid = [1000, 0, 500]
-        # pid = [100, 0, 50]
-        self.hwi.set_pid_all(pid)
-        # for name in ["neck_pitch", "head_pitch", "head_yaw"]:
-        #     self.hwi.set_pid([100, 0, 0], name)
-        # self.hwi.goto_zero()
-        # time.sleep(1)
-        # pid = [1000, 0, 300]
-        # self.hwi.set_pid_all(pid)
-        # time.sleep(1)
-        # exit()
+        self.hwi.set_pid_all(self.pid)
 
         time.sleep(2)
 
@@ -212,10 +205,21 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--onnx_model_path", type=str, required=True)
     parser.add_argument("-a", "--action_scale", type=float, default=0.1)
+    parser.add_argument("-p", type=float, default=1000)
+    parser.add_argument("-i", type=float, default=0)
+    parser.add_argument("-d", type=float, default=500)
+    parser.add_argument("-w", type=float, default=20)
+    parser.add_argument("-c", type=float, default=60)
     args = parser.parse_args()
+    pid = [args.p, args.i, args.d]
 
     rl_walk = RLWalk(
-        args.onnx_model_path, debug_no_imu=False, action_scale=args.action_scale
+        args.onnx_model_path,
+        debug_no_imu=False,
+        action_scale=args.action_scale,
+        pid=pid,
+        window_size=args.w,
+        control_freq=args.c,
     )
     rl_walk.start()
     rl_walk.run()
