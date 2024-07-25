@@ -11,9 +11,13 @@ from scipy.spatial.transform import Rotation as R
 
 from mini_bdx_runtime.hwi import HWI
 from mini_bdx_runtime.onnx_infer import OnnxInfer
-from mini_bdx_runtime.rl_utils import (ActionFilter, isaac_to_mujoco,
-                                       make_action_dict, mujoco_joints_order,
-                                       mujoco_to_isaac)
+from mini_bdx_runtime.rl_utils import (
+    ActionFilter,
+    isaac_to_mujoco,
+    make_action_dict,
+    mujoco_joints_order,
+    mujoco_to_isaac,
+)
 
 
 class RLWalk:
@@ -21,7 +25,7 @@ class RLWalk:
         self,
         onnx_model_path: str,
         serial_port: str = "/dev/ttyUSB0",
-        control_freq: float = 30,
+        control_freq: float = 60,
         debug_no_imu: bool = False,
         action_scale=0.1,
     ):
