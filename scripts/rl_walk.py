@@ -37,7 +37,9 @@ class RLWalk:
         self.policy = OnnxInfer(self.onnx_model_path)
         self.hwi = HWI(serial_port)
         # self.action_filter = ActionFilter(window_size=window_size)
-        self.action_filter = LowPassActionFilter(control_freq=control_freq)
+        self.action_filter = LowPassActionFilter(
+            control_freq=control_freq, cutoff_frequency=10.0
+        )
         if not self.debug_no_imu:
             self.uart = serial.Serial("/dev/ttyS0")  # , baudrate=115200)
             self.imu = adafruit_bno055.BNO055_UART(self.uart)
