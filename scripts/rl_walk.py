@@ -109,12 +109,12 @@ class RLWalk:
             ang_vel = [0, 0, 0]
         # print("get_imu_data_time", time.time() - get_imu_data_time)
 
-        # dof_pos_time = time.time()
+        dof_pos_time = time.time()
         dof_pos = self.hwi.get_present_positions()  # rad
-        # print("dof_pos_time", time.time() - dof_pos_time)
-        # dof_vel_time = time.time()
+        print("dof_pos_time", time.time() - dof_pos_time)
+        dof_vel_time = time.time()
         dof_vel = self.hwi.get_present_velocities()  # rev/min
-        # print("dof_vel_time", time.time() - dof_vel_time)
+        print("dof_vel_time", time.time() - dof_vel_time)
 
         dof_pos_scaled = list(
             np.array(dof_pos - self.mujoco_init_pos[:13]) * self.dof_pos_scale
@@ -189,13 +189,13 @@ class RLWalk:
 
                 i += 1
                 took = time.time() - start
-                # print(
-                #     "FPS",
-                #     np.around(1 / took, 3),
-                #     "-- target",
-                #     self.control_freq,
-                # )
-                # print("===")
+                print(
+                    "FPS",
+                    np.around(1 / took, 3),
+                    "-- target",
+                    self.control_freq,
+                )
+                print("===")
                 time.sleep((max(1 / self.control_freq - took, 0)))
                 # if i > len(saved_obs) - 1:
                 #     break
