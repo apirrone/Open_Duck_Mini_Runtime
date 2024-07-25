@@ -130,8 +130,8 @@ class LowPassActionFilter:
         self.alpha = self.compute_alpha()
 
     def compute_alpha(self):
-        return (1.0 / self.cuttoff_frequency) / (
-            1.0 / self.control_freq + 1.0 / self.cuttoff_frequency
+        return (1.0 / self.cutoff_frequency) / (
+            1.0 / self.control_freq + 1.0 / self.cutoff_frequency
         )
 
     def push(self, action):
