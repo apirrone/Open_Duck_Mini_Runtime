@@ -33,7 +33,7 @@ class RLWalk:
         self.onnx_model_path = onnx_model_path
         self.policy = OnnxInfer(self.onnx_model_path)
         self.hwi = HWI(serial_port)
-        self.action_filter = ActionFilter(window_size=10)
+        self.action_filter = ActionFilter(window_size=3)
         if not self.debug_no_imu:
             self.uart = serial.Serial("/dev/ttyS0")  # , baudrate=115200)
             self.imu = adafruit_bno055.BNO055_UART(self.uart)
@@ -176,8 +176,8 @@ class RLWalk:
                 action = action * self.action_scale
                 action = np.clip(action, self.action_clip[0], self.action_clip[1])
 
-                # self.action_filter.push(action)
-                # action = self.action_filter.get_filtered_action()
+                self.action_filter.push(action)
+                action = self.action_filter.get_filtered_action()
 
                 self.prev_action = action.copy()  # here ? # Maybe here
                 action = self.isaac_init_pos + action
