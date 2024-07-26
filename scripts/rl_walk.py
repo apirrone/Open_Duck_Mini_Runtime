@@ -1,7 +1,5 @@
 import pickle
 import time
-from queue import Queue
-from threading import Thread
 
 import adafruit_bno055
 import FramesViewer.utils as fv_utils
@@ -48,8 +46,6 @@ class RLWalk:
             # self.imu.mode = adafruit_bno055.GYRONLY_MODE
             self.imu.mode = adafruit_bno055.IMUPLUS_MODE
             self.last_imu_data = ([0, 0, 0, 0], [0, 0, 0])
-            self.imu_queue = Queue()
-            Thread(target=self.imu_worker, daemon=True).start()
 
         self.control_freq = control_freq
         self.pid = pid
@@ -68,39 +64,29 @@ class RLWalk:
         self.mujoco_init_pos = list(self.hwi.init_pos.values()) + [0, 0]
         self.isaac_init_pos = np.array(mujoco_to_isaac(self.mujoco_init_pos))
 
-    def imu_worker(self):
-        while True:
-            start = time.time()
-            try:
-                raw_orientation = self.imu.quaternion  # quat
-                raw_ang_vel = np.deg2rad(self.imu.gyro)  # xyz
-                euler = R.from_quat(raw_orientation).as_euler("xyz")
-            except Exception as e:
-                print(e)
-                continue
-
-            # Converting to correct axes
-            euler = [euler[1], euler[2], euler[0]]
-            # zero yaw
-            euler[2] = 0
-
-            final_orientation_quat = R.from_euler("xyz", euler).as_quat()
-
-            final_ang_vel = [-raw_ang_vel[1], raw_ang_vel[0], raw_ang_vel[2]]
-            final_ang_vel = list(
-                (np.array(final_ang_vel) / (1 / self.control_freq))
-                * self.angularVelocityScale
-            )
-
-            self.imu_queue.put((final_orientation_quat, final_ang_vel))
-            print("IMU FPS", 1 / (time.time() - start))
-            time.sleep(1 / self.control_freq)
-
     def get_imu_data(self):
         try:
-            self.last_imu_data = self.imu_queue.get(False)  # non blocking
-        except Exception:
-            pass
+            raw_orientation = self.imu.quaternion  # quat
+            raw_ang_vel = np.deg2rad(self.imu.gyro)  # xyz
+            euler = R.from_quat(raw_orientation).as_euler("xyz")
+        except Exception as e:
+            print(e)
+            return self.last_imu_data
+
+        # Converting to correct axes
+        euler = [euler[1], euler[2], euler[0]]
+        # zero yaw
+        euler[2] = 0
+
+        final_orientation_quat = R.from_euler("xyz", euler).as_quat()
+
+        final_ang_vel = [-raw_ang_vel[1], raw_ang_vel[0], raw_ang_vel[2]]
+        final_ang_vel = list(
+            (np.array(final_ang_vel) / (1 / self.control_freq))
+            * self.angularVelocityScale
+        )
+
+        self.last_imu_data = (final_orientation_quat, final_ang_vel)
 
         return self.last_imu_data
 
