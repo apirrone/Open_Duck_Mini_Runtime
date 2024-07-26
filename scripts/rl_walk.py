@@ -91,7 +91,7 @@ class RLWalk:
             )
 
             self.imu_queue.put((final_orientation_quat, final_ang_vel))
-            time.sleep(1 / self.control_freq)
+            time.sleep(1 / (self.control_freq * 2))
 
     def get_imu_data(self):
         try:
