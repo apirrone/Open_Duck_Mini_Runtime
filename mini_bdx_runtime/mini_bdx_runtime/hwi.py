@@ -80,6 +80,15 @@ class HWI:
             # "right_antenna": 0,
         }
 
+        self.init_pos = {
+            joint: position + offset
+            for joint, position, offset in zip(
+                self.init_pos.keys(),
+                self.init_pos.values(),
+                self.joints_offsets.values(),
+            )
+        }
+
         # current based position
         self.dxl_io.set_operating_mode({id: 0x3 for id in self.joints.values()})
 
@@ -126,7 +135,6 @@ class HWI:
         """
         ids_positions = {
             self.joints[joint]: np.rad2deg(-position)
-            + np.rad2deg(self.joints_offsets[joint])
             for joint, position in joints_positions.items()
         }
 
