@@ -78,7 +78,7 @@ class RLWalk:
                 continue
 
             # Converting to correct axes
-            euler = [euler[1], euler[2], euler[0]]
+            euler = [euler[1], -euler[2], euler[0]]
             # zero yaw
             euler[2] = 0
 
