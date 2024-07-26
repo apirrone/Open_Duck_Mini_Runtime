@@ -81,7 +81,7 @@ class HWI:
         }
 
         self.init_pos = {
-            joint: position + offset
+            joint: position - offset
             for joint, position, offset in zip(
                 self.init_pos.keys(),
                 self.init_pos.values(),
