@@ -78,13 +78,13 @@ class RLWalk:
                 continue
 
             # Converting to correct axes
-            euler = [euler[1], -euler[2], euler[0]]
+            euler = [euler[1], euler[2], euler[0]]
             # zero yaw
             euler[2] = 0
 
             final_orientation_quat = R.from_euler("xyz", euler).as_quat()
 
-            final_ang_vel = [-raw_ang_vel[1], -raw_ang_vel[0], raw_ang_vel[2]]
+            final_ang_vel = [-raw_ang_vel[1], raw_ang_vel[0], raw_ang_vel[2]]
             final_ang_vel = list(
                 (np.array(final_ang_vel) / (1 / self.control_freq))
                 * self.angularVelocityScale
