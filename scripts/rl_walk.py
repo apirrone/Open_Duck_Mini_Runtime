@@ -70,6 +70,7 @@ class RLWalk:
 
     def imu_worker(self):
         while True:
+            start = time.time()
             try:
                 raw_orientation = self.imu.quaternion  # quat
                 raw_ang_vel = np.deg2rad(self.imu.gyro)  # xyz
@@ -92,6 +93,7 @@ class RLWalk:
             )
 
             self.imu_queue.put((final_orientation_quat, final_ang_vel))
+            print("IMU FPS", 1 / (time.time() - start))
             time.sleep(1 / self.control_freq)
 
     def get_imu_data(self):
@@ -116,8 +118,6 @@ class RLWalk:
             orientation_quat = [1, 0, 0, 0]
             ang_vel = [0, 0, 0]
 
-        print(np.around(np.rad2deg(ang_vel), 2))
-        print("==")
         # print("get_imu_data_time", time.time() - get_imu_data_time)
 
         # dof_pos_time = time.time()
