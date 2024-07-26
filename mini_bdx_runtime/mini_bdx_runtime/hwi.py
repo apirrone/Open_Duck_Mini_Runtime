@@ -45,21 +45,21 @@ class HWI:
         # }
 
         self.init_pos = {
-            "right_hip_yaw": -0.03624976502864328,
-            "right_hip_roll": -0.030487325306535976,
-            "right_hip_pitch": 0.2680420987834846,
-            "right_knee": -0.8597523079921773,
-            "right_ankle": 0.5923669552154145,
-            "left_hip_yaw": -0.03626380039794039,
-            "left_hip_roll": 0.05183131941573333,
-            "left_hip_pitch": 0.21064045281267854,
-            "left_knee": -0.7046338428321195,
-            "left_ankle": 0.4946507135822463,
+            "right_hip_yaw": -0.03676731090962078,
+            "right_hip_roll": -0.030315211140564333,
+            "right_hip_pitch": 0.4065815100399598,
+            "right_knee": -1.0864064934571644,
+            "right_ankle": 0.5932324840794684,
+            "left_hip_yaw": -0.03485756878823724,
+            "left_hip_roll": 0.052286054888550475,
+            "left_hip_pitch": 0.36623601032755765,
+            "left_knee": -0.964204465274923,
+            "left_ankle": 0.5112970996901808,
             "neck_pitch": -0.17453292519943295,
             "head_pitch": -0.17453292519943295,
-            "head_yaw": -9.078965724447393e-27,
-            # "left_antenna": 3.057972940930474e-27,
-            # "right_antenna": -3.0891094577753605e-27,
+            "head_yaw": 2.0669786327325328e-26,
+            # "left_antenna": 1.8501964363469314e-28,
+            # "right_antenna": -1.898145128718553e-28,
         }
 
         # current based position
