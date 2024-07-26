@@ -62,6 +62,24 @@ class HWI:
             # "right_antenna": -1.898145128718553e-28,
         }
 
+        self.joints_offsets = {
+            "right_hip_yaw": -0.02,
+            "right_hip_roll": 0,
+            "right_hip_pitch": 0,
+            "right_knee": -0.05,
+            "right_ankle": -0.1,
+            "left_hip_yaw": -0.05,
+            "left_hip_roll": 0,
+            "left_hip_pitch": 0.02,
+            "left_knee": -0.08,
+            "left_ankle": -0.1,
+            "neck_pitch": 0,
+            "head_pitch": 0.3,
+            "head_yaw": 0,
+            # "left_antenna": 0,
+            # "right_antenna": 0,
+        }
+
         # current based position
         self.dxl_io.set_operating_mode({id: 0x3 for id in self.joints.values()})
 
@@ -88,6 +106,7 @@ class HWI:
         # self.set_low_torque()
         self.dxl_io.enable_torque(self.joints.values())
         time.sleep(1)
+        # self.goto_zero()
         self.set_position_all(self.init_pos)
         time.sleep(1)
         # self.set_high_torque()
@@ -96,12 +115,9 @@ class HWI:
         self.dxl_io.disable_torque(self.joints.values())
 
     def goto_zero(self):
-        goal = {joint: 0 for joint in self.joints.values()}
-        self.dxl_io.set_goal_position(goal)
+        goal_dict = {joint: 0 for joint in self.joints.keys()}
 
-    def goto_zero(self):
-        goal = {joint: 0 for joint in self.joints.values()}
-        self.dxl_io.set_goal_position(goal)
+        self.set_position_all(goal_dict)
 
     def set_position_all(self, joints_positions):
         """
@@ -110,6 +126,7 @@ class HWI:
         """
         ids_positions = {
             self.joints[joint]: np.rad2deg(-position)
+            + np.rad2deg(self.joints_offsets[joint])
             for joint, position in joints_positions.items()
         }
 
