@@ -82,7 +82,6 @@ class RLWalk:
             euler = [euler[1], euler[2], euler[0]]
             # zero yaw
             euler[2] = 0
-            euler = [0, 0, 0]
 
             final_orientation_quat = R.from_euler("xyz", euler).as_quat()
 
