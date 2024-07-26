@@ -173,6 +173,7 @@ class RLWalk:
                 action = self.action_filter.get_filtered_action()
 
                 self.prev_action = action.copy()  # here ? # Maybe here
+                self.prev_action *= 1.2
                 action = self.isaac_init_pos + action
 
                 robot_action = isaac_to_mujoco(action)
