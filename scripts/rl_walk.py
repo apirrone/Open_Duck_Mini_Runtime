@@ -81,7 +81,6 @@ class RLWalk:
             euler = [euler[1], euler[2], euler[0]]
             # zero yaw
             euler[2] = 0
-            euler[1] -= 0.1
 
             final_orientation_quat = R.from_euler("xyz", euler).as_quat()
 
@@ -182,12 +181,12 @@ class RLWalk:
 
                 i += 1
                 took = time.time() - start
-                print(
-                    "FPS",
-                    np.around(1 / took, 3),
-                    "-- target",
-                    self.control_freq,
-                )
+                # print(
+                #     "FPS",
+                #     np.around(1 / took, 3),
+                #     "-- target",
+                #     self.control_freq,
+                # )
                 # print("===")
                 time.sleep((max(1 / self.control_freq - took, 0)))
                 # if i > len(saved_obs) - 1:
