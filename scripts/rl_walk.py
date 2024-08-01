@@ -165,14 +165,13 @@ class RLWalk:
 
                 action = self.policy.infer(obs)
 
-                # action = action * self.action_scale
+                action = action * self.action_scale
                 action = np.clip(action, self.action_clip[0], self.action_clip[1])
 
                 self.action_filter.push(action)
                 action = self.action_filter.get_filtered_action()
 
-                self.prev_action = action.copy()
-                action = list(np.array(action) * self.action_scale)
+                self.prev_action = action.copy()  # here ? # Maybe here
                 action = self.isaac_init_pos + action
 
                 robot_action = isaac_to_mujoco(action)
