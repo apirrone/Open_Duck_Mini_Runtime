@@ -177,9 +177,7 @@ class RLWalk:
 
                 robot_action = isaac_to_mujoco(action)
 
-                action_dict = make_action_dict(
-                    robot_action * self.action_scale, mujoco_joints_order
-                )
+                action_dict = make_action_dict(robot_action, mujoco_joints_order)
                 self.hwi.set_position_all(action_dict)
 
                 i += 1
