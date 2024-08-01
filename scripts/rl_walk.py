@@ -172,12 +172,13 @@ class RLWalk:
                 action = self.action_filter.get_filtered_action()
 
                 self.prev_action = action.copy()
+                action = list(np.array(action) * self.action_scale)
                 action = self.isaac_init_pos + action
 
                 robot_action = isaac_to_mujoco(action)
 
                 action_dict = make_action_dict(
-                    np.array(robot_action) * self.action_scale, mujoco_joints_order
+                    robot_action * self.action_scale, mujoco_joints_order
                 )
                 self.hwi.set_position_all(action_dict)
 
