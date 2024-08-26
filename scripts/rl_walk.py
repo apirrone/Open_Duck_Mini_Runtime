@@ -243,7 +243,7 @@ if __name__ == "__main__":
         pid=pid,
         window_size=args.w,
         control_freq=args.control_freq,
-        cutoff_requency=args.cutoff_frequency,
+        cutoff_frequency=args.cutoff_frequency,
     )
     rl_walk.start()
     rl_walk.run()
