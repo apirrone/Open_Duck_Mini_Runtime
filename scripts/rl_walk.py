@@ -80,7 +80,7 @@ class RLWalk:
             # Converting to correct axes
             euler = [euler[1], euler[2], euler[0]]
             # zero yaw
-            euler[2] = 0
+            # euler[2] = 0
 
             final_orientation_quat = R.from_euler("xyz", euler).as_quat()
 
@@ -100,6 +100,19 @@ class RLWalk:
             pass
 
         return self.last_imu_data
+
+    def quat_rotate_inverse(self, q, v):
+        q = np.array(q)
+        v = np.array(v)
+
+        q_w = q[-1]
+        q_vec = q[:3]
+
+        a = v * (2.0 * q_w**2 - 1.0)
+        b = np.cross(q_vec, v) * q_w * 2.0
+        c = q_vec * (np.dot(q_vec, v)) * 2.0
+
+        return a - b + c
 
     def get_obs(self, commands):
         # TODO There is something wrong here.
@@ -130,14 +143,25 @@ class RLWalk:
         dof_pos_scaled = mujoco_to_isaac(dof_pos_scaled)
         dof_vel_scaled = mujoco_to_isaac(dof_vel_scaled)
 
+        # return np.concatenate(
+        #     [
+        #         orientation_quat,
+        #         ang_vel,
+        #         dof_pos_scaled,
+        #         dof_vel_scaled,
+        #         self.prev_action,
+        #         commands,
+        #     ]
+        # )
+        projected_gravity = self.quat_rotate_inverse(orientation_quat, [0, 0, -1])
+
         return np.concatenate(
             [
-                orientation_quat,
-                ang_vel,
+                projected_gravity,
+                commands,
                 dof_pos_scaled,
                 dof_vel_scaled,
                 self.prev_action,
-                commands,
             ]
         )
 
@@ -161,18 +185,17 @@ class RLWalk:
                     break
                 robot_computed_obs.append(obs)
                 # obs = saved_obs[i]
-                obs = np.clip(obs, self.obs_clip[0], self.obs_clip[1])
+                # obs = np.clip(obs, self.obs_clip[0], self.obs_clip[1])
 
                 action = self.policy.infer(obs)
+                self.prev_action = action.copy()  # here ? # Maybe here
 
-                action = action * self.action_scale
-                action = np.clip(action, self.action_clip[0], self.action_clip[1])
+                action = action * self.action_scale + self.isaac_init_pos
+
+                # action = np.clip(action, self.action_clip[0], self.action_clip[1])
 
                 self.action_filter.push(action)
                 action = self.action_filter.get_filtered_action()
-
-                self.prev_action = action.copy()  # here ? # Maybe here
-                action = self.isaac_init_pos + action
 
                 robot_action = isaac_to_mujoco(action)
 
@@ -203,7 +226,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--onnx_model_path", type=str, required=True)
-    parser.add_argument("-a", "--action_scale", type=float, default=0.1)
+    parser.add_argument("-a", "--action_scale", type=float, default=0.25)
     parser.add_argument("-p", type=int, default=1000)
     parser.add_argument("-i", type=int, default=0)
     parser.add_argument("-d", type=int, default=500)
