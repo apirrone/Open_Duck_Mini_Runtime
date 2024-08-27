@@ -69,7 +69,7 @@ class HWI:
             "right_knee": -0.05,
             "right_ankle": -0.1,
             "left_hip_yaw": -0.05,
-            "left_hip_roll": 0,
+            "left_hip_roll": 0.05,
             "left_hip_pitch": 0.02,
             "left_knee": -0.08,
             "left_ankle": -0.1,
