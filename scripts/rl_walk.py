@@ -20,6 +20,13 @@ from mini_bdx_runtime.rl_utils import (
     mujoco_to_isaac,
 )
 
+import curses
+
+stdscr = curses.initscr()
+curses.cbreak()
+stdscr.keypad(1)
+stdscr.refresh()
+
 
 class RLWalk:
     def __init__(
@@ -32,6 +39,7 @@ class RLWalk:
         window_size=20,
         action_scale=0.1,
         cutoff_frequency=10.0,
+        keyboard_input=False,
     ):
         self.debug_no_imu = debug_no_imu
         self.onnx_model_path = onnx_model_path
@@ -66,6 +74,8 @@ class RLWalk:
 
         self.mujoco_init_pos = list(self.hwi.init_pos.values()) + [0, 0]
         self.isaac_init_pos = np.array(mujoco_to_isaac(self.mujoco_init_pos))
+
+        self.keyboard_input = keyboard_input
 
     def imu_worker(self):
         while True:
@@ -171,6 +181,19 @@ class RLWalk:
 
         time.sleep(2)
 
+    def get_commands(self):
+        return [0, 0, 0]
+        # x = 0
+        # y = 0
+        # yaw = 0
+        # key = stdscr.getch()
+        # stdscr.refresh()
+
+        # if key == curses.KEY_UP:
+        #     pass
+
+        # pass
+
     def run(self):
         # saved_obs = pickle.load(open("mujoco_saved_obs.pkl", "rb"))
         i = 0
@@ -201,6 +224,9 @@ class RLWalk:
 
                 action_dict = make_action_dict(robot_action, mujoco_joints_order)
                 self.hwi.set_position_all(action_dict)
+
+                if self.keyboard_input:
+                    commands = self.get_commands()
 
                 i += 1
                 took = time.time() - start
@@ -233,6 +259,7 @@ if __name__ == "__main__":
     parser.add_argument("-w", type=int, default=20)
     parser.add_argument("-c", "--control_freq", type=int, default=60)
     parser.add_argument("--cutoff_frequency", type=int, default=10)
+    parser.add_argument("-k", "--keyboard_input", action="store_true", default=False)
     args = parser.parse_args()
     pid = [args.p, args.i, args.d]
 
@@ -244,6 +271,7 @@ if __name__ == "__main__":
         window_size=args.w,
         control_freq=args.control_freq,
         cutoff_frequency=args.cutoff_frequency,
+        keyboard_input=args.keyboard_input,
     )
     rl_walk.start()
     rl_walk.run()
