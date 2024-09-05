@@ -54,9 +54,6 @@ class RLWalk:
             self.imu_queue = Queue(maxsize=1)
             Thread(target=self.imu_worker, daemon=True).start()
 
-        if self.commands:
-            self.commands_client = CommandsClient("192.168.89.246")
-
         self.control_freq = control_freq
         self.pid = pid
 
@@ -72,6 +69,9 @@ class RLWalk:
 
         self.mujoco_init_pos = list(self.hwi.init_pos.values()) + [0, 0]
         self.isaac_init_pos = np.array(mujoco_to_isaac(self.mujoco_init_pos))
+
+        if self.commands:
+            self.commands_client = CommandsClient("192.168.89.246")
 
     def imu_worker(self):
         while True:
@@ -210,7 +210,7 @@ class RLWalk:
                 # self.hwi.set_position_all(action_dict)
 
                 if self.commands:
-                    commands = self.commands_client.get_command()
+                    commands = self.commands_client.get_commands()
                     print("commands", commands)
 
                 i += 1
