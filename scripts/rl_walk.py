@@ -245,7 +245,6 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--control_freq", type=int, default=60)
     parser.add_argument("--cutoff_frequency", type=int, default=10)
     parser.add_argument(
-        "-c",
         "--commands",
         action="store_true",
         default=False,
