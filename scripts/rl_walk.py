@@ -57,6 +57,7 @@ class RLWalk:
         self.control_freq = control_freq
         self.pid = pid
 
+        self.linearVelocityScale = 2.0
         self.angularVelocityScale = 0.25
         self.dof_pos_scale = 1.0
         self.dof_vel_scale = 0.05
@@ -85,7 +86,7 @@ class RLWalk:
 
             # Converting to correct axes
             euler = [euler[1], euler[2], euler[0]]
-            euler[1] = -euler[1]  # TODO inverted pitch ???
+            # euler[1] = -euler[1]  # TODO inverted pitch ???
             # zero yaw
             # euler[2] = 0
 
@@ -210,7 +211,16 @@ class RLWalk:
                 self.hwi.set_position_all(action_dict)
 
                 if self.commands:
-                    commands = self.commands_client.get_command()
+                    commands = list(
+                        np.array(self.commands_client.get_command())
+                        * np.array(
+                            [
+                                self.linearVelocityScale,
+                                self.linearVelocityScale,
+                                self.angularVelocityScale,
+                            ]
+                        )
+                    )
                     print("commands", commands)
 
                 i += 1
