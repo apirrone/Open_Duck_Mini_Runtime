@@ -95,6 +95,6 @@ while True:
     data = get_command()
     data = pickle.dumps(data)
     conn.send(data)  # send data to the client
-    time.sleep(1 / 30)
+    time.sleep(1 / 10)
 
 conn.close()  # close the connection
