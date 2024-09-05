@@ -19,6 +19,7 @@ from mini_bdx_runtime.rl_utils import (
     mujoco_joints_order,
     mujoco_to_isaac,
 )
+from commands_client import CommandsClient
 
 
 class RLWalk:
@@ -32,8 +33,10 @@ class RLWalk:
         window_size=20,
         action_scale=0.1,
         cutoff_frequency=10.0,
+        commands=False,
     ):
         self.debug_no_imu = debug_no_imu
+        self.commands = commands
         self.onnx_model_path = onnx_model_path
         self.policy = OnnxInfer(self.onnx_model_path)
         self.hwi = HWI(serial_port)
@@ -50,6 +53,9 @@ class RLWalk:
             self.last_imu_data = ([0, 0, 0, 0], [0, 0, 0])
             self.imu_queue = Queue(maxsize=1)
             Thread(target=self.imu_worker, daemon=True).start()
+
+        if self.commands:
+            self.commands_client = CommandsClient("192.168.89.246")
 
         self.control_freq = control_freq
         self.pid = pid
@@ -201,7 +207,11 @@ class RLWalk:
                 robot_action = isaac_to_mujoco(action)
 
                 action_dict = make_action_dict(robot_action, mujoco_joints_order)
-                self.hwi.set_position_all(action_dict)
+                # self.hwi.set_position_all(action_dict)
+
+                if self.commands:
+                    commands = self.commands_client.get_commands()
+                    print("commands", commands)
 
                 i += 1
                 took = time.time() - start
@@ -234,6 +244,13 @@ if __name__ == "__main__":
     parser.add_argument("-w", type=int, default=20)
     parser.add_argument("-c", "--control_freq", type=int, default=60)
     parser.add_argument("--cutoff_frequency", type=int, default=10)
+    parser.add_argument(
+        "-c",
+        "--commands",
+        action="store_true",
+        default=False,
+        help="external commands, keyboard or gamepad. Launch control_server.py on host computer",
+    )
     args = parser.parse_args()
     pid = [args.p, args.i, args.d]
 
@@ -245,6 +262,7 @@ if __name__ == "__main__":
         window_size=args.w,
         control_freq=args.control_freq,
         cutoff_frequency=args.cutoff_frequency,
+        commands=args.commands,
     )
     rl_walk.start()
     rl_walk.run()
