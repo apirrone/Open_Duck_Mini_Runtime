@@ -94,7 +94,7 @@ print("Connection from: " + str(address))
 while True:
     data = get_command()
     data = pickle.dumps(data)
-    conn.send(data.encode())  # send data to the client
+    conn.send(data)  # send data to the client
     time.sleep(1 / 30)
 
 conn.close()  # close the connection

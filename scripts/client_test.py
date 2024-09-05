@@ -11,7 +11,7 @@ def client_program():
     client_socket.connect((host, port))  # connect to the server
 
     while True:
-        data = client_socket.recv(64).decode()  # receive response
+        data = client_socket.recv(1024)  # receive response
         data = pickle.loads(data)
 
         print(data)  # show in terminal
