@@ -38,9 +38,9 @@ class RLWalk:
         self.policy = OnnxInfer(self.onnx_model_path)
         self.hwi = HWI(serial_port)
         # self.action_filter = ActionFilter(window_size=window_size)
-        self.action_filter = LowPassActionFilter(
-            control_freq=control_freq, cutoff_frequency=cutoff_frequency
-        )
+        # self.action_filter = LowPassActionFilter(
+        #     control_freq=control_freq, cutoff_frequency=cutoff_frequency
+        # )
         if not self.debug_no_imu:
             self.uart = serial.Serial("/dev/ttyS0")  # , baudrate=115200)
             self.imu = adafruit_bno055.BNO055_UART(self.uart)
@@ -79,6 +79,7 @@ class RLWalk:
 
             # Converting to correct axes
             euler = [euler[1], euler[2], euler[0]]
+            euler[1] = -euler[1]  # TODO inverted pitch ???
             # zero yaw
             # euler[2] = 0
 
@@ -194,8 +195,8 @@ class RLWalk:
 
                 # action = np.clip(action, self.action_clip[0], self.action_clip[1])
 
-                self.action_filter.push(action)
-                action = self.action_filter.get_filtered_action()
+                # self.action_filter.push(action)
+                # action = self.action_filter.get_filtered_action()
 
                 robot_action = isaac_to_mujoco(action)
 
