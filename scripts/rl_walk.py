@@ -85,7 +85,7 @@ class RLWalk:
 
             # Converting to correct axes
             euler = [euler[1], euler[2], euler[0]]
-            euler[1] = -euler[1]  # TODO inverted pitch ???
+            # euler[1] = -euler[1]  # TODO inverted pitch ???
             # zero yaw
             # euler[2] = 0
 
