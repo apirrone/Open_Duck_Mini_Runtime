@@ -188,7 +188,7 @@ class RLWalk:
         robot_computed_obs = []
         try:
             print("Starting")
-            commands = [0.0, 0.0, 0.0]
+            commands = [0.2, 0.0, 0.0]
             while True:
                 start = time.time()
                 obs = self.get_obs(commands)
