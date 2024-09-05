@@ -9,7 +9,7 @@ def client_program():
     client_socket = socket.socket()  # instantiate
     client_socket.connect((host, port))  # connect to the server
 
-    while message.lower().strip() != "bye":
+    while True:
         data = client_socket.recv(1024).decode()  # receive response
         data = json.loads(data)
 
