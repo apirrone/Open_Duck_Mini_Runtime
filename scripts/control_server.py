@@ -1,6 +1,6 @@
 import socket
 import time
-import json
+import pickle
 import numpy as np
 import pygame
 import argparse
@@ -93,8 +93,8 @@ print("Connection from: " + str(address))
 
 while True:
     data = get_command()
-    data = json.dumps(data)
+    data = pickle.dumps(data)
     conn.send(data.encode())  # send data to the client
-    time.sleep(1 / 60)
+    time.sleep(1 / 30)
 
 conn.close()  # close the connection

@@ -1,6 +1,6 @@
 import socket
 import time
-import json
+import pickle
 
 
 def client_program():
@@ -12,7 +12,7 @@ def client_program():
 
     while True:
         data = client_socket.recv(64).decode()  # receive response
-        data = json.loads(data)
+        data = pickle.loads(data)
 
         print(data)  # show in terminal
         time.sleep(1 / 30)
