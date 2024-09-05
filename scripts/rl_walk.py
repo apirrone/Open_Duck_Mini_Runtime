@@ -85,7 +85,7 @@ class RLWalk:
 
             # Converting to correct axes
             euler = [euler[1], euler[2], euler[0]]
-            # euler[1] = -euler[1]  # TODO inverted pitch ???
+            euler[1] = -euler[1]  # TODO inverted pitch ???
             # zero yaw
             # euler[2] = 0
 
@@ -195,10 +195,9 @@ class RLWalk:
                 # obs = np.clip(obs, self.obs_clip[0], self.obs_clip[1])
 
                 action = self.policy.infer(obs)
+                self.prev_action = action.copy()  # here ? # Maybe here
 
                 action = action * self.action_scale + self.isaac_init_pos
-
-                self.prev_action = action.copy()  # here ? # Maybe here
 
                 # action = np.clip(action, self.action_clip[0], self.action_clip[1])
 
