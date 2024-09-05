@@ -263,7 +263,7 @@ if __name__ == "__main__":
         default=False,
         help="external commands, keyboard or gamepad. Launch control_server.py on host computer",
     )
-    parser.add_argument("--pitch_bias", type=float, default=0.0, "deg")
+    parser.add_argument("--pitch_bias", type=float, default=0.0, help="deg")
     args = parser.parse_args()
     pid = [args.p, args.i, args.d]
 
