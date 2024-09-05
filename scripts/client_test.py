@@ -13,7 +13,7 @@ def client_program():
         data = client_socket.recv(1024).decode()  # receive response
         data = json.loads(data)
 
-        print("Received from server: " + data)  # show in terminal
+        print(data)  # show in terminal
 
     client_socket.close()  # close the connection
 
