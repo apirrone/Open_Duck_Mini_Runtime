@@ -210,7 +210,7 @@ class RLWalk:
                 # self.hwi.set_position_all(action_dict)
 
                 if self.commands:
-                    commands = self.commands_client.get_commands()
+                    commands = self.commands_client.get_command()
                     print("commands", commands)
 
                 i += 1
