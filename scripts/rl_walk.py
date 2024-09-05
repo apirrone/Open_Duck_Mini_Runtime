@@ -60,7 +60,7 @@ class RLWalk:
         self.linearVelocityScale = 2.0
         self.angularVelocityScale = 0.25
         self.dof_pos_scale = 1.0
-        self.dof_vel_scale = 0.1  # 0.05
+        self.dof_vel_scale = 0.05  # 0.05
         self.action_clip = (-1, 1)
         self.obs_clip = (-5, 5)
         self.zero_yaw = None
@@ -137,7 +137,7 @@ class RLWalk:
             ang_vel = [0, 0, 0]
 
         dof_pos = self.hwi.get_present_positions()  # rad
-        dof_vel = self.hwi.get_present_velocities()  # rev/min
+        dof_vel = self.hwi.get_present_velocities(True)  # rev/min
 
         dof_pos_scaled = list(
             np.array(dof_pos - self.mujoco_init_pos[:13]) * self.dof_pos_scale
