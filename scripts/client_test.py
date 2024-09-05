@@ -15,7 +15,7 @@ def client_program():
         data = json.loads(data)
 
         print(data)  # show in terminal
-        time.sleep(1 / 60)
+        time.sleep(1 / 30)
 
     client_socket.close()  # close the connection
 
