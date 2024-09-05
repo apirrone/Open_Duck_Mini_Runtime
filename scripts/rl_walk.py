@@ -34,9 +34,11 @@ class RLWalk:
         action_scale=0.1,
         cutoff_frequency=10.0,
         commands=False,
+        pitch_bias=0.0,
     ):
         self.debug_no_imu = debug_no_imu
         self.commands = commands
+        self.pitch_bias = pitch_bias
         self.onnx_model_path = onnx_model_path
         self.policy = OnnxInfer(self.onnx_model_path)
         self.hwi = HWI(serial_port)
@@ -86,6 +88,7 @@ class RLWalk:
 
             # Converting to correct axes
             euler = [euler[1], euler[2], euler[0]]
+            euler[1] += np.deg2rad(self.pitch_bias)
             # euler[1] = -euler[1]  # TODO inverted pitch ???
             # zero yaw
             # euler[2] = 0
@@ -137,7 +140,7 @@ class RLWalk:
             ang_vel = [0, 0, 0]
 
         dof_pos = self.hwi.get_present_positions()  # rad
-        dof_vel = self.hwi.get_present_velocities(True)  # rev/min
+        dof_vel = self.hwi.get_present_velocities()  # rad/min
 
         dof_pos_scaled = list(
             np.array(dof_pos - self.mujoco_init_pos[:13]) * self.dof_pos_scale
@@ -260,6 +263,7 @@ if __name__ == "__main__":
         default=False,
         help="external commands, keyboard or gamepad. Launch control_server.py on host computer",
     )
+    parser.add_argument("--pitch_bias", type=float, default=0.0, "deg")
     args = parser.parse_args()
     pid = [args.p, args.i, args.d]
 
@@ -272,6 +276,7 @@ if __name__ == "__main__":
         control_freq=args.control_freq,
         cutoff_frequency=args.cutoff_frequency,
         commands=args.commands,
+        pitch_bias=args.pitch_bias,
     )
     rl_walk.start()
     rl_walk.run()
