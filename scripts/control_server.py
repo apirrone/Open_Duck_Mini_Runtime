@@ -1,4 +1,5 @@
 import socket
+import time
 import json
 import numpy as np
 import pygame
@@ -94,5 +95,6 @@ while True:
     data = get_command()
     data = json.dumps(data)
     conn.send(data.encode())  # send data to the client
+    time.sleep(1 / 60)
 
 conn.close()  # close the connection
