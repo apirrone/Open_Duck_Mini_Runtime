@@ -107,6 +107,20 @@ def make_action_dict(action, joints_order):
     return action_dict
 
 
+def quat_rotate_inverse(q, v):
+    q = np.array(q)
+    v = np.array(v)
+
+    q_w = q[-1]
+    q_vec = q[:3]
+
+    a = v * (2.0 * q_w**2 - 1.0)
+    b = np.cross(q_vec, v) * q_w * 2.0
+    c = q_vec * (np.dot(q_vec, v)) * 2.0
+
+    return a - b + c
+
+
 class ActionFilter:
     def __init__(self, window_size=10):
         self.window_size = window_size
@@ -142,12 +156,3 @@ class LowPassActionFilter:
             self.alpha * self.last_action + (1 - self.alpha) * self.current_action
         )
         return self.last_action
-
-
-# if __name__ == "__main__":
-#     af = ActionFilter(window_size=10)
-#     while True:
-#         action = np.random.rand(15)
-
-#         af.push(action)
-#         print(af.get_filtered_action())

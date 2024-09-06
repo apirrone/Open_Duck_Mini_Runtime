@@ -12,12 +12,12 @@ from scipy.spatial.transform import Rotation as R
 from mini_bdx_runtime.hwi import HWI
 from mini_bdx_runtime.onnx_infer import OnnxInfer
 from mini_bdx_runtime.rl_utils import (
-    ActionFilter,
     LowPassActionFilter,
     isaac_to_mujoco,
     make_action_dict,
     mujoco_joints_order,
     mujoco_to_isaac,
+    quat_rotate_inverse,
 )
 from commands_client import CommandsClient
 
@@ -30,9 +30,8 @@ class RLWalk:
         control_freq: float = 60,
         debug_no_imu: bool = False,
         pid=[1000, 0, 500],
-        window_size=20,
-        action_scale=0.1,
-        cutoff_frequency=10.0,
+        action_scale=0.25,
+        cutoff_frequency=100.0,
         commands=False,
         pitch_bias=0.0,
     ):
@@ -42,17 +41,14 @@ class RLWalk:
         self.onnx_model_path = onnx_model_path
         self.policy = OnnxInfer(self.onnx_model_path)
         self.hwi = HWI(serial_port)
-        # self.action_filter = ActionFilter(window_size=window_size)
-        # self.action_filter = LowPassActionFilter(
-        #     control_freq=control_freq, cutoff_frequency=cutoff_frequency
-        # )
         if not self.debug_no_imu:
             self.uart = serial.Serial("/dev/ttyS0")  # , baudrate=115200)
             self.imu = adafruit_bno055.BNO055_UART(self.uart)
             # self.imu.mode = adafruit_bno055.NDOF_MODE
             # self.imu.mode = adafruit_bno055.GYRONLY_MODE
             self.imu.mode = adafruit_bno055.IMUPLUS_MODE
-            self.last_imu_data = ([0, 0, 0, 0], [0, 0, 0])
+            # self.last_imu_data = ([0, 0, 0, 0], [0, 0, 0])
+            self.last_imu_data = [0, 0, 0, 0]
             self.imu_queue = Queue(maxsize=1)
             Thread(target=self.imu_worker, daemon=True).start()
 
@@ -62,10 +58,9 @@ class RLWalk:
         self.linearVelocityScale = 2.0
         self.angularVelocityScale = 0.25
         self.dof_pos_scale = 1.0
-        self.dof_vel_scale = 0.05  # 0.05
-        self.action_clip = (-1, 1)
-        self.obs_clip = (-5, 5)
-        self.zero_yaw = None
+        self.dof_vel_scale = 0.05
+        # self.action_clip = (-1, 1)
+        # self.obs_clip = (-5, 5)
         self.action_scale = action_scale
 
         self.prev_action = np.zeros(15)
@@ -80,7 +75,7 @@ class RLWalk:
         while True:
             try:
                 raw_orientation = self.imu.quaternion  # quat
-                raw_ang_vel = np.deg2rad(self.imu.gyro)  # xyz
+                # raw_ang_vel = np.deg2rad(self.imu.gyro)  # xyz
                 euler = R.from_quat(raw_orientation).as_euler("xyz")
             except Exception as e:
                 print(e)
@@ -95,13 +90,14 @@ class RLWalk:
 
             final_orientation_quat = R.from_euler("xyz", euler).as_quat()
 
-            final_ang_vel = [-raw_ang_vel[1], raw_ang_vel[0], raw_ang_vel[2]]
-            final_ang_vel = list(
-                (np.array(final_ang_vel) / (1 / self.control_freq))
-                * self.angularVelocityScale
-            )
+            # final_ang_vel = [-raw_ang_vel[1], raw_ang_vel[0], raw_ang_vel[2]]
+            # final_ang_vel = list(
+            #     (np.array(final_ang_vel) / (1 / self.control_freq))
+            #     * self.angularVelocityScale
+            # )
 
-            self.imu_queue.put((final_orientation_quat, final_ang_vel))
+            # self.imu_queue.put((final_orientation_quat, final_ang_vel))
+            self.imu_queue.put(final_orientation_quat)
             time.sleep(1 / (self.control_freq * 2))
 
     def get_imu_data(self):
@@ -112,32 +108,14 @@ class RLWalk:
 
         return self.last_imu_data
 
-    def quat_rotate_inverse(self, q, v):
-        q = np.array(q)
-        v = np.array(v)
-
-        q_w = q[-1]
-        q_vec = q[:3]
-
-        a = v * (2.0 * q_w**2 - 1.0)
-        b = np.cross(q_vec, v) * q_w * 2.0
-        c = q_vec * (np.dot(q_vec, v)) * 2.0
-
-        return a - b + c
-
     def get_obs(self, commands):
-        # TODO There is something wrong here.
-        # Plot the computed observations when replaying with the saved observations to see
-
-        # get_imu_data_time = time.time()
         if not self.debug_no_imu:
-            orientation_quat, ang_vel = self.get_imu_data()
-            if ang_vel is None or orientation_quat is None:
+            orientation_quat = self.get_imu_data()
+            if orientation_quat is None:
                 print("IMU ERROR")
                 return None
         else:
             orientation_quat = [1, 0, 0, 0]
-            ang_vel = [0, 0, 0]
 
         dof_pos = self.hwi.get_present_positions()  # rad
         dof_vel = self.hwi.get_present_velocities()  # rad/min
@@ -154,17 +132,7 @@ class RLWalk:
         dof_pos_scaled = mujoco_to_isaac(dof_pos_scaled)
         dof_vel_scaled = mujoco_to_isaac(dof_vel_scaled)
 
-        # return np.concatenate(
-        #     [
-        #         orientation_quat,
-        #         ang_vel,
-        #         dof_pos_scaled,
-        #         dof_vel_scaled,
-        #         self.prev_action,
-        #         commands,
-        #     ]
-        # )
-        projected_gravity = self.quat_rotate_inverse(orientation_quat, [0, 0, -1])
+        projected_gravity = quat_rotate_inverse(orientation_quat, [0, 0, -1])
 
         return np.concatenate(
             [
@@ -254,7 +222,6 @@ if __name__ == "__main__":
     parser.add_argument("-p", type=int, default=1000)
     parser.add_argument("-i", type=int, default=0)
     parser.add_argument("-d", type=int, default=500)
-    parser.add_argument("-w", type=int, default=20)
     parser.add_argument("-c", "--control_freq", type=int, default=60)
     parser.add_argument("--cutoff_frequency", type=int, default=10)
     parser.add_argument(
@@ -272,7 +239,6 @@ if __name__ == "__main__":
         debug_no_imu=False,
         action_scale=args.action_scale,
         pid=pid,
-        window_size=args.w,
         control_freq=args.control_freq,
         cutoff_frequency=args.cutoff_frequency,
         commands=args.commands,
