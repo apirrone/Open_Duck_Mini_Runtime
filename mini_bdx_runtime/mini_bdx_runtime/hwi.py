@@ -24,23 +24,6 @@ class HWI:
             "head_pitch": 31,
             "head_yaw": 32,
         }
-        # self.init_pos = {
-        #     "right_hip_yaw": -0.03646051060835733,
-        #     "right_hip_roll": -0.03358034284950263,
-        #     "right_hip_pitch": 0.5216150220237578,
-        #     "right_knee": -1.326235199315616,
-        #     "right_ankle": 0.7179857110436013,
-        #     "left_hip_yaw": -0.03455234018541292,
-        #     "left_hip_roll": 0.055730747490168285,
-        #     "left_hip_pitch": 0.5397158397618105,
-        #     "left_knee": -1.3152788306721914,
-        #     "left_ankle": 0.6888361815639528,
-        #     "neck_pitch": -0.1745314896173976,
-        #     "head_pitch": -0.17453429522668937,
-        #     "head_yaw": 0,
-        #     # "left_antenna": 0,
-        #     # "right_antenna": 0,
-        # }
 
         self.init_pos = {
             "right_hip_yaw": 0.001171696610228082,
@@ -56,8 +39,8 @@ class HWI:
             "neck_pitch": -0.17453292519943295,
             "head_pitch": -0.17453292519943295,
             "head_yaw": 0,
-            # "left_antenna": 0,
-            # "right_antenna": 0,
+            "left_antenna": 0,
+            "right_antenna": 0,
         }
 
         self.joints_offsets = {

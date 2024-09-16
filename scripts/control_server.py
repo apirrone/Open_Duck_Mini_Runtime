@@ -15,7 +15,7 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
-X_RANGE = [0, 0.2]
+X_RANGE = [0, 0.1]
 Y_RANGE = [0, 0.0]
 YAW_RANGE = [-0.7, 0.7]
 
