@@ -25,41 +25,39 @@ class HWI:
             "head_yaw": 32,
         }
         # self.init_pos = {
-        #     "right_hip_yaw": -0.014,  # [rad]
-        #     "right_hip_roll": 0.08,  # [rad]
-        #     "right_hip_pitch": 0.53,  # [rad]
-        #     "right_knee": -1.32,  # [rad]
-        #     # "right_knee": -1.22,  # [rad]
-        #     "right_ankle": 0.91,  # [rad]
-        #     "left_hip_yaw": 0.013,  # [rad]
-        #     "left_hip_roll": 0.077,  # [rad]
-        #     "left_hip_pitch": 0.59,  # [rad]
-        #     "left_knee": -1.33,  # [rad]
-        #     # "left_knee": -1.23,  # [rad]
-        #     "left_ankle": 0.86,  # [rad]
-        #     "neck_pitch": -0.17,  # [rad]
-        #     "head_pitch": -0.17,  # [rad]
-        #     "head_yaw": 0.0,  # [rad]
-        #     # "left_antenna": 0.0,  # [rad]
-        #     # "right_antenna": 0.0,  # [rad]
+        #     "right_hip_yaw": -0.03646051060835733,
+        #     "right_hip_roll": -0.03358034284950263,
+        #     "right_hip_pitch": 0.5216150220237578,
+        #     "right_knee": -1.326235199315616,
+        #     "right_ankle": 0.7179857110436013,
+        #     "left_hip_yaw": -0.03455234018541292,
+        #     "left_hip_roll": 0.055730747490168285,
+        #     "left_hip_pitch": 0.5397158397618105,
+        #     "left_knee": -1.3152788306721914,
+        #     "left_ankle": 0.6888361815639528,
+        #     "neck_pitch": -0.1745314896173976,
+        #     "head_pitch": -0.17453429522668937,
+        #     "head_yaw": 0,
+        #     # "left_antenna": 0,
+        #     # "right_antenna": 0,
         # }
 
         self.init_pos = {
-            "right_hip_yaw": -0.03676731090962078,
-            "right_hip_roll": -0.030315211140564333,
-            "right_hip_pitch": 0.4065815100399598,
-            "right_knee": -1.0864064934571644,
-            "right_ankle": 0.5932324840794684,
-            "left_hip_yaw": -0.03485756878823724,
-            "left_hip_roll": 0.052286054888550475,
-            "left_hip_pitch": 0.36623601032755765,
-            "left_knee": -0.964204465274923,
-            "left_ankle": 0.5112970996901808,
+            "right_hip_yaw": 0.001171696610228082,
+            "right_hip_roll": 0.006726989242258406,
+            "right_hip_pitch": 1.0129772861831692,
+            "right_knee": -1.4829304760981399,
+            "right_ankle": 0.6444901047812701,
+            "left_hip_yaw": -0.002853397830292128,
+            "left_hip_roll": 0.01626303761810685,
+            "left_hip_pitch": 1.0105624704499077,
+            "left_knee": -1.4865015965817336,
+            "left_ankle": 0.6504953719748071,
             "neck_pitch": -0.17453292519943295,
             "head_pitch": -0.17453292519943295,
-            "head_yaw": 2.0669786327325328e-26,
-            # "left_antenna": 1.8501964363469314e-28,
-            # "right_antenna": -1.898145128718553e-28,
+            "head_yaw": 0,
+            # "left_antenna": 0,
+            # "right_antenna": 0,
         }
 
         self.joints_offsets = {
