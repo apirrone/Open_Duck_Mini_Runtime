@@ -19,10 +19,13 @@ class CommandsClient:
 
     def commands_worker(self):
         while True:
-            data = self.client_socket.recv(1024)  # receive response
-            data = pickle.loads(data)
+            try:
+                data = self.client_socket.recv(1024)  # receive response
+                data = pickle.loads(data)
 
-            self.commands_queue.put(data)
+                self.commands_queue.put(data)
+            except:
+                print("missed command")
 
             time.sleep(1 / self.freq)
 

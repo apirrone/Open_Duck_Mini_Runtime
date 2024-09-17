@@ -15,7 +15,7 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
-X_RANGE = [0, 0.1]
+X_RANGE = [0, 0.12]
 Y_RANGE = [0, 0.0]
 YAW_RANGE = [-0.7, 0.7]
 
@@ -30,23 +30,26 @@ else:
     screen = pygame.display.set_mode((100, 100))
     pygame.display.set_caption("Press arrow keys to move robot")
 
+commands = [0, 0, 0]
+
 
 def get_command():
-    commands = [0, 0, 0]
+    global commands
+    # commands = [0, 0, 0]
     if args.controller:
         for event in pygame.event.get():
             lin_vel_x = -1 * _p1.get_axis(1)
-            lin_vel_y = -1 * _p1.get_axis(3)
+            # lin_vel_y = -1 * _p1.get_axis(3)
             ang_vel = -1 * _p1.get_axis(0)
             if lin_vel_x >= 0:
                 lin_vel_x *= np.abs(X_RANGE[1])
             else:
                 lin_vel_x *= np.abs(X_RANGE[0])
 
-            if lin_vel_y >= 0:
-                lin_vel_y *= np.abs(Y_RANGE[1])
-            else:
-                lin_vel_y *= np.abs(Y_RANGE[0])
+            # if lin_vel_y >= 0:
+            #     lin_vel_y *= np.abs(Y_RANGE[1])
+            # else:
+            #     lin_vel_y *= np.abs(Y_RANGE[0])
 
             if ang_vel >= 0:
                 ang_vel *= np.abs(YAW_RANGE[1])
@@ -54,7 +57,7 @@ def get_command():
                 ang_vel *= np.abs(YAW_RANGE[0])
 
             commands[0] = lin_vel_x
-            commands[1] = lin_vel_y
+            commands[1] = 0
             commands[2] = ang_vel
     else:
         keys = pygame.key.get_pressed()
@@ -75,7 +78,7 @@ def get_command():
         commands[1] = lin_vel_y
         commands[2] = ang_vel
 
-        pygame.event.pump()  # process event queue
+    pygame.event.pump()  # process event queue
 
     print(commands)
     return commands
@@ -87,14 +90,17 @@ port = 1234
 server_socket = socket.socket()
 server_socket.bind((host, port))
 
-server_socket.listen(1)
-conn, address = server_socket.accept()  # accept new connection
-print("Connection from: " + str(address))
-
 while True:
-    data = get_command()
-    data = pickle.dumps(data)
-    conn.send(data)  # send data to the client
-    time.sleep(1 / 10)
+    server_socket.listen(1)
+    conn, address = server_socket.accept()  # accept new connection
+    print("Connection from: " + str(address))
+    try:
+        while True:
+            data = get_command()
+            data = pickle.dumps(data)
+            conn.send(data)  # send data to the client
+            time.sleep(1 / 10)
+    except:
+        pass
 
 conn.close()  # close the connection
