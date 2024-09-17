@@ -71,6 +71,8 @@ class RLWalk:
         if self.commands:
             self.commands_client = CommandsClient("192.168.89.246")
 
+        self.action_filter = LowPassActionFilter(self.control_freq, cutoff_frequency)
+
     def imu_worker(self):
         while True:
             try:
@@ -118,7 +120,7 @@ class RLWalk:
             orientation_quat = [1, 0, 0, 0]
 
         dof_pos = self.hwi.get_present_positions()  # rad
-        dof_vel = self.hwi.get_present_velocities()  # rad/min
+        dof_vel = self.hwi.get_present_velocities()  # rad/s
 
         dof_pos_scaled = list(
             np.array(dof_pos - self.mujoco_init_pos[:13]) * self.dof_pos_scale
@@ -156,7 +158,7 @@ class RLWalk:
         robot_computed_obs = []
         try:
             print("Starting")
-            commands = [0.2, 0.0, 0.0]
+            commands = [0.0, 0.0, 0.0]
             while True:
                 start = time.time()
                 obs = self.get_obs(commands)
@@ -173,8 +175,8 @@ class RLWalk:
 
                 # action = np.clip(action, self.action_clip[0], self.action_clip[1])
 
-                # self.action_filter.push(action)
-                # action = self.action_filter.get_filtered_action()
+                self.action_filter.push(action)
+                action = self.action_filter.get_filtered_action()
 
                 robot_action = isaac_to_mujoco(action)
 
@@ -222,7 +224,7 @@ if __name__ == "__main__":
     parser.add_argument("-p", type=int, default=1000)
     parser.add_argument("-i", type=int, default=0)
     parser.add_argument("-d", type=int, default=500)
-    parser.add_argument("-c", "--control_freq", type=int, default=60)
+    parser.add_argument("-c", "--control_freq", type=int, default=30)
     parser.add_argument("--cutoff_frequency", type=int, default=10)
     parser.add_argument(
         "--commands",

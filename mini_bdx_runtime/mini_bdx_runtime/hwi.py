@@ -70,7 +70,7 @@ class HWI:
             )
         }
 
-        # current based position
+        # current based position : 0x5
         self.dxl_io.set_operating_mode({id: 0x3 for id in self.joints.values()})
 
     def set_pid(self, pid, joint_name):
