@@ -47,7 +47,6 @@ class RLWalk:
             # self.imu.mode = adafruit_bno055.NDOF_MODE
             # self.imu.mode = adafruit_bno055.GYRONLY_MODE
             self.imu.mode = adafruit_bno055.IMUPLUS_MODE
-            # self.last_imu_data = ([0, 0, 0, 0], [0, 0, 0])
             self.last_imu_data = [0, 0, 0, 0]
             self.imu_queue = Queue(maxsize=1)
             Thread(target=self.imu_worker, daemon=True).start()
@@ -59,8 +58,6 @@ class RLWalk:
         self.angularVelocityScale = 0.25
         self.dof_pos_scale = 1.0
         self.dof_vel_scale = 0.05
-        # self.action_clip = (-1, 1)
-        # self.obs_clip = (-5, 5)
         self.action_scale = action_scale
 
         self.prev_action = np.zeros(15)
@@ -77,7 +74,6 @@ class RLWalk:
         while True:
             try:
                 raw_orientation = self.imu.quaternion  # quat
-                # raw_ang_vel = np.deg2rad(self.imu.gyro)  # xyz
                 euler = R.from_quat(raw_orientation).as_euler("xyz")
             except Exception as e:
                 print(e)
@@ -86,19 +82,9 @@ class RLWalk:
             # Converting to correct axes
             euler = [euler[1], euler[2], euler[0]]
             euler[1] += np.deg2rad(self.pitch_bias)
-            # euler[1] = -euler[1]  # TODO inverted pitch ???
-            # zero yaw
-            # euler[2] = 0
 
             final_orientation_quat = R.from_euler("xyz", euler).as_quat()
 
-            # final_ang_vel = [-raw_ang_vel[1], raw_ang_vel[0], raw_ang_vel[2]]
-            # final_ang_vel = list(
-            #     (np.array(final_ang_vel) / (1 / self.control_freq))
-            #     * self.angularVelocityScale
-            # )
-
-            # self.imu_queue.put((final_orientation_quat, final_ang_vel))
             self.imu_queue.put(final_orientation_quat)
             time.sleep(1 / (self.control_freq * 2))
 
@@ -153,7 +139,6 @@ class RLWalk:
         time.sleep(2)
 
     def run(self):
-        # saved_obs = pickle.load(open("mujoco_saved_obs.pkl", "rb"))
         i = 0
         robot_computed_obs = []
         try:
@@ -165,15 +150,11 @@ class RLWalk:
                 if obs is None:
                     break
                 robot_computed_obs.append(obs)
-                # obs = saved_obs[i]
-                # obs = np.clip(obs, self.obs_clip[0], self.obs_clip[1])
 
                 action = self.policy.infer(obs)
-                self.prev_action = action.copy()  # here ? # Maybe here
+                self.prev_action = action.copy()
 
                 action = action * self.action_scale + self.isaac_init_pos
-
-                # action = np.clip(action, self.action_clip[0], self.action_clip[1])
 
                 self.action_filter.push(action)
                 action = self.action_filter.get_filtered_action()
@@ -206,8 +187,6 @@ class RLWalk:
                 # )
                 # print("===")
                 time.sleep((max(1 / self.control_freq - took, 0)))
-                # if i > len(saved_obs) - 1:
-                #     break
         except KeyboardInterrupt:
             pass
 

@@ -15,9 +15,9 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
-X_RANGE = [0, 0.12]
+X_RANGE = [0, 0.16]
 Y_RANGE = [0, 0.0]
-YAW_RANGE = [-0.7, 0.7]
+YAW_RANGE = [0.0, 0.0]
 
 if args.controller:
     pygame.init()
