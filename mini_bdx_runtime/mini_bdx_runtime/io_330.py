@@ -168,6 +168,18 @@ controls = {
         "access": _DxlAccess.readonly,
         "dxl_to_si": dxl_to_current,
     },
+    "present input voltage": {
+        "address": 0x90,
+        "length": 2,
+        "access": _DxlAccess.readonly,
+        "dxl_to_si": conv.dxl_to_voltage,
+    },
+    "present temperature": {
+        "address": 0x92,
+        "length": 1,
+        "access": _DxlAccess.readonly,
+        "dxl_to_si": conv.dxl_to_temperature,
+    },
 }
 
 

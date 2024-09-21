@@ -34,12 +34,23 @@ class RLWalk:
         cutoff_frequency=100.0,
         commands=False,
         pitch_bias=0.0,
+        rma=False,
+        adaptation_module_path=None,
     ):
         self.debug_no_imu = debug_no_imu
         self.commands = commands
         self.pitch_bias = pitch_bias
+
         self.onnx_model_path = onnx_model_path
         self.policy = OnnxInfer(self.onnx_model_path)
+
+        self.rma = rma
+        self.num_obs = 51
+        if self.rma:
+            self.adaptation_module = OnnxInfer(adaptation_module_path, "obs_history")
+            self.obs_history_size = 15
+            self.obs_history = np.zeros((self.obs_history_size, self.num_obs)).tolist()
+
         self.hwi = HWI(serial_port)
         if not self.debug_no_imu:
             self.uart = serial.Serial("/dev/ttyS0")  # , baudrate=115200)
@@ -151,7 +162,17 @@ class RLWalk:
                     break
                 robot_computed_obs.append(obs)
 
-                action = self.policy.infer(obs)
+                if self.rma:
+                    self.obs_history.append(obs)
+                    self.obs_history = self.obs_history[-self.obs_history_size :]
+                    latent = self.adaptation_module.infer(
+                        np.array(self.obs_history).flatten()
+                    )
+                    policy_input = np.concatenate([obs, latent])
+                    action = self.policy.infer(policy_input)
+                else:
+                    action = self.policy.infer(obs)
+
                 self.prev_action = action.copy()
 
                 action = action * self.action_scale + self.isaac_init_pos
@@ -205,6 +226,8 @@ if __name__ == "__main__":
     parser.add_argument("-d", type=int, default=500)
     parser.add_argument("-c", "--control_freq", type=int, default=30)
     parser.add_argument("--cutoff_frequency", type=int, default=10)
+    parser.add_argument("--rma", action="store_true", default=False)
+    parser.add_argument("--adaptation_module_path", type=str, required=False)
     parser.add_argument(
         "--commands",
         action="store_true",
@@ -224,6 +247,8 @@ if __name__ == "__main__":
         cutoff_frequency=args.cutoff_frequency,
         commands=args.commands,
         pitch_bias=args.pitch_bias,
+        rma=rma,
+        adaptation_module_path=args.adaptation_module_path,
     )
     rl_walk.start()
     rl_walk.run()
