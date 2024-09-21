@@ -89,7 +89,7 @@ class RLWalk:
             self._p1.init()
             print(f"Loaded joystick with {self._p1.get_numaxes()} axes.")
         self.last_command_time = time.time()
-        self.command_freq = 5  # hz
+        self.command_freq = 10  # hz
 
         self.action_filter = LowPassActionFilter(self.control_freq, cutoff_frequency)
 
@@ -120,17 +120,7 @@ class RLWalk:
 
         pygame.event.pump()  # process event queue
 
-        # last_commands = list(
-        #     np.array(last_commands)
-        #     * np.array(
-        #         [
-        #             self.linearVelocityScale,
-        #             self.linearVelocityScale,
-        #             self.angularVelocityScale,
-        #         ]
-        #     )
-        # )
-        return last_commands
+        return np.around(last_commands, 3)
 
     def imu_worker(self):
         while True:
@@ -184,10 +174,21 @@ class RLWalk:
 
         projected_gravity = quat_rotate_inverse(orientation_quat, [0, 0, -1])
 
+        com = list(
+            np.array(self.last_commands).copy()
+            * np.array(
+                [
+                    self.linearVelocityScale,
+                    self.linearVelocityScale,
+                    self.angularVelocityScale,
+                ]
+            )
+        )
+
         return np.concatenate(
             [
                 projected_gravity,
-                self.last_commands,
+                com,
                 dof_pos_scaled,
                 dof_vel_scaled,
                 self.prev_action,
