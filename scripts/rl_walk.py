@@ -81,17 +81,17 @@ class RLWalk:
         self.last_commands = [0, 0, 0]
         if self.commands:
             pygame.init()
-            _p1 = pygame.joystick.Joystick(0)
-            _p1.init()
-            print(f"Loaded joystick with {_p1.get_numaxes()} axes.")
+            self._p1 = pygame.joystick.Joystick(0)
+            self._p1.init()
+            print(f"Loaded joystick with {self._p1.get_numaxes()} axes.")
 
         self.action_filter = LowPassActionFilter(self.control_freq, cutoff_frequency)
 
     def get_commands(self):
         for event in pygame.event.get():
-            lin_vel_x = -1 * _p1.get_axis(1)
-            lin_vel_y = -1 * _p1.get_axis(0)
-            ang_vel = -1 * _p1.get_axis(3)
+            lin_vel_y = -1 * self._p1.get_axis(0)
+            lin_vel_x = -1 * self._p1.get_axis(1)
+            ang_vel = -1 * self._p1.get_axis(3)
             if lin_vel_x >= 0:
                 lin_vel_x *= np.abs(X_RANGE[1])
             else:
