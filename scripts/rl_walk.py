@@ -120,16 +120,16 @@ class RLWalk:
 
         pygame.event.pump()  # process event queue
 
-        last_commands = list(
-            np.array(last_commands)
-            * np.array(
-                [
-                    self.linearVelocityScale,
-                    self.linearVelocityScale,
-                    self.angularVelocityScale,
-                ]
-            )
-        )
+        # last_commands = list(
+        #     np.array(last_commands)
+        #     * np.array(
+        #         [
+        #             self.linearVelocityScale,
+        #             self.linearVelocityScale,
+        #             self.angularVelocityScale,
+        #         ]
+        #     )
+        # )
         return last_commands
 
     def imu_worker(self):
