@@ -23,7 +23,7 @@ import pygame
 
 # from commands_client import CommandsClient
 
-X_RANGE = [0, 0.16]
+X_RANGE = [0, 0.13]
 Y_RANGE = [-0.1, 0.1]
 YAW_RANGE = [-0.4, 0.4]
 
