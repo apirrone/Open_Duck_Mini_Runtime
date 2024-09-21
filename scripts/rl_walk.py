@@ -230,6 +230,7 @@ class RLWalk:
                             ]
                         )
                     )
+                    print("commands", self.commands)
 
                 i += 1
                 took = time.time() - start
