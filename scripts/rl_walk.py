@@ -244,13 +244,13 @@ class RLWalk:
 
                 i += 1
                 took = time.time() - start
-                # print(
-                #     "FPS",
-                #     np.around(1 / took, 3),
-                #     "-- target",
-                #     self.control_freq,
-                # )
-                # print("===")
+                print(
+                    "FPS",
+                    np.around(1 / took, 3),
+                    "-- target",
+                    self.control_freq,
+                )
+                print("===")
                 time.sleep((max(1 / self.control_freq - took, 0)))
         except KeyboardInterrupt:
             pass
