@@ -94,6 +94,7 @@ class RLWalk:
         self.action_filter = LowPassActionFilter(self.control_freq, cutoff_frequency)
 
     def get_commands(self):
+        last_commands = self.last_commands
         for event in pygame.event.get():
             lin_vel_y = -1 * self._p1.get_axis(0)
             lin_vel_x = -1 * self._p1.get_axis(1)
@@ -113,11 +114,23 @@ class RLWalk:
             else:
                 ang_vel *= np.abs(YAW_RANGE[0])
 
-            self.last_commands[0] = lin_vel_x
-            self.last_commands[1] = lin_vel_y
-            self.last_commands[2] = ang_vel
+            last_commands[0] = lin_vel_x
+            last_commands[1] = lin_vel_y
+            last_commands[2] = ang_vel
 
         pygame.event.pump()  # process event queue
+
+        last_commands = list(
+            np.array(last_commands)
+            * np.array(
+                [
+                    self.linearVelocityScale,
+                    self.linearVelocityScale,
+                    self.angularVelocityScale,
+                ]
+            )
+        )
+        return last_commands
 
     def imu_worker(self):
         while True:
@@ -228,29 +241,19 @@ class RLWalk:
                 if self.commands and (time.time() - self.last_command_time) > (
                     1 / self.command_freq
                 ):
-                    self.get_commands()
-                    self.last_commands = list(
-                        np.array(self.last_commands)
-                        * np.array(
-                            [
-                                self.linearVelocityScale,
-                                self.linearVelocityScale,
-                                self.angularVelocityScale,
-                            ]
-                        )
-                    )
+                    self.last_commands = self.get_commands()
                     print("commands", self.last_commands)
                     self.last_command_time = time.time()
 
                 i += 1
                 took = time.time() - start
-                print(
-                    "FPS",
-                    np.around(1 / took, 3),
-                    "-- target",
-                    self.control_freq,
-                )
-                print("===")
+                # print(
+                #     "FPS",
+                #     np.around(1 / took, 3),
+                #     "-- target",
+                #     self.control_freq,
+                # )
+                # print("===")
                 time.sleep((max(1 / self.control_freq - took, 0)))
         except KeyboardInterrupt:
             pass
