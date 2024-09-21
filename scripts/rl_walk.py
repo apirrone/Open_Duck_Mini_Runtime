@@ -83,6 +83,7 @@ class RLWalk:
         self.isaac_init_pos = np.array(mujoco_to_isaac(self.mujoco_init_pos))
 
         self.last_commands = [0, 0, 0]
+        self.command_freq = 10  # hz
         if self.commands:
             pygame.init()
             self._p1 = pygame.joystick.Joystick(0)
@@ -91,7 +92,6 @@ class RLWalk:
             self.cmd_queue = Queue(maxsize=1)
             Thread(target=self.commands_worker, daemon=True).start()
         self.last_command_time = time.time()
-        self.command_freq = 10  # hz
 
         self.action_filter = LowPassActionFilter(self.control_freq, cutoff_frequency)
 
@@ -175,6 +175,7 @@ class RLWalk:
 
         if self.commands:
             self.last_commands = self.get_last_command()
+            print(self.last_commands)
 
         dof_pos = self.hwi.get_present_positions()  # rad
         dof_vel = self.hwi.get_present_velocities()  # rad/s
