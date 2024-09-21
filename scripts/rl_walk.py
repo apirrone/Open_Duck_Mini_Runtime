@@ -146,6 +146,9 @@ class RLWalk:
     def start(self):
         self.hwi.turn_on()
         self.hwi.set_pid_all(self.pid)
+        self.hwi.set_pid([1000, 0, 500], "neck_pitch")
+        self.hwi.set_pid([1000, 0, 500], "head_pitch")
+        self.hwi.set_pid([1000, 0, 500], "neck_yaw")
 
         time.sleep(2)
 
