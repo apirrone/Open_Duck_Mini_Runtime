@@ -16,8 +16,8 @@ parser.add_argument(
 args = parser.parse_args()
 
 X_RANGE = [0, 0.16]
-Y_RANGE = [0, 0.0]
-YAW_RANGE = [0.0, 0.0]
+Y_RANGE = [-0.1, 0.1]
+YAW_RANGE = [-0.4, 0.4]
 
 if args.controller:
     pygame.init()
@@ -39,17 +39,17 @@ def get_command():
     if args.controller:
         for event in pygame.event.get():
             lin_vel_x = -1 * _p1.get_axis(1)
-            # lin_vel_y = -1 * _p1.get_axis(3)
-            ang_vel = -1 * _p1.get_axis(0)
+            lin_vel_y = -1 * _p1.get_axis(0)
+            ang_vel = -1 * _p1.get_axis(3)
             if lin_vel_x >= 0:
                 lin_vel_x *= np.abs(X_RANGE[1])
             else:
                 lin_vel_x *= np.abs(X_RANGE[0])
 
-            # if lin_vel_y >= 0:
-            #     lin_vel_y *= np.abs(Y_RANGE[1])
-            # else:
-            #     lin_vel_y *= np.abs(Y_RANGE[0])
+            if lin_vel_y >= 0:
+                lin_vel_y *= np.abs(Y_RANGE[1])
+            else:
+                lin_vel_y *= np.abs(Y_RANGE[0])
 
             if ang_vel >= 0:
                 ang_vel *= np.abs(YAW_RANGE[1])
@@ -57,7 +57,7 @@ def get_command():
                 ang_vel *= np.abs(YAW_RANGE[0])
 
             commands[0] = lin_vel_x
-            commands[1] = 0
+            commands[1] = lin_vel_y
             commands[2] = ang_vel
     else:
         keys = pygame.key.get_pressed()
@@ -82,6 +82,11 @@ def get_command():
 
     print(commands)
     return commands
+
+
+# debug
+# while True:
+#     get_command()
 
 
 host = "0.0.0.0"
