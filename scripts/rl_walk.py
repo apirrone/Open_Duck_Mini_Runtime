@@ -19,7 +19,9 @@ from mini_bdx_runtime.rl_utils import (
     mujoco_to_isaac,
     quat_rotate_inverse,
 )
-from commands_client import CommandsClient
+import pygame
+
+# from commands_client import CommandsClient
 
 
 class RLWalk:
@@ -76,10 +78,40 @@ class RLWalk:
         self.mujoco_init_pos = list(self.hwi.init_pos.values()) + [0, 0]
         self.isaac_init_pos = np.array(mujoco_to_isaac(self.mujoco_init_pos))
 
+        self.last_commands = [0, 0, 0]
         if self.commands:
-            self.commands_client = CommandsClient("192.168.89.246")
+            pygame.init()
+            _p1 = pygame.joystick.Joystick(0)
+            _p1.init()
+            print(f"Loaded joystick with {_p1.get_numaxes()} axes.")
 
         self.action_filter = LowPassActionFilter(self.control_freq, cutoff_frequency)
+
+    def get_commands(self):
+        for event in pygame.event.get():
+            lin_vel_x = -1 * _p1.get_axis(1)
+            lin_vel_y = -1 * _p1.get_axis(0)
+            ang_vel = -1 * _p1.get_axis(3)
+            if lin_vel_x >= 0:
+                lin_vel_x *= np.abs(X_RANGE[1])
+            else:
+                lin_vel_x *= np.abs(X_RANGE[0])
+
+            if lin_vel_y >= 0:
+                lin_vel_y *= np.abs(Y_RANGE[1])
+            else:
+                lin_vel_y *= np.abs(Y_RANGE[0])
+
+            if ang_vel >= 0:
+                ang_vel *= np.abs(YAW_RANGE[1])
+            else:
+                ang_vel *= np.abs(YAW_RANGE[0])
+
+            self.last_commands[0] = lin_vel_x
+            self.last_commands[1] = lin_vel_y
+            self.last_commands[2] = ang_vel
+
+        pygame.event.pump()  # process event queue
 
     def imu_worker(self):
         while True:
@@ -107,7 +139,7 @@ class RLWalk:
 
         return self.last_imu_data
 
-    def get_obs(self, commands):
+    def get_obs(self):
         if not self.debug_no_imu:
             orientation_quat = self.get_imu_data()
             if orientation_quat is None:
@@ -136,7 +168,7 @@ class RLWalk:
         return np.concatenate(
             [
                 projected_gravity,
-                commands,
+                self.last_commands,
                 dof_pos_scaled,
                 dof_vel_scaled,
                 self.prev_action,
@@ -157,10 +189,9 @@ class RLWalk:
         robot_computed_obs = []
         try:
             print("Starting")
-            commands = [0.0, 0.0, 0.0]
             while True:
                 start = time.time()
-                obs = self.get_obs(commands)
+                obs = self.get_obs()
                 if obs is None:
                     break
                 robot_computed_obs.append(obs)
@@ -189,8 +220,8 @@ class RLWalk:
                 self.hwi.set_position_all(action_dict)
 
                 if self.commands:
-                    commands = list(
-                        np.array(self.commands_client.get_command())
+                    self.last_commands = list(
+                        np.array(self.last_commands)
                         * np.array(
                             [
                                 self.linearVelocityScale,
@@ -199,7 +230,6 @@ class RLWalk:
                             ]
                         )
                     )
-                    print("commands", commands)
 
                 i += 1
                 took = time.time() - start
