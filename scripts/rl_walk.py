@@ -88,11 +88,19 @@ class RLWalk:
             self._p1 = pygame.joystick.Joystick(0)
             self._p1.init()
             print(f"Loaded joystick with {self._p1.get_numaxes()} axes.")
+            self.cmd_queue = Queue(maxsize=1)
+            Thread(target=self.commands_worker, daemon=True).start()
         self.last_command_time = time.time()
         self.command_freq = 10  # hz
 
         self.action_filter = LowPassActionFilter(self.control_freq, cutoff_frequency)
 
+    def commands_worker(self):
+        while True:
+            self.cmd_queue.put(self.get_commands())
+            time.sleep(1 / self.command_freq)
+
+    # TODO turn that into low frequency worker in case the bluetooth connection is unstable
     def get_commands(self):
         last_commands = self.last_commands
         for event in pygame.event.get():
@@ -148,6 +156,14 @@ class RLWalk:
 
         return self.last_imu_data
 
+    def get_last_command(self):
+        try:
+            self.last_commands = self.cmd_queue.get(False)  # non blocking
+        except Exception:
+            pass
+
+        return self.last_commands
+
     def get_obs(self):
         if not self.debug_no_imu:
             orientation_quat = self.get_imu_data()
@@ -156,6 +172,9 @@ class RLWalk:
                 return None
         else:
             orientation_quat = [1, 0, 0, 0]
+
+        if self.commands:
+            self.last_commands = self.get_last_command()
 
         dof_pos = self.hwi.get_present_positions()  # rad
         dof_vel = self.hwi.get_present_velocities()  # rad/s
@@ -238,13 +257,6 @@ class RLWalk:
 
                 action_dict = make_action_dict(robot_action, mujoco_joints_order)
                 self.hwi.set_position_all(action_dict)
-
-                if self.commands and (time.time() - self.last_command_time) > (
-                    1 / self.command_freq
-                ):
-                    self.last_commands = self.get_commands()
-                    print("commands", self.last_commands)
-                    self.last_command_time = time.time()
 
                 i += 1
                 took = time.time() - start
