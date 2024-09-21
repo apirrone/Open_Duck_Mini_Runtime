@@ -88,6 +88,8 @@ class RLWalk:
             self._p1 = pygame.joystick.Joystick(0)
             self._p1.init()
             print(f"Loaded joystick with {self._p1.get_numaxes()} axes.")
+        self.last_command_time = time.time()
+        self.command_freq = 5  # hz
 
         self.action_filter = LowPassActionFilter(self.control_freq, cutoff_frequency)
 
@@ -223,7 +225,9 @@ class RLWalk:
                 action_dict = make_action_dict(robot_action, mujoco_joints_order)
                 # self.hwi.set_position_all(action_dict)
 
-                if self.commands:
+                if self.commands and (time.time() - self.last_command_time) > (
+                    1 / self.command_freq
+                ):
                     self.get_commands()
                     self.last_commands = list(
                         np.array(self.last_commands)
@@ -236,6 +240,7 @@ class RLWalk:
                         )
                     )
                     print("commands", self.last_commands)
+                    self.last_command_time = time.time()
 
                 i += 1
                 took = time.time() - start
