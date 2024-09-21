@@ -237,7 +237,7 @@ class RLWalk:
                 robot_action = isaac_to_mujoco(action)
 
                 action_dict = make_action_dict(robot_action, mujoco_joints_order)
-                # self.hwi.set_position_all(action_dict)
+                self.hwi.set_position_all(action_dict)
 
                 if self.commands and (time.time() - self.last_command_time) > (
                     1 / self.command_freq
