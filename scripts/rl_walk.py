@@ -220,6 +220,7 @@ class RLWalk:
                 self.hwi.set_position_all(action_dict)
 
                 if self.commands:
+                    self.get_commands()
                     self.last_commands = list(
                         np.array(self.last_commands)
                         * np.array(
@@ -230,7 +231,7 @@ class RLWalk:
                             ]
                         )
                     )
-                    print("commands", self.commands)
+                    print("commands", self.last_commands)
 
                 i += 1
                 took = time.time() - start
