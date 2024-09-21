@@ -247,7 +247,7 @@ if __name__ == "__main__":
         cutoff_frequency=args.cutoff_frequency,
         commands=args.commands,
         pitch_bias=args.pitch_bias,
-        rma=rma,
+        rma=args.rma,
         adaptation_module_path=args.adaptation_module_path,
     )
     rl_walk.start()
