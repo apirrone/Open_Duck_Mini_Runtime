@@ -56,6 +56,8 @@ class RLWalk:
             self.adaptation_module = OnnxInfer(adaptation_module_path, "obs_history")
             self.obs_history_size = 15
             self.obs_history = np.zeros((self.obs_history_size, self.num_obs)).tolist()
+            self.rma_freq = 5  # Hz
+            self.last_rma_time = time.time()
 
         self.hwi = HWI(serial_port)
         if not self.debug_no_imu:
@@ -230,6 +232,7 @@ class RLWalk:
         try:
             print("Starting")
             while True:
+                t = time.time()
                 start = time.time()
                 obs = self.get_obs()
                 if obs is None:
@@ -239,9 +242,11 @@ class RLWalk:
                 if self.rma:
                     self.obs_history.append(obs)
                     self.obs_history = self.obs_history[-self.obs_history_size :]
-                    latent = self.adaptation_module.infer(
-                        np.array(self.obs_history).flatten()
-                    )
+                    if t - self.last_rma_time > 1 / self.rma_freq:
+                        latent = self.adaptation_module.infer(
+                            np.array(self.obs_history).flatten()
+                        )
+                        self.last_rma_time = t
                     policy_input = np.concatenate([obs, latent])
                     action = self.policy.infer(policy_input)
                 else:
@@ -284,7 +289,7 @@ if __name__ == "__main__":
     parser.add_argument("-a", "--action_scale", type=float, default=0.25)
     parser.add_argument("-p", type=int, default=1000)
     parser.add_argument("-i", type=int, default=0)
-    parser.add_argument("-d", type=int, default=500)
+    parser.add_argument("-d", type=int, default=1000)
     parser.add_argument("-c", "--control_freq", type=int, default=30)
     parser.add_argument("--cutoff_frequency", type=int, default=10)
     parser.add_argument("--rma", action="store_true", default=False)
