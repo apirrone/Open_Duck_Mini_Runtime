@@ -104,7 +104,6 @@ class RLWalk:
             self.cmd_queue.put(self.get_commands())
             time.sleep(1 / self.command_freq)
 
-    # TODO turn that into low frequency worker in case the bluetooth connection is unstable
     def get_commands(self):
         last_commands = self.last_commands
         for event in pygame.event.get():
@@ -259,12 +258,17 @@ class RLWalk:
                 else:
                     action = self.policy.infer(obs)
 
+                # according to mujoco, should be here
+                self.action_filter.push(action)
+                action = self.action_filter.get_filtered_action()
+
                 self.prev_action = action.copy()
 
                 action = action * self.action_scale + self.isaac_init_pos
 
-                self.action_filter.push(action)
-                action = self.action_filter.get_filtered_action()
+                # was here before
+                # self.action_filter.push(action)
+                # action = self.action_filter.get_filtered_action()
 
                 robot_action = isaac_to_mujoco(action)
 
