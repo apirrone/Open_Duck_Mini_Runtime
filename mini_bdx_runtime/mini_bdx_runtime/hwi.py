@@ -73,7 +73,7 @@ class HWI:
             "left_knee": 0.00,
             "left_ankle": 0.0,
             "neck_pitch": 0,
-            "head_pitch": 0.3,
+            "head_pitch": 0.0,
             "head_yaw": 0,
             # "left_antenna": 0,
             # "right_antenna": 0,
