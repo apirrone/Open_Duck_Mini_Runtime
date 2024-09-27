@@ -42,6 +42,7 @@ class RLWalk:
         pitch_bias=0.0,
         rma=False,
         adaptation_module_path=None,
+        knees_p=None,
     ):
         self.debug_no_imu = debug_no_imu
         self.commands = commands
@@ -72,6 +73,7 @@ class RLWalk:
 
         self.control_freq = control_freq
         self.pid = pid
+        self.knees_p = knees_p
 
         self.linearVelocityScale = 2.0
         self.angularVelocityScale = 0.25
@@ -224,6 +226,11 @@ class RLWalk:
         self.hwi.set_pid([800, 0, 0], "head_pitch")
         self.hwi.set_pid([800, 0, 0], "head_yaw")
 
+        if self.knees_p is not None:
+            pid = [self.knees_p, pid[1], pid[2]]
+            self.hwi.set_pid(pid, "left_knee")
+            self.hwi.set_pid(pid, "right_knee")
+
         time.sleep(2)
 
     def run(self):
@@ -287,13 +294,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--onnx_model_path", type=str, required=True)
     parser.add_argument("-a", "--action_scale", type=float, default=0.25)
-    parser.add_argument("-p", type=int, default=1000)
+    parser.add_argument("-p", type=int, default=1100)
     parser.add_argument("-i", type=int, default=0)
-    parser.add_argument("-d", type=int, default=1000)
+    parser.add_argument("-d", type=int, default=0)
     parser.add_argument("-c", "--control_freq", type=int, default=30)
-    parser.add_argument("--cutoff_frequency", type=int, default=10)
+    parser.add_argument("--cutoff_frequency", type=int, default=5)
     parser.add_argument("--rma", action="store_true", default=False)
     parser.add_argument("--adaptation_module_path", type=str, required=False)
+    parser.add_argument("--knees_p", type=int, required=False, default=None)
     parser.add_argument(
         "--commands",
         action="store_true",
@@ -315,6 +323,7 @@ if __name__ == "__main__":
         pitch_bias=args.pitch_bias,
         rma=args.rma,
         adaptation_module_path=args.adaptation_module_path,
+        knees_p=args.knees_p,
     )
     rl_walk.start()
     rl_walk.run()
