@@ -258,17 +258,11 @@ class RLWalk:
                 else:
                     action = self.policy.infer(obs)
 
-                # according to mujoco, should be here
-                self.action_filter.push(action)
-                action = self.action_filter.get_filtered_action()
-
-                self.prev_action = action.copy()
-
                 action = action * self.action_scale + self.isaac_init_pos
 
-                # was here before
-                # self.action_filter.push(action)
-                # action = self.action_filter.get_filtered_action()
+                self.action_filter.push(action)
+                action = self.action_filter.get_filtered_action()
+                self.prev_action = action.copy()
 
                 robot_action = isaac_to_mujoco(action)
 
