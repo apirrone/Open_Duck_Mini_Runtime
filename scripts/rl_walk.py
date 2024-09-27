@@ -227,7 +227,7 @@ class RLWalk:
         self.hwi.set_pid([800, 0, 0], "head_yaw")
 
         if self.knees_p is not None:
-            pid = [self.knees_p, pid[1], pid[2]]
+            pid = [self.knees_p, self.pid[1], self.pid[2]]
             self.hwi.set_pid(pid, "left_knee")
             self.hwi.set_pid(pid, "right_knee")
 
