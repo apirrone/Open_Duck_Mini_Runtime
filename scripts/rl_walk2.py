@@ -232,6 +232,7 @@ class RLWalk:
 
     def run(self):
         robot_computed_obs = []
+        saved_latent = []
         try:
             print("Starting")
             while True:
@@ -254,6 +255,7 @@ class RLWalk:
                         latent = self.adaptation_module.infer(
                             np.array(self.obs_history).flatten()
                         )
+                        saved_latent.append(latent)
                         self.last_rma_time = t
                     policy_input = np.concatenate([obs, latent])
                     action = self.policy.infer(policy_input)
@@ -278,6 +280,7 @@ class RLWalk:
             pass
 
         pickle.dump(robot_computed_obs, open("robot_computed_obs.pkl", "wb"))
+        pickle.dump(saved_latent, open("saved_latent.pkl", "wb"))
         time.sleep(1)
 
 
