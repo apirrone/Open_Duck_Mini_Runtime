@@ -280,7 +280,7 @@ class RLWalk:
             pass
 
         pickle.dump(robot_computed_obs, open("robot_computed_obs.pkl", "wb"))
-        pickle.dump(saved_latent, open("saved_latent.pkl", "wb"))
+        pickle.dump(saved_latent, open("robot_latent.pkl", "wb"))
         time.sleep(1)
 
 
