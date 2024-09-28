@@ -251,12 +251,12 @@ class RLWalk:
                     self.obs_history.append(obs)
                     self.obs_history = self.obs_history[-self.obs_history_size :]
 
-                    if t - self.last_rma_time > 1 / self.rma_freq:
+                    if t - self.last_rma_time >= 1 / self.rma_freq:
                         latent = self.adaptation_module.infer(
                             np.array(self.obs_history).flatten()
                         )
-                        saved_latent.append(latent)
                         self.last_rma_time = t
+                    saved_latent.append(latent)
                     policy_input = np.concatenate([obs, latent])
                     action = self.policy.infer(policy_input)
                 else:
