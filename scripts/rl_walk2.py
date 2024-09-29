@@ -248,7 +248,10 @@ class RLWalk:
                     continue
 
                 if self.replay_obs is not None:
-                    obs = self.replay_obs[i]
+                    if i < len(self.replay_obs):
+                        obs = self.replay_obs[i]
+                    else:
+                        break
                 else:
                     obs = self.get_obs()
                 if obs is None:
