@@ -293,7 +293,7 @@ class RLWalk:
                 self.hwi.set_position_all(action_dict)
                 i += 1
                 for k, v in freqs.items():
-                    print(f"{k} freq: {np.mean(v):.2f} Hz")
+                    print(f"{k} freq: {np.mean(v[-50:]):.2f} Hz")
 
         except KeyboardInterrupt:
             pass
