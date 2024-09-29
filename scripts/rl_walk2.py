@@ -238,6 +238,7 @@ class RLWalk:
     def run(self):
         robot_computed_obs = []
         saved_latent = []
+        freqs = {"control": [], "rma": []}
         i = 0
         try:
             print("Starting")
@@ -246,6 +247,8 @@ class RLWalk:
                 if not t - self.last_control >= 1 / self.control_freq:
                     time.sleep(0.01)  # to avoid busy waiting
                     continue
+
+                freqs["control"] = [1 / (t - self.last_control)]
 
                 if self.replay_obs is not None:
                     if i < len(self.replay_obs):
@@ -267,6 +270,7 @@ class RLWalk:
                         latent = self.adaptation_module.infer(
                             np.array(self.obs_history).flatten()
                         )
+                        freqs["rma"] = [1 / (t - self.last_rma_time)]
                         self.last_rma_time = t
                     saved_latent.append(latent)
                     policy_input = np.concatenate([obs, latent])
@@ -288,6 +292,8 @@ class RLWalk:
                 action_dict = make_action_dict(robot_action, mujoco_joints_order)
                 self.hwi.set_position_all(action_dict)
                 i += 1
+                for k, v in freqs.items():
+                    print(f"{k} freq: {np.mean(v):.2f} Hz")
 
         except KeyboardInterrupt:
             pass
