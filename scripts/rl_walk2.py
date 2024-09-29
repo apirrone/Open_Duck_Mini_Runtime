@@ -32,7 +32,7 @@ class RLWalk:
         self,
         onnx_model_path: str,
         serial_port: str = "/dev/ttyUSB0",
-        control_freq: float = 30,
+        control_freq: float = 38,
         pid=[1100, 0, 0],
         action_scale=0.25,
         cutoff_frequency=5.0,
@@ -238,7 +238,7 @@ class RLWalk:
     def run(self):
         robot_computed_obs = []
         saved_latent = []
-        freqs = {"control": [], "rma": []}
+        # freqs = {"control": [], "rma": []}
         i = 0
         try:
             print("Starting")
@@ -248,7 +248,7 @@ class RLWalk:
                     time.sleep(0.01)  # to avoid busy waiting
                     continue
 
-                freqs["control"] = [1 / (t - self.last_control)]
+                # freqs["control"] = [1 / (t - self.last_control)]
 
                 if self.replay_obs is not None:
                     if i < len(self.replay_obs):
@@ -270,7 +270,7 @@ class RLWalk:
                         latent = self.adaptation_module.infer(
                             np.array(self.obs_history).flatten()
                         )
-                        freqs["rma"] = [1 / (t - self.last_rma_time)]
+                        # freqs["rma"] = [1 / (t - self.last_rma_time)]
                         self.last_rma_time = t
                     saved_latent.append(latent)
                     policy_input = np.concatenate([obs, latent])
@@ -292,8 +292,8 @@ class RLWalk:
                 action_dict = make_action_dict(robot_action, mujoco_joints_order)
                 self.hwi.set_position_all(action_dict)
                 i += 1
-                for k, v in freqs.items():
-                    print(f"{k} freq: {np.mean(v[-50:]):.2f} Hz")
+                # for k, v in freqs.items():
+                #     print(f"{k} freq: {np.mean(v[-50:]):.2f} Hz")
 
         except KeyboardInterrupt:
             pass
@@ -312,7 +312,7 @@ if __name__ == "__main__":
     parser.add_argument("-p", type=int, default=1100)
     parser.add_argument("-i", type=int, default=0)
     parser.add_argument("-d", type=int, default=0)
-    parser.add_argument("-c", "--control_freq", type=int, default=30)
+    parser.add_argument("-c", "--control_freq", type=int, default=38)
     parser.add_argument("--cutoff_frequency", type=int, default=5)
     parser.add_argument("--rma", action="store_true", default=False)
     parser.add_argument("--adaptation_module_path", type=str, required=False)
