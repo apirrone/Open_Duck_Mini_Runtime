@@ -41,12 +41,17 @@ class RLWalk:
         rma=False,
         adaptation_module_path=None,
         knees_p=None,
+        replay_obs=None,
     ):
         self.commands = commands
         self.pitch_bias = pitch_bias
 
         self.onnx_model_path = onnx_model_path
         self.policy = OnnxInfer(self.onnx_model_path)
+
+        self.replay_obs = replay_obs
+        if self.replay_obs is not None:
+            self.replay_obs = pickle.load(open(self.replay_obs, "rb"))
 
         self.rma = rma
         self.num_obs = 51
@@ -233,6 +238,7 @@ class RLWalk:
     def run(self):
         robot_computed_obs = []
         saved_latent = []
+        i = 0
         try:
             print("Starting")
             while True:
@@ -241,7 +247,10 @@ class RLWalk:
                     time.sleep(0.01)  # to avoid busy waiting
                     continue
 
-                obs = self.get_obs()
+                if self.replay_obs is not None:
+                    obs = self.replay_obs[i]
+                else:
+                    obs = self.get_obs()
                 if obs is None:
                     break
 
@@ -275,6 +284,7 @@ class RLWalk:
 
                 action_dict = make_action_dict(robot_action, mujoco_joints_order)
                 self.hwi.set_position_all(action_dict)
+                i += 1
 
         except KeyboardInterrupt:
             pass
@@ -305,6 +315,7 @@ if __name__ == "__main__":
         default=False,
         help="external commands, keyboard or gamepad. Launch control_server.py on host computer",
     )
+    parser.add_argument("--replay_obs", type=str, required=False, default=None)
     args = parser.parse_args()
     pid = [args.p, args.i, args.d]
 
@@ -319,6 +330,7 @@ if __name__ == "__main__":
         rma=args.rma,
         adaptation_module_path=args.adaptation_module_path,
         knees_p=args.knees_p,
+        replay_obs=args.replay_obs,
     )
     rl_walk.start()
     rl_walk.run()
