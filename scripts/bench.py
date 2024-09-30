@@ -3,6 +3,7 @@ from mini_bdx_runtime.onnx_infer import OnnxInfer
 import time
 import adafruit_bno055
 import serial
+import numpy as np
 
 hwi = HWI("/dev/ttyUSB0")
 
@@ -25,6 +26,7 @@ times["set_pos_all"] = []
 times["get_pos_all"] = []
 times["get_vel_all"] = []
 times["get_imu"] = []
+times["full_loop"] = []
 
 freq = 60
 for i in range(1000):
@@ -51,5 +53,18 @@ for i in range(1000):
     times["get_imu"].append(took)
 
     took = time.time() - start
-    print(f"Loop {i} took {took:.3f}s")
-    print("target time was", 1 / freq)
+    times["full_loop"].append(took)
+
+import numpy as np
+
+report = {}
+
+report["set_pos_all_mean"] = np.mean(times["set_pos_all"])
+report["get_pos_all_mean"] = np.mean(times["get_pos_all"])
+report["get_vel_all_mean"] = np.mean(times["get_vel_all"])
+report["get_imu_mean"] = np.mean(times["get_imu"])
+report["full_loop_mean"] = np.mean(times["full_loop"])
+
+print("Report:")
+for key, value in report.items():
+    print(f"{key}: {value:.6f} seconds")
