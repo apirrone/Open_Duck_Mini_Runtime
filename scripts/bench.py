@@ -4,13 +4,21 @@ import time
 import adafruit_bno055
 import serial
 import numpy as np
+from threading import Thread
 
 hwi = HWI("/dev/ttyUSB0")
 
 
-uart = serial.Serial("/dev/ttyS0")  # , baudrate=115200)
-imu = adafruit_bno055.BNO055_UART(uart)
-imu.mode = adafruit_bno055.IMUPLUS_MODE
+def imu_worker():
+    uart = serial.Serial("/dev/ttyS0")  # , baudrate=115200)
+    imu = adafruit_bno055.BNO055_UART(uart)
+    imu.mode = adafruit_bno055.IMUPLUS_MODE
+    while True:
+        raw_orientation = imu.quaternion  # quat
+        time.sleep(60 / 2)
+
+
+Thread(target=imu_worker, daemon=True).start()
 policy = OnnxInfer("/home/bdx/ONNX.onnx")
 adaptation_module = OnnxInfer("/home/bdx/ADAPTATION.onnx", "obs_history")
 
