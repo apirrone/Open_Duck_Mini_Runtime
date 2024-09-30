@@ -260,6 +260,8 @@ class RLWalk:
                 if obs is None:
                     break
 
+                obs = np.clip(obs, -100, 100)
+
                 robot_computed_obs.append(obs)
 
                 if self.rma:
@@ -277,6 +279,8 @@ class RLWalk:
                     action = self.policy.infer(policy_input)
                 else:
                     action = self.policy.infer(obs)
+
+                action = np.clip(action, -100, 100)
 
                 self.prev_action = action.copy()
 
