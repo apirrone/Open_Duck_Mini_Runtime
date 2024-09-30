@@ -68,36 +68,36 @@ for i in range(500):
 
     took = time.time() - start
     times["full_loop"].append(took)
-    report = {}
-    report["set_pos_all_mean"] = np.mean(times["set_pos_all"])
-    report["set_pos_all_std"] = np.std(times["set_pos_all"])
-    report["get_pos_all_mean"] = np.mean(times["get_pos_all"])
-    report["get_pos_all_std"] = np.std(times["get_pos_all"])
-    report["get_vel_all_mean"] = np.mean(times["get_vel_all"])
-    report["get_vel_all_std"] = np.std(times["get_vel_all"])
-    report["get_imu_mean"] = np.mean(times["get_imu"])
-    report["get_imu_std"] = np.std(times["get_imu"])
-    report["rma_inference_mean"] = np.mean(times["rma_inference"])
-    report["rma_inference_std"] = np.std(times["rma_inference"])
-    report["policy_inference_mean"] = np.mean(times["policy_inference"])
-    report["policy_inference_std"] = np.std(times["policy_inference"])
-    report["full_loop_mean"] = np.mean(times["full_loop"])
-    report["full_loop_std"] = np.std(times["full_loop"])
+report = {}
+report["set_pos_all_mean"] = np.mean(times["set_pos_all"])
+report["set_pos_all_std"] = np.std(times["set_pos_all"])
+report["get_pos_all_mean"] = np.mean(times["get_pos_all"])
+report["get_pos_all_std"] = np.std(times["get_pos_all"])
+report["get_vel_all_mean"] = np.mean(times["get_vel_all"])
+report["get_vel_all_std"] = np.std(times["get_vel_all"])
+report["get_imu_mean"] = np.mean(times["get_imu"])
+report["get_imu_std"] = np.std(times["get_imu"])
+report["rma_inference_mean"] = np.mean(times["rma_inference"])
+report["rma_inference_std"] = np.std(times["rma_inference"])
+report["policy_inference_mean"] = np.mean(times["policy_inference"])
+report["policy_inference_std"] = np.std(times["policy_inference"])
+report["full_loop_mean"] = np.mean(times["full_loop"])
+report["full_loop_std"] = np.std(times["full_loop"])
 
-    print("Report:")
-    for key_suffix in [
-        "set_pos_all",
-        "get_pos_all",
-        "get_vel_all",
-        "get_imu",
-        "rma_inference",
-        "policy_inference",
-        "full_loop",
-    ]:
-        mean_key = f"{key_suffix}_mean"
-        std_key = f"{key_suffix}_std"
-        mean_val = report[mean_key]
-        std_val = report[std_key]
-        print(
-            f"{mean_key}: {mean_val:.6f} s ({1.0 / mean_val:.2f} Hz), {std_key}: {std_val:.6f} s"
-        )
+print("Report:")
+for key_suffix in [
+    "set_pos_all",
+    "get_pos_all",
+    "get_vel_all",
+    "get_imu",
+    "rma_inference",
+    "policy_inference",
+    "full_loop",
+]:
+    mean_key = f"{key_suffix}_mean"
+    std_key = f"{key_suffix}_std"
+    mean_val = report[mean_key]
+    std_val = report[std_key]
+    print(
+        f"{mean_key}: {mean_val:.6f} s ({1.0 / mean_val:.2f} Hz), {std_key}: {std_val:.6f} s"
+    )
