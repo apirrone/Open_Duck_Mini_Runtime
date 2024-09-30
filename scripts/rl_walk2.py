@@ -21,6 +21,16 @@ from mini_bdx_runtime.rl_utils import (
 )
 import pygame
 
+# TODO https://chatgpt.com/share/66fac21d-5430-8011-98a0-554b7431ef3b
+# - Implement precise control loop timing for consistent intervals. -> Increase to 60Hz
+# - Read sensor data synchronously within the control loop to minimize delays. -> Not sure I can do this. IMU is not very stable
+# - Adjust or remove the action filter to reduce control delays. -> will try to remove it
+# - Tune PID gains appropriately to prevent oscillations. -> should be good
+# - Remove or adjust observation and action clipping to avoid discontinuities. -> will remove, probably don't have any effect anyway
+# - Ensure scaling factors and offsets match those used during training. -> Have checked that many times
+# - Match the control frequency to the one used during policy training. -> Should be ok
+
+
 # Commands
 X_RANGE = [0, 0.14]
 Y_RANGE = [-0.1, 0.1]
