@@ -29,7 +29,7 @@ times["get_imu"] = []
 times["full_loop"] = []
 
 freq = 60
-for i in range(1000):
+for i in range(500):
     start = time.time()
 
     s = time.time()
