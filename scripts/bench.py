@@ -52,7 +52,7 @@ for i in range(500):
     times["get_vel_all"].append(took)
 
     s = time.time()
-    raw_orientation = imu.quaternion  # quat
+    # raw_orientation = imu.quaternion  # quat
     took = time.time() - s
     times["get_imu"].append(took)
 
