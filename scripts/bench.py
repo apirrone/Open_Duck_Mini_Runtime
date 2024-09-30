@@ -15,7 +15,7 @@ def imu_worker():
     imu.mode = adafruit_bno055.IMUPLUS_MODE
     while True:
         raw_orientation = imu.quaternion  # quat
-        time.sleep(60 / 2)
+        time.sleep(1 / (60 / 2))
 
 
 Thread(target=imu_worker, daemon=True).start()
@@ -76,6 +76,7 @@ for i in range(500):
 
     took = time.time() - start
     times["full_loop"].append(took)
+
 report = {}
 report["set_pos_all_mean"] = np.mean(times["set_pos_all"])
 report["set_pos_all_std"] = np.std(times["set_pos_all"])
