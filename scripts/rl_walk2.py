@@ -32,7 +32,7 @@ class RLWalk:
         self,
         onnx_model_path: str,
         serial_port: str = "/dev/ttyUSB0",
-        control_freq: float = 38,
+        control_freq: float = 30,
         pid=[1100, 0, 0],
         action_scale=0.25,
         cutoff_frequency=5.0,
@@ -291,10 +291,10 @@ class RLWalk:
 
                 robot_action = isaac_to_mujoco(action)
 
-                self.last_control = t
-
                 action_dict = make_action_dict(robot_action, mujoco_joints_order)
                 self.hwi.set_position_all(action_dict)
+
+                self.last_control = t
                 i += 1
                 # for k, v in freqs.items():
                 #     print(f"{k} freq: {np.mean(v[-50:]):.2f} Hz")
@@ -316,7 +316,7 @@ if __name__ == "__main__":
     parser.add_argument("-p", type=int, default=1100)
     parser.add_argument("-i", type=int, default=0)
     parser.add_argument("-d", type=int, default=0)
-    parser.add_argument("-c", "--control_freq", type=int, default=38)
+    parser.add_argument("-c", "--control_freq", type=int, default=30)
     parser.add_argument("--cutoff_frequency", type=int, default=5)
     parser.add_argument("--rma", action="store_true", default=False)
     parser.add_argument("--adaptation_module_path", type=str, required=False)
