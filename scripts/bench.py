@@ -11,7 +11,7 @@ hwi = HWI("/dev/ttyUSB0")
 uart = serial.Serial("/dev/ttyS0")  # , baudrate=115200)
 imu = adafruit_bno055.BNO055_UART(uart)
 imu.mode = adafruit_bno055.IMUPLUS_MODE
-policy = OnnxInfer("/home/bdx/ONNX.onnx", "obs_history")
+policy = OnnxInfer("/home/bdx/ONNX.onnx")
 adaptation_module = OnnxInfer("/home/bdx/ADAPTATION.onnx", "obs_history")
 
 hwi.turn_on()
