@@ -57,7 +57,7 @@ for i in range(500):
     times["get_imu"].append(took)
 
     s = time.time()
-    latent = adaptation_module.infer(np.zeros(21))
+    latent = adaptation_module.infer(np.zeros(765))
     took = time.time() - s
     times["rma_inference"].append(took)
 
