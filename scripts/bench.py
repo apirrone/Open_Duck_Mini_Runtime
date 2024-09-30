@@ -55,16 +55,21 @@ for i in range(1000):
     took = time.time() - start
     times["full_loop"].append(took)
 
-import numpy as np
-
 report = {}
-
 report["set_pos_all_mean"] = np.mean(times["set_pos_all"])
+report["set_pos_all_std"] = np.std(times["set_pos_all"])
 report["get_pos_all_mean"] = np.mean(times["get_pos_all"])
+report["get_pos_all_std"] = np.std(times["get_pos_all"])
 report["get_vel_all_mean"] = np.mean(times["get_vel_all"])
+report["get_vel_all_std"] = np.std(times["get_vel_all"])
 report["get_imu_mean"] = np.mean(times["get_imu"])
+report["get_imu_std"] = np.std(times["get_imu"])
 report["full_loop_mean"] = np.mean(times["full_loop"])
+report["full_loop_std"] = np.std(times["full_loop"])
 
 print("Report:")
 for key, value in report.items():
-    print(f"{key}: {value:.6f} seconds")
+    if "mean" in key:
+        print(f"{key}: {value:.6f} seconds ({1.0 / value:.2f} Hz)")
+    else:
+        print(f"{key}: {value:.6f} seconds")
