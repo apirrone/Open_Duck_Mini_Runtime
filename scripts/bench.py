@@ -62,7 +62,7 @@ for i in range(500):
     times["rma_inference"].append(took)
 
     s = time.time()
-    policy.infer(np.zeros(51 + 21))
+    policy.infer(np.zeros(51 + 18))
     took = time.time() - s
     times["policy_inference"].append(took)
 
