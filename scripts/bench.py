@@ -20,12 +20,12 @@ def imu_worker():
 
 
 Thread(target=imu_worker, daemon=True).start()
-# policy = OnnxInfer("/home/bdx/ONNX.onnx")
-# adaptation_module = OnnxInfer("/home/bdx/ADAPTATION.onnx", "obs_history")
-policy = OnnxInfer("/home/antoine/MISC/AMP_for_hardware/ONNX.onnx")
-adaptation_module = OnnxInfer(
-    "/home/antoine/MISC/AMP_for_hardware/ADAPTATION.onnx", "obs_history"
-)
+policy = OnnxInfer("/home/bdx/ONNX.onnx")
+adaptation_module = OnnxInfer("/home/bdx/ADAPTATION.onnx", "obs_history")
+# policy = OnnxInfer("/home/antoine/MISC/AMP_for_hardware/ONNX.onnx")
+# adaptation_module = OnnxInfer(
+#     "/home/antoine/MISC/AMP_for_hardware/ADAPTATION.onnx", "obs_history"
+# )
 
 hwi.turn_on()
 hwi.set_pid_all([1100, 0, 0])
