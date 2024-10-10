@@ -29,7 +29,7 @@ def degree_to_dxl(value, model):
 def dxl_to_velocity(value, model):
     if value > 2 ** (4 * 8 - 1):
         value = value - 2 ** (4 * 8)
-    return value
+    return value * 0.229
 
 
 class Dxl330IO(AbstractDxlIO):
