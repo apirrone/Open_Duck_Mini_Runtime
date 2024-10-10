@@ -1,6 +1,7 @@
 import pypot.dynamixel.conversion as conv
 from pypot.dynamixel.io.abstract_io import AbstractDxlIO, _DxlAccess, _DxlControl
 from pypot.dynamixel.protocol import v2 as v2
+import struct
 
 max_pos = 4096
 max_deg = 360
@@ -30,6 +31,26 @@ def dxl_to_velocity(value, model):
     if value > 2 ** (4 * 8 - 1):
         value = value - 2 ** (4 * 8)
     return value
+
+
+def dxl_to_position_and_velocity(value, model):
+    # # Assume `value` is an 8-byte integer.
+    # # Convert to bytes, if needed
+    # if isinstance(value, int):
+    #     value = value.to_bytes(8, byteorder="big", signed=False)
+
+    # # Split into two 4-byte values
+    # velocity_bytes, position_bytes = value[:4], value[4:]
+
+    # # Unpack as integers
+    # velocity = struct.unpack(">i", velocity_bytes)[0]
+    # position = struct.unpack(">i", position_bytes)[0]
+    velocity, position = value
+    # Convert the position and velocity to their respective units
+    velocity = dxl_to_velocity(velocity, model)
+    position = dxl_to_degree(position, model)
+
+    return position, velocity
 
 
 class Dxl330IO(AbstractDxlIO):
@@ -161,6 +182,12 @@ controls = {
         "length": 2,
         "access": _DxlAccess.readonly,
         "dxl_to_si": dxl_to_current,
+    },
+    "present position and velocity": {
+        "address": 0x80,
+        "length": 8,
+        "access": _DxlAccess.readonly,
+        "dxl_to_si": dxl_to_position_and_velocity,
     },
     "goal current": {
         "address": 0x66,

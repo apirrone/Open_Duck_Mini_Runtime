@@ -1,5 +1,5 @@
 import time
-from typing import List
+from typing import List, Dict, Tuple
 
 import numpy as np
 
@@ -174,6 +174,28 @@ class HWI:
 
         factor = np.ones(len(present_velocities)) * -1
         return list(present_velocities * factor)
+
+    def get_present_positions_and_velocities(
+        self, rad_s=True
+    ) -> Tuple[List[float], List[float]]:
+        position_velocity = self.dxl_io.get_present_position_and_velocity(
+            self.joints.values()
+        )
+
+        present_position_raw = []
+        present_velocity_raw = []
+        for i in range(len(position_velocity)):
+            present_position_raw.append(position_velocity[i][0])
+            present_velocity_raw.append(position_velocity[i][1])
+
+        present_position = list(np.around(np.deg2rad(present_position_raw), 3))  # rad
+
+        present_velocity = np.array(present_velocity_raw)
+        if rad_s:
+            present_velocity = (2 * np.pi * present_velocity) / 60
+
+        factor = np.ones(len(present_position)) * -1
+        return present_position * factor, list(present_velocity * factor)
 
     def get_operating_modes(self):
         return self.dxl_io.get_operating_mode(self.joints.values())
