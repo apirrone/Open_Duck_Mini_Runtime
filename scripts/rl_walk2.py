@@ -195,8 +195,9 @@ class RLWalk:
             self.last_commands = self.get_last_command()
             print(self.last_commands)
 
-        dof_pos = self.hwi.get_present_positions()  # rad
-        dof_vel = self.hwi.get_present_velocities()  # rad/s
+        dof_pos, dof_vel = self.hwi.get_present_positions_and_velocities()
+        # dof_pos = self.hwi.get_present_positions()  # rad
+        # dof_vel = self.hwi.get_present_velocities()  # rad/s
 
         dof_pos_scaled = list(
             np.array(dof_pos - self.mujoco_init_pos[:13]) * self.dof_pos_scale
