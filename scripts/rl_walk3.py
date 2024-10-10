@@ -45,7 +45,7 @@ class RLWalk:
         control_freq: float = 30,
         pid=[1100, 0, 0],
         action_scale=0.25,
-        cutoff_frequency=5.0,
+        cutoff_frequency=50,
         commands=False,
         pitch_bias=0.0,
         rma=False,
@@ -295,8 +295,8 @@ class RLWalk:
 
                 action = action * self.action_scale + self.isaac_init_pos
 
-                # self.action_filter.push(action)
-                # action = self.action_filter.get_filtered_action()
+                self.action_filter.push(action)
+                action = self.action_filter.get_filtered_action()
 
                 robot_action = isaac_to_mujoco(action)
 
@@ -328,7 +328,7 @@ if __name__ == "__main__":
     parser.add_argument("-i", type=int, default=0)
     parser.add_argument("-d", type=int, default=0)
     parser.add_argument("-c", "--control_freq", type=int, default=30)
-    parser.add_argument("--cutoff_frequency", type=int, default=5)
+    parser.add_argument("--cutoff_frequency", type=int, default=50)
     parser.add_argument("--rma", action="store_true", default=False)
     parser.add_argument("--adaptation_module_path", type=str, required=False)
     parser.add_argument("--knees_p", type=int, required=False, default=None)
