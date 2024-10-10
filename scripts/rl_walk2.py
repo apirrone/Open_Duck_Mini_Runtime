@@ -64,7 +64,8 @@ class RLWalk:
             self.replay_obs = pickle.load(open(self.replay_obs, "rb"))
 
         self.rma = rma
-        self.num_obs = 51
+        # self.num_obs = 51
+        self.num_obs = 66
         if self.rma:
             self.adaptation_module = OnnxInfer(adaptation_module_path, "obs_history")
             self.obs_history_size = 15
