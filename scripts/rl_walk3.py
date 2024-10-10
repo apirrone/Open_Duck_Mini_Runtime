@@ -295,8 +295,8 @@ class RLWalk:
 
                 action = action * self.action_scale + self.isaac_init_pos
 
-                self.action_filter.push(action)
-                action = self.action_filter.get_filtered_action()
+                # self.action_filter.push(action)
+                # action = self.action_filter.get_filtered_action()
 
                 robot_action = isaac_to_mujoco(action)
 
