@@ -98,6 +98,7 @@ class RLWalk:
         self.action_scale = action_scale
 
         self.prev_action = np.zeros(15)
+        self.prev_prev_action = np.zeros(15)
 
         self.mujoco_init_pos = list(self.hwi.init_pos.values()) + [0, 0]
         self.isaac_init_pos = np.array(mujoco_to_isaac(self.mujoco_init_pos))
@@ -228,6 +229,7 @@ class RLWalk:
                 dof_pos_scaled,
                 dof_vel_scaled,
                 self.prev_action,
+                self.prev_prev_action,
             ]
         )
 
@@ -292,6 +294,7 @@ class RLWalk:
 
                 action = np.clip(action, -100, 100)
 
+                self.prev_prev_action = self.prev_action.copy()
                 self.prev_action = action.copy()
 
                 action = action * self.action_scale + self.isaac_init_pos
