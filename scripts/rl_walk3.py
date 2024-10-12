@@ -251,7 +251,7 @@ class RLWalk:
     def run(self):
         robot_computed_obs = []
         saved_latent = []
-        current = []
+        current_voltage = []
         # freqs = {"control": [], "rma": []}
         i = 0
         try:
@@ -307,7 +307,8 @@ class RLWalk:
                 i += 1
 
                 left_knee_current = self.hwi.get_present_current("left_knee")
-                current.append(left_knee_current)
+                left_knee_voltage = self.hwi.get_present_input_voltage("left_knee")
+                current_voltage.append((left_knee_current, left_knee_voltage))
 
                 took = time.time() - t
                 time.sleep(max(0, 1 / self.control_freq - took))

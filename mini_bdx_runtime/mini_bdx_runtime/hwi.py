@@ -146,6 +146,9 @@ class HWI:
     def get_present_current(self, joint_name):
         return self.dxl_io.get_present_current([self.joints[joint_name]])[0]
 
+    def get_present_input_voltage(self, joint_name):
+        return self.dxl_io.get_present_input_voltage([self.joints[joint_name]])[0]
+
     def get_goal_current(self, joint_name):
         return self.dxl_io.get_goal_current([self.joints[joint_name]])[0]
 
