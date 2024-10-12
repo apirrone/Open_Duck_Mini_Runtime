@@ -251,6 +251,7 @@ class RLWalk:
     def run(self):
         robot_computed_obs = []
         saved_latent = []
+        current = []
         # freqs = {"control": [], "rma": []}
         i = 0
         try:
@@ -306,8 +307,7 @@ class RLWalk:
                 i += 1
 
                 left_ankle_current = self.hwi.get_present_current("left_ankle")
-                print("LEFT ANKLE CURRENT", left_ankle_current)
-                print("==")
+                current.append(left_ankle_current)
 
                 took = time.time() - t
                 time.sleep(max(0, 1 / self.control_freq - took))
@@ -319,6 +319,7 @@ class RLWalk:
 
         pickle.dump(robot_computed_obs, open("robot_computed_obs.pkl", "wb"))
         pickle.dump(saved_latent, open("robot_latent.pkl", "wb"))
+        pickle.dump(current, open("current.pkl", "wb"))
         time.sleep(1)
 
 
