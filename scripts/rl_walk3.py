@@ -305,6 +305,10 @@ class RLWalk:
 
                 i += 1
 
+                left_ankle_current = self.hwi.get_present_current("left_ankle")
+                print("LEFT ANKLE CURRENT", left_ankle_current)
+                print("==")
+
                 took = time.time() - t
                 time.sleep(max(0, 1 / self.control_freq - took))
                 # for k, v in freqs.items():
