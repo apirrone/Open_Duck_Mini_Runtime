@@ -52,9 +52,11 @@ class RLWalk:
         adaptation_module_path=None,
         knees_p=None,
         replay_obs=None,
+        record_current_voltage=False,
     ):
         self.commands = commands
         self.pitch_bias = pitch_bias
+        self.record_current_voltage = record_current_voltage
 
         self.onnx_model_path = onnx_model_path
         self.policy = OnnxInfer(self.onnx_model_path)
@@ -251,7 +253,8 @@ class RLWalk:
     def run(self):
         robot_computed_obs = []
         saved_latent = []
-        current_voltage = []
+        if self.record_current_voltage:
+            current_voltage = []
         # freqs = {"control": [], "rma": []}
         i = 0
         try:
@@ -306,9 +309,10 @@ class RLWalk:
 
                 i += 1
 
-                left_knee_current = self.hwi.get_present_current("left_knee")
-                left_knee_voltage = self.hwi.get_present_input_voltage("left_knee")
-                current_voltage.append((left_knee_current, left_knee_voltage))
+                if self.record_current_voltage:
+                    left_knee_current = self.hwi.get_present_current("left_knee")
+                    left_knee_voltage = self.hwi.get_present_input_voltage("left_knee")
+                    current_voltage.append((left_knee_current, left_knee_voltage))
 
                 took = time.time() - t
                 time.sleep(max(0, 1 / self.control_freq - took))
@@ -320,7 +324,8 @@ class RLWalk:
 
         pickle.dump(robot_computed_obs, open("robot_computed_obs.pkl", "wb"))
         pickle.dump(saved_latent, open("robot_latent.pkl", "wb"))
-        pickle.dump(current_voltage, open("current_voltage.pkl", "wb"))
+        if self.record_current_voltage:
+            pickle.dump(current_voltage, open("current_voltage.pkl", "wb"))
         time.sleep(1)
 
 
@@ -346,6 +351,7 @@ if __name__ == "__main__":
         help="external commands, keyboard or gamepad. Launch control_server.py on host computer",
     )
     parser.add_argument("--replay_obs", type=str, required=False, default=None)
+    parser.add_argument("--record_current_voltage", action="store_true", default=False)
     args = parser.parse_args()
     pid = [args.p, args.i, args.d]
 
@@ -361,6 +367,7 @@ if __name__ == "__main__":
         adaptation_module_path=args.adaptation_module_path,
         knees_p=args.knees_p,
         replay_obs=args.replay_obs,
+        record_current_voltage=args.record_current_voltage,
     )
     rl_walk.start()
     rl_walk.run()
