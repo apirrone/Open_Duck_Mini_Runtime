@@ -320,7 +320,7 @@ class RLWalk:
 
         pickle.dump(robot_computed_obs, open("robot_computed_obs.pkl", "wb"))
         pickle.dump(saved_latent, open("robot_latent.pkl", "wb"))
-        pickle.dump(current, open("current.pkl", "wb"))
+        pickle.dump(current_voltage, open("current_voltage.pkl", "wb"))
         time.sleep(1)
 
 
