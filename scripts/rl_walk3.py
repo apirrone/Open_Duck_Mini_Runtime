@@ -359,7 +359,7 @@ if __name__ == "__main__":
     parser.add_argument("-i", type=int, default=0)
     parser.add_argument("-d", type=int, default=0)
     parser.add_argument("-c", "--control_freq", type=int, default=30)
-    parser.add_argument("--cutoff_frequency", type=int, default=50)
+    parser.add_argument("--cutoff_frequency", type=int, default=None)
     parser.add_argument("--rma", action="store_true", default=False)
     parser.add_argument("--adaptation_module_path", type=str, required=False)
     parser.add_argument("--knees_p", type=int, required=False, default=None)
