@@ -14,9 +14,13 @@ def dxl_to_degree(value, model):
 def dxl_to_current(value, model):
     if value > 0x7FFF:
         value = value - 65536
-    # value = value >> 1
-    # print("{0:b}".format(value))
     return value
+
+
+def current_to_dxl(value, model):
+    if value < 0:
+        value = value + 65536
+    return int(value)
 
 
 def degree_to_dxl(value, model):
@@ -165,8 +169,8 @@ controls = {
     "goal current": {
         "address": 0x66,
         "length": 2,
-        "access": _DxlAccess.readonly,
         "dxl_to_si": dxl_to_current,
+        "si_to_dxl": current_to_dxl,
     },
     "present input voltage": {
         "address": 0x90,

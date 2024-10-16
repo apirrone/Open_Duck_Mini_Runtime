@@ -53,13 +53,15 @@ class RLWalk:
         knees_p=None,
         replay_obs=None,
         record_current_voltage=False,
+        awd=False,
     ):
         self.commands = commands
         self.pitch_bias = pitch_bias
         self.record_current_voltage = record_current_voltage
+        self.awd = awd
 
         self.onnx_model_path = onnx_model_path
-        self.policy = OnnxInfer(self.onnx_model_path)
+        self.policy = OnnxInfer(self.onnx_model_path, awd=self.awd)
 
         self.replay_obs = replay_obs
         if self.replay_obs is not None:
@@ -93,11 +95,11 @@ class RLWalk:
         self.knees_p = knees_p
 
         # Scales
-        self.linearVelocityScale = 2.0
+        self.linearVelocityScale = 2.0 if not self.awd else 0.5
         self.angularVelocityScale = 0.25
         self.dof_pos_scale = 1.0
-        self.dof_vel_scale = 0.05
-        self.action_scale = action_scale
+        self.dof_vel_scale = 0.05 if not self.awd else 1.0
+        self.action_scale = action_scale if not self.awd else 1.0
 
         self.prev_action = np.zeros(15)
         self.prev_prev_action = np.zeros(15)
@@ -224,17 +226,29 @@ class RLWalk:
                 ]
             )
         )
+        if not self.awd:
+            obs = np.concatenate(
+                [
+                    projected_gravity,
+                    com,
+                    dof_pos_scaled,
+                    dof_vel_scaled,
+                    self.prev_action,
+                    # self.prev_prev_action,
+                ]
+            )
+        else:
+            obs = np.concatenate(
+                [
+                    projected_gravity,
+                    dof_pos_scaled,
+                    dof_vel_scaled,
+                    self.prev_action,
+                    com,
+                ]
+            )
 
-        return np.concatenate(
-            [
-                projected_gravity,
-                com,
-                dof_pos_scaled,
-                dof_vel_scaled,
-                self.prev_action,
-                # self.prev_prev_action,
-            ]
-        )
+        return obs
 
     def start(self):
         self.hwi.turn_on()
@@ -352,6 +366,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--replay_obs", type=str, required=False, default=None)
     parser.add_argument("--record_current_voltage", action="store_true", default=False)
+    parser.add_argument("--awd", action="store_true", default=False)
     args = parser.parse_args()
     pid = [args.p, args.i, args.d]
 
@@ -368,6 +383,7 @@ if __name__ == "__main__":
         knees_p=args.knees_p,
         replay_obs=args.replay_obs,
         record_current_voltage=args.record_current_voltage,
+        awd=args.awd,
     )
     rl_walk.start()
     rl_walk.run()
