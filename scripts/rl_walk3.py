@@ -118,7 +118,12 @@ class RLWalk:
             Thread(target=self.commands_worker, daemon=True).start()
         self.last_command_time = time.time()
 
-        self.action_filter = LowPassActionFilter(self.control_freq, cutoff_frequency)
+        if cutoff_frequency is not None:
+            self.action_filter = LowPassActionFilter(
+                self.control_freq, cutoff_frequency
+            )
+        else:
+            self.action_filter = None
 
     def commands_worker(self):
         while True:
@@ -313,8 +318,9 @@ class RLWalk:
 
                 action = action * self.action_scale + self.isaac_init_pos
 
-                self.action_filter.push(action)
-                action = self.action_filter.get_filtered_action()
+                if self.action_filter is not None:
+                    self.action_filter.push(action)
+                    action = self.action_filter.get_filtered_action()
 
                 robot_action = isaac_to_mujoco(action)
 
