@@ -45,7 +45,7 @@ class RLWalk:
         control_freq: float = 30,
         pid=[1100, 0, 0],
         action_scale=0.25,
-        cutoff_frequency=50,
+        cutoff_frequency=None,
         commands=False,
         pitch_bias=0.0,
         rma=False,
