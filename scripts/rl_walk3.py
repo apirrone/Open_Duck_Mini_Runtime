@@ -207,9 +207,12 @@ class RLWalk:
         dof_pos = self.hwi.get_present_positions()  # rad
         dof_vel = self.hwi.get_present_velocities()  # rad/s
 
-        dof_pos_scaled = list(
-            np.array(dof_pos - self.mujoco_init_pos[:13]) * self.dof_pos_scale
-        )
+        if not self.awd:
+            dof_pos_scaled = list(
+                np.array(dof_pos - self.mujoco_init_pos[:13]) * self.dof_pos_scale
+            )
+        else:
+            dof_pos_scaled = list(dof_pos * self.dof_pos_scale)
         dof_vel_scaled = list(np.array(dof_vel) * self.dof_vel_scale)
 
         # adding fake antennas
