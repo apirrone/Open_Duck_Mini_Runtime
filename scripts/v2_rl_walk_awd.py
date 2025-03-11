@@ -22,7 +22,7 @@ from mini_bdx_runtime.imu import Imu
 from mini_bdx_runtime.xbox_controller import XBoxController
 from mini_bdx_runtime.feet_contacts import FeetContacts
 from mini_bdx_runtime.eyes import Eyes
-from mini_bdx_runtime.sounds import Sounds
+# from mini_bdx_runtime.sounds import Sounds
 
 joints_order = [
     "left_hip_yaw",
@@ -131,7 +131,7 @@ class RLWalk:
 
         self.paused = False
 
-        self.sounds = Sounds(volume=1.0, sound_directory="../mini_bdx_runtime/assets/")
+        # self.sounds = Sounds(volume=1.0, sound_directory="../mini_bdx_runtime/assets/")
 
         self.command_freq = 20  # hz
         if self.commands:
@@ -260,8 +260,8 @@ class RLWalk:
                         right_trigger,
                     ) = self.xbox_controller.get_last_command()
 
-                if X_pressed:
-                    self.sounds.play_random_sound()
+                # if X_pressed:
+                #     self.sounds.play_random_sound()
 
                 if A_pressed and not self.paused:
                     self.paused = True
@@ -299,10 +299,10 @@ class RLWalk:
 
                 robot_action = self.add_fake_head(robot_action)
 
-                if self.action_filter is not None:
-                    self.action_filter.push(robot_action)
-                    filtered_robot_action = self.action_filter.get_filtered_action()
-                    robot_action = filtered_robot_action
+                # if self.action_filter is not None:
+                #     self.action_filter.push(robot_action)
+                #     filtered_robot_action = self.action_filter.get_filtered_action()
+                #     robot_action = filtered_robot_action
 
                 action_dict = make_action_dict(
                     robot_action, joints_order
