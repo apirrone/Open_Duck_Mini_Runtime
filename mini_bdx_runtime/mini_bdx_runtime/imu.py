@@ -103,6 +103,13 @@ class Imu:
                 print("[IMU]:", e)
                 continue
 
+            if gyro is None:
+                print("gyro is None")
+                continue
+            
+            if gyro[0] is None or gyro[1] is None or gyro[2] is None:
+                print("gyro[0, 1, 2] is None")
+                continue
             # Converting to correct axes
             # euler = self.convert_axes(euler)
             euler[1] -= np.deg2rad(self.pitch_bias)

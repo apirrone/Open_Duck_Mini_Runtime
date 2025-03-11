@@ -299,10 +299,10 @@ class RLWalk:
 
                 robot_action = self.add_fake_head(robot_action)
 
-                # if self.action_filter is not None:
-                #     self.action_filter.push(robot_action)
-                #     filtered_robot_action = self.action_filter.get_filtered_action()
-                #     robot_action = filtered_robot_action
+                if self.action_filter is not None:
+                    self.action_filter.push(robot_action)
+                    filtered_robot_action = self.action_filter.get_filtered_action()
+                    robot_action = filtered_robot_action
 
                 action_dict = make_action_dict(
                     robot_action, joints_order
