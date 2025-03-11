@@ -56,7 +56,7 @@ class RLWalk:
         commands=False,
         pitch_bias=0,
         replay_obs=None,
-        cutoff_frequency=None,
+        cutoff_frequency=37.5,
     ):
         self.commands = commands
         self.pitch_bias = pitch_bias
@@ -307,10 +307,7 @@ class RLWalk:
                 if self.action_filter is not None:
                     self.action_filter.push(robot_action)
                     filtered_robot_action = self.action_filter.get_filtered_action()
-                    if (
-                        time.time() - start_t > 1
-                    ):  # give time to the filter to stabilize
-                        robot_action = filtered_robot_action
+                    robot_action = filtered_robot_action
 
                 action_dict = make_action_dict(
                     robot_action, joints_order
@@ -357,7 +354,7 @@ if __name__ == "__main__":
         help="external commands, keyboard or gamepad. Launch control_server.py on host computer",
     )
     parser.add_argument("--replay_obs", type=str, required=False, default=None)
-    parser.add_argument("--cutoff_frequency", type=float, default=None)
+    parser.add_argument("--cutoff_frequency", type=float, default=37.5)
     args = parser.parse_args()
     pid = [args.p, args.i, args.d]
 
