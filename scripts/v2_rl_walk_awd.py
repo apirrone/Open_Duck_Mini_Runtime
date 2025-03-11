@@ -93,7 +93,6 @@ class RLWalk:
 
         self.feet_contacts = FeetContacts()
 
-
         self.action_clip = [-1.5, 1.5]
         self.obs_clip = [-5.0, 5.0]
 
@@ -222,7 +221,11 @@ class RLWalk:
         self.obs_history[0, : len(obs)] = obs
 
         obs = np.concatenate(
-            [self.obs_history.flatten(), self.action_history.flatten(), np.array(cmds[:3])]
+            [
+                self.obs_history.flatten(),
+                self.action_history.flatten(),
+                np.array(cmds[:3]),
+            ]
         ).reshape(1, -1)
         obs = np.clip(obs, self.obs_clip[0], self.obs_clip[1])
 
@@ -250,7 +253,7 @@ class RLWalk:
                 right_trigger = 0
                 t = time.time()
 
-                if :
+                if self.commands:
                     (
                         self.last_commands,
                         A_pressed,
@@ -290,9 +293,7 @@ class RLWalk:
                         break
 
                 action = self.policy.infer(obs.flatten())
-                action = np.clip(
-                    action, self.action_clip[0], self.action_clip[1]
-                )
+                action = np.clip(action, self.action_clip[0], self.action_clip[1])
                 self.action_history[1:, :] = self.action_history[:-1, :].copy()
                 self.action_history[0, :] = action.copy()
 

@@ -226,9 +226,13 @@ class RLWalk:
                 t = time.time()
 
                 if self.commands:
-                    self.last_commands, A_pressed, X_pressed, left_trigger, right_trigger = (
-                        self.xbox_controller.get_last_command()
-                    )
+                    (
+                        self.last_commands,
+                        A_pressed,
+                        X_pressed,
+                        left_trigger,
+                        right_trigger,
+                    ) = self.xbox_controller.get_last_command()
 
                 if X_pressed:
                     self.sounds.play_random_sound()
