@@ -25,7 +25,7 @@ class IMUClient:
                 print(e)
                 time.sleep(0.5)
         self.imu_queue = Queue(maxsize=1)
-        self.last_imu = [0, 0, 0, 0]
+        self.last_imu = [0, 0, 0, 0], [0, 0, 0]
 
         Thread(target=self.imu_worker, daemon=True).start()
 
@@ -60,7 +60,11 @@ if __name__ == "__main__":
     projected_gravities = []
     try:
         while True:
-            quat, gyro = client.get_imu()
+            data = client.get_imu()
+            # print(data[0][0])
+            quat = data[0][0]
+            gyro = data[0][1]
+            # continue
         
             try:
                 print(gyro)
