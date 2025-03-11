@@ -60,8 +60,9 @@ if __name__ == "__main__":
     projected_gravities = []
     try:
         while True:
-            quat = client.get_imu()
+            quat, gyro = client.get_imu()
             try:
+                print(gyro)
                 rot_mat = R.from_quat(quat).as_matrix()
                 pose[:3, :3] = rot_mat
                 fv.pushFrame(pose, "aze")
