@@ -56,9 +56,11 @@ class RLWalk:
         pitch_bias=0,
         replay_obs=None,
         cutoff_frequency=37.5,
+        commands_factor=1.0
     ):
         self.commands = commands
         self.pitch_bias = pitch_bias
+        self.commands_factor = commands_factor
 
         self.onnx_model_path = onnx_model_path
         self.policy = OnnxInfer(self.onnx_model_path, awd=True)
@@ -260,6 +262,8 @@ class RLWalk:
                         right_trigger,
                     ) = self.xbox_controller.get_last_command()
 
+                self.last_commands *= self.commands_factor
+
                 # if X_pressed:
                 #     self.sounds.play_random_sound()
 
@@ -350,6 +354,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--replay_obs", type=str, required=False, default=None)
     parser.add_argument("--cutoff_frequency", type=float, default=37.5)
+    parser.add_argument("--commands_factor", type=float, default=1.0)
     args = parser.parse_args()
     pid = [args.p, args.i, args.d]
 
@@ -363,6 +368,7 @@ if __name__ == "__main__":
         pitch_bias=args.pitch_bias,
         replay_obs=args.replay_obs,
         cutoff_frequency=args.cutoff_frequency,
+        commands_factor=args.commands_factor
     )
     print("Done instantiating RLWalk")
     # rl_walk.start()
