@@ -61,6 +61,7 @@ if __name__ == "__main__":
     try:
         while True:
             quat, gyro = client.get_imu()
+        
             try:
                 print(gyro)
                 rot_mat = R.from_quat(quat).as_matrix()

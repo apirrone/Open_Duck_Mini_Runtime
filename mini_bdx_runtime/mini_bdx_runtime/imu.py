@@ -144,7 +144,7 @@ class Imu:
 
         except Exception as e:
             print("[IMU]: ", e)
-            return None
+            return None, None
 
 
 if __name__ == "__main__":
