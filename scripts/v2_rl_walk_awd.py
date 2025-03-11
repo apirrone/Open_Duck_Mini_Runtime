@@ -156,9 +156,9 @@ class RLWalk:
 
         imu_mat, gyro = self.imu.get_data(mat=True)
         # imu_data = self.imu.get_data()
-        # if imu_mat is None:
-        #     print("IMU ERROR")
-        #     return None
+        if imu_mat is None or gyro is None:
+            print("IMU ERROR")
+            return None
 
         dof_pos = self.hwi.get_present_positions(
             ignore=[
