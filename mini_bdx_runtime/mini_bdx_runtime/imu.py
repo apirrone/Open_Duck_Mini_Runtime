@@ -34,13 +34,13 @@ class Imu:
         # self.imu.mode = adafruit_bno055.NDOF_FMC_OFF_MODE
 
         self.imu.axis_remap = (
-                adafruit_bno055.AXIS_REMAP_Y,
-                adafruit_bno055.AXIS_REMAP_X,
-                adafruit_bno055.AXIS_REMAP_Z,
-                adafruit_bno055.AXIS_REMAP_NEGATIVE,
-                adafruit_bno055.AXIS_REMAP_NEGATIVE,
-                adafruit_bno055.AXIS_REMAP_NEGATIVE
-            )
+            adafruit_bno055.AXIS_REMAP_Y,
+            adafruit_bno055.AXIS_REMAP_X,
+            adafruit_bno055.AXIS_REMAP_Z,
+            adafruit_bno055.AXIS_REMAP_NEGATIVE,
+            adafruit_bno055.AXIS_REMAP_NEGATIVE,
+            adafruit_bno055.AXIS_REMAP_NEGATIVE,
+        )
 
         self.pitch_bias = self.nominal_pitch_bias + self.user_pitch_bias
 
@@ -79,7 +79,6 @@ class Imu:
             print("imu_calib_data.pkl not found")
             print("Imu is running uncalibrated")
 
-
         self.last_imu_data = [0, 0, 0, 0]
         self.imu_queue = Queue(maxsize=1)
         Thread(target=self.imu_worker, daemon=True).start()
@@ -94,6 +93,7 @@ class Imu:
             try:
                 # imu returns scalar first
                 raw_orientation = np.array(self.imu.quaternion).copy()  # quat
+                gyro = np.array(self.imu.gyro).copy()
                 euler = (
                     R.from_quat(raw_orientation, scalar_first=True)
                     .as_euler("xyz")
@@ -111,7 +111,7 @@ class Imu:
             # gives scalar last, which is what isaac wants
             final_orientation_quat = R.from_euler("xyz", euler).as_quat()
 
-            self.imu_queue.put(final_orientation_quat.copy())
+            self.imu_queue.put((final_orientation_quat.copy(), gyro))
             took = time.time() - s
             time.sleep(max(0, 1 / self.sampling_freq - took))
 
@@ -123,16 +123,21 @@ class Imu:
 
         try:
             if not euler and not mat:
-                return self.last_imu_data
+                return self.last_imu_data, self.last_imu_data[1]
             elif euler:
-                return R.from_quat(self.last_imu_data).as_euler("xyz")
+                return (
+                    R.from_quat(self.last_imu_data[0]).as_euler("xyz"),
+                    self.last_imu_data[1],
+                )
             elif mat:
-                return R.from_quat(self.last_imu_data).as_matrix()
+                return (
+                    R.from_quat(self.last_imu_data[0]).as_matrix(),
+                    self.last_imu_data[1],
+                )
 
         except Exception as e:
             print("[IMU]: ", e)
             return None
-
 
 
 if __name__ == "__main__":

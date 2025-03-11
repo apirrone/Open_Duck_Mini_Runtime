@@ -5,10 +5,15 @@ import time
 import numpy as np
 
 
-X_RANGE = [-0.15, 0.15]
-Y_RANGE = [-0.2, 0.2]
-YAW_RANGE = [-0.5, 0.5]
-YAW_RANGE = [-1.0, 1.0]
+# MUJOCO
+# X_RANGE = [-0.15, 0.15]
+# Y_RANGE = [-0.2, 0.2]
+# YAW_RANGE = [-1.0, 1.0]
+
+# AWD
+X_RANGE = [-0.3, 0.5]
+Y_RANGE = [-0.3, 0.3]
+YAW_RANGE = [-1.5, 1.5]
 
 # rads
 NECK_PITCH_RANGE = [-0.34, 1.1]
