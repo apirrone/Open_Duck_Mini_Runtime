@@ -9,20 +9,25 @@ DEFAULT_ID = 1  # A brand new motor should have id 1
 TARGET_VENDOR_ID = 0x1A86  # e.g., your device's vendor id (in hex)
 TARGET_PRODUCT_ID = 0x55D3  # e.g., your device's product id (in hex)
 
-def find_port(vendor_id, product_id):
+# Update the find_port function to accept a list of (vendor_id, product_id) tuples.
+def find_port(device_ids):
     """
-    Scans available serial ports and returns the port name for the device
-    matching the given vendor_id and product_id.
+    Scans available serial ports and returns the port name for the first device
+    matching any of the given (vendor_id, product_id) pairs.
     """
     ports = list(serial.tools.list_ports.comports())
     for port in ports:
-        # Check if the port has the specified vendor_id and product_id
-        #print(f"Found port: {port.device}, VID: {hex(port.vid) if port.vid is not None else 'None'}, PID: {hex(port.pid) if port.pid is not None else 'None'}")
-        # port.vid and port.pid are provided by pyserial if available
-        if port.vid == vendor_id and port.pid == product_id:
-            print(f"Found device on port: {port.device}")
-            return port.device
+        for vendor_id, product_id in device_ids:
+            if port.vid == vendor_id and port.pid == product_id:
+                print(f"Found device on port: {port.device} (VID: {hex(vendor_id)}, PID: {hex(product_id)})")
+                return port.device
     return None
+
+# Update the script to use a list of device IDs.
+DEVICE_IDS = [
+    (0x1A86, 0x55D3),  # Example device 1
+    # Add more (vendor_id, product_id) pairs here as needed
+]
 
 # Parse arguments. This allows an override if you supply --port.
 parser = argparse.ArgumentParser()
@@ -38,8 +43,8 @@ args = parser.parse_args()
 
 # If no port is provided, try to auto-detect using the USB id info.
 if args.port is None:
-    auto_port = find_port(TARGET_VENDOR_ID, TARGET_PRODUCT_ID)
-    if auto_port is None:
+    auto_port = find_port(DEVICE_IDS)
+    if (auto_port is None):
         fallback_port = "/dev/ttyACM0"
         print(f"Device not auto-detected. Attempting connection using fallback port {fallback_port}.")
         args.port = fallback_port
