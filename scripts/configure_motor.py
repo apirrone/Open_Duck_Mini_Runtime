@@ -1,18 +1,64 @@
 from pypot.feetech import FeetechSTS3215IO
 import argparse
 import time
+import serial.tools.list_ports
 
 DEFAULT_ID = 1  # A brand new motor should have id 1
 
+# These are placeholders. Please replace these with your actual device's USB IDs.
+TARGET_VENDOR_ID = 0x1A86  # e.g., your device's vendor id (in hex)
+TARGET_PRODUCT_ID = 0x55D3  # e.g., your device's product id (in hex)
+
+def find_port(vendor_id, product_id):
+    """
+    Scans available serial ports and returns the port name for the device
+    matching the given vendor_id and product_id.
+    """
+    ports = list(serial.tools.list_ports.comports())
+    for port in ports:
+        # Check if the port has the specified vendor_id and product_id
+        #print(f"Found port: {port.device}, VID: {hex(port.vid) if port.vid is not None else 'None'}, PID: {hex(port.pid) if port.pid is not None else 'None'}")
+        # port.vid and port.pid are provided by pyserial if available
+        if port.vid == vendor_id and port.pid == product_id:
+            print(f"Found device on port: {port.device}")
+            return port.device
+    return None
+
+# Parse arguments. This allows an override if you supply --port.
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "--port",
-    help="The port the motor is connected to. Default is /dev/ttyACM0. Use `ls /dev/tty* | grep usb` to find the port.",
-    default="/dev/ttyACM0",
+    help=("The port the motor is connected to. If not specified, "
+          "the script will try to auto-detect the port using provided USB IDs or "
+          "fall back to /dev/ttyACM0."),
+    default=None,
 )
 parser.add_argument("--id", help="The id to set to the motor.", type=str, required=True)
 args = parser.parse_args()
-io = FeetechSTS3215IO(args.port)
+
+# If no port is provided, try to auto-detect using the USB id info.
+if args.port is None:
+    auto_port = find_port(TARGET_VENDOR_ID, TARGET_PRODUCT_ID)
+    if auto_port is None:
+        fallback_port = "/dev/ttyACM0"
+        print(f"Device not auto-detected. Attempting connection using fallback port {fallback_port}.")
+        args.port = fallback_port
+    else:
+        args.port = auto_port
+
+# Attempt to connect and catch any connection errors.
+try:
+    io = FeetechSTS3215IO(args.port)
+except Exception as exc:
+    message = f"Error connecting to the motor using port {args.port}: {exc}. Please check your connection.\n"
+    # If the fallback port was used, advise the user with additional usage information.
+    fallback_port = "/dev/ttyACM0"
+    if args.port == fallback_port:
+        message += f" If your device is not connected via {fallback_port}, please specify the correct port using the '--port' argument (e.g., --port /dev/ttyUSB0)."
+    else:
+        message += " If you believe your device is connected on a different port, try specifying it using the '--port <PORT>' argument."
+    print(message)
+    exit(1)
 
 current_id = DEFAULT_ID
 
