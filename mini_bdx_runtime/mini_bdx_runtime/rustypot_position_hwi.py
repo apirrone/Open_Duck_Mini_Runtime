@@ -6,7 +6,7 @@ from mini_bdx_runtime.duck_config import DuckConfig
 
 
 class HWI:
-    def __init__(self, duck_config: DuckConfig, usb_port: str = "/dev/ttyACM0"):
+    def __init__(self, duck_config: DuckConfig, usb_port: str = None):
 
         self.duck_config = duck_config
 
@@ -74,6 +74,7 @@ class HWI:
         self.kds = np.ones(len(self.joints)) * 0  # default kd
         self.low_torque_kps = np.ones(len(self.joints)) * 2
 
+        usb_port = usb_port if usb_port else self.duck_config.serial_port
         self.io = rustypot.feetech(usb_port, 1000000)
 
     def set_kps(self, kps):

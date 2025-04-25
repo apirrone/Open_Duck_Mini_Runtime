@@ -27,7 +27,6 @@ class RLWalk:
         self,
         onnx_model_path: str,
         duck_config_path: str = f"{HOME_DIR}/duck_config.json",
-        serial_port: str = "/dev/ttyACM0",
         control_freq: float = 50,
         pid=[30, 0, 0],
         action_scale=0.25,
@@ -67,7 +66,7 @@ class RLWalk:
                 self.control_freq, cutoff_frequency
             )
 
-        self.hwi = HWI(self.duck_config, serial_port)
+        self.hwi = HWI(self.duck_config)
 
         self.start()
 
