@@ -18,10 +18,10 @@ HEAD_ROLL_RANGE = [-0.5, 0.5]
 
 
 class XBoxController:
-    def __init__(self, command_freq, standing=False):
+    def __init__(self, command_freq, only_head_control=False):
         self.command_freq = command_freq
-        self.standing = standing
-        self.head_control_mode = self.standing
+        self.head_control_mode = only_head_control
+        self.only_head_control = only_head_control
 
         self.last_commands = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.last_left_trigger = 0.0
@@ -129,7 +129,8 @@ class XBoxController:
 
                 if self.p1.get_button(4):  # Y button
                     self.Y_pressed = True
-                    self.head_control_mode = not self.head_control_mode
+                    if not self.only_head_control:
+                        self.head_control_mode = not self.head_control_mode
 
                 if self.p1.get_button(6):  # LB button
                     self.LB_pressed = True
@@ -162,7 +163,7 @@ class XBoxController:
             self.RB_pressed,
             left_trigger,
             right_trigger,
-            up_down
+            up_down,
         )
 
     def get_last_command(self):
@@ -184,7 +185,7 @@ class XBoxController:
                 RB_pressed,
                 self.last_left_trigger,
                 self.last_right_trigger,
-                up_down
+                up_down,
             ) = self.cmd_queue.get(
                 False
             )  # non blocking
@@ -201,7 +202,7 @@ class XBoxController:
             RB_pressed,
             self.last_left_trigger,
             self.last_right_trigger,
-            up_down
+            up_down,
         )
 
 

@@ -2,30 +2,24 @@
 Find the offsets to set in self.joints_offsets in hwi_feetech_pwm_control.py
 """
 
-# from mini_bdx_runtime.hwi_feetech_pwm_control import HWI
 from mini_bdx_runtime.rustypot_position_hwi import HWI
+from mini_bdx_runtime.duck_config import DuckConfig
 import time
 
+dummy_config = DuckConfig(config_json_path=None, ignore_default=True)
+
+print("======")
+print(
+    "Warning : this script will move the robot to its zero position quiclky, make sure it is safe to do so"
+)
+print("======")
+print("")
 input(
     "Press any key to start. The robot will move to its zero position. Make sure it is safe to do so. At any time, press ctrl+c to stop, the motors will be turned off."
 )
-hwi = HWI()
-hwi.joints_offsets = {
-    "left_hip_yaw": 0,
-    "left_hip_roll": 0,
-    "left_hip_pitch": 0,
-    "left_knee": 0,
-    "left_ankle": 0,
-    "neck_pitch": 0,
-    "head_pitch": 0,
-    "head_yaw": 0,
-    "head_roll": 0,
-    "right_hip_yaw": 0,
-    "right_hip_roll": 0,
-    "right_hip_pitch": 0,
-    "right_knee": 0,
-    "right_ankle": 0,
-}
+
+hwi = HWI(dummy_config)
+
 
 hwi.init_pos = hwi.zero_pos
 hwi.set_kds([0] * len(hwi.joints))
@@ -83,7 +77,7 @@ try:
             print("===")
 
     print("Done ! ")
-    print("Now you can copy the offsets in the hwi_feetech_pwm_control.py file")
+    print("Now you can copy the offsets in your duck_config.json")
 
 
 except KeyboardInterrupt:

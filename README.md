@@ -127,9 +127,17 @@ You can also run `python3 scripts/imu_server.py` on the robot and `python3 scrip
 
 > To find the ip address of the robot, run `ifconfig` on the robot
 
+## Make your duck_config.json
+
+Copy `example_config.json` in the home directory of your duck and rename it `duck_config.json`.
+
+`cp example_config.json ~/duck_config.json`
+
+In this file, you can configure some stuff, like registering if you installed the expression features, installed the imu upside down or and other stuff. You also write the joints offsets of your duck here
+
 ## Find the joints offsets
 
-This script will guide you through finding the joints offsets of your robot, that you can then write in `rustypot_position_hwi.py` in `self.joints_offsets`
+This script will guide you through finding the joints offsets of your robot that you can then write in your `duck_config.json`
 
 > This procedure won't be necessary in the future as we will be flashing the offsets directly in each motor's eeprom.
 
