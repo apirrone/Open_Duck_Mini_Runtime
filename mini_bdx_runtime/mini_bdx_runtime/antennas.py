@@ -45,7 +45,7 @@ class Antennas:
                 print("set")
                 self.pwm1.ChangeDutyCycle(7)
                 self.pwm1_set = True
-            elif servo == 2 and not self.pwm2_set:
+            if servo == 2 and not self.pwm2_set:
                 print("set")
                 self.pwm2.ChangeDutyCycle(7)
                 self.pwm2_set = True
