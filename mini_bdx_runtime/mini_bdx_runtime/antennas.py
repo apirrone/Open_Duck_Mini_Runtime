@@ -47,8 +47,8 @@ class Antennas:
             elif servo == 2 and not self.pwm2_set:
                 self.pwm2.ChangeDutyCycle(7)
                 self.pwm2_set = True
-            return
-        if -1 <= value <= 1:
+
+        elif -1 <= value <= 1:
             angle = self.map_input_to_angle(value * sign)
 
             duty = 2 + (angle / 18)  # Convert angle to duty cycle (1ms-2ms)
@@ -63,6 +63,7 @@ class Antennas:
             # time.sleep(0.01)  # Allow time for movement
         else:
             print("Invalid input! Enter a value between -1 and 1.")
+        
 
     def stop(self):
         self.pwm1.stop()
