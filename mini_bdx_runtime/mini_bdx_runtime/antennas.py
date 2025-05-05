@@ -21,6 +21,9 @@ class Antennas:
         self.pwm1.start(0)
         self.pwm2.start(0)
 
+        self.pwm1_set = False
+        self.pwm2_set = False
+
     def map_input_to_angle(self, value):
         return 90 + (value * 90)
 
@@ -38,22 +41,23 @@ class Antennas:
         """
 
         if value < 0.1:
-            if servo == 1:
+            if servo == 1 and not self.pwm1_set:
                 self.pwm1.ChangeDutyCycle(7)
-            elif servo == 2:
+                self.pwm1_set = True
+            elif servo == 2 and not self.pwm2_set:
                 self.pwm2.ChangeDutyCycle(7)
-            else:
-                print("Invalid servo number!")
+                self.pwm2_set = True
             return
         if -1 <= value <= 1:
             angle = self.map_input_to_angle(value * sign)
 
             duty = 2 + (angle / 18)  # Convert angle to duty cycle (1ms-2ms)
-            print(duty)
             if servo == 1:
                 self.pwm1.ChangeDutyCycle(duty)
+                self.pwm1_set = False
             elif servo == 2:
                 self.pwm2.ChangeDutyCycle(duty)
+                self.pwm2_set = False
             else:
                 print("Invalid servo number!")
             # time.sleep(0.01)  # Allow time for movement
