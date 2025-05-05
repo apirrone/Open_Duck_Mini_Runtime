@@ -48,7 +48,7 @@ class Antennas:
                 self.pwm2.ChangeDutyCycle(7)
                 self.pwm2_set = True
 
-        elif -1 <= value <= 1:
+        elif value >= 0.1:
             angle = self.map_input_to_angle(value * sign)
 
             duty = 2 + (angle / 18)  # Convert angle to duty cycle (1ms-2ms)
