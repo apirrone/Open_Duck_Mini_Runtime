@@ -36,15 +36,20 @@ class Antennas:
         :param servo: 1 for the first servo, 2 for the second servo
         :param value: A float between -1 and 1
         """
-        angle = self.map_input_to_angle(value * sign)
 
-        duty = 2 + (angle / 18)  # Convert angle to duty cycle (1ms-2ms)
-        print(duty)
-
-        # if value < 0.1:
-        if value == 0:
+        if value < 0.1:
+            if servo == 1:
+                self.pwm1.ChangeDutyCycle(7)
+            elif servo == 2:
+                self.pwm2.ChangeDutyCycle(7)
+            else:
+                print("Invalid servo number!")
             return
         if -1 <= value <= 1:
+            angle = self.map_input_to_angle(value * sign)
+
+            duty = 2 + (angle / 18)  # Convert angle to duty cycle (1ms-2ms)
+            print(duty)
             if servo == 1:
                 self.pwm1.ChangeDutyCycle(duty)
             elif servo == 2:
@@ -73,4 +78,3 @@ if __name__ == "__main__":
 
         if time.time() - s > 5:
             break
-        
