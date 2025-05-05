@@ -39,12 +39,14 @@ class Antennas:
         :param servo: 1 for the first servo, 2 for the second servo
         :param value: A float between -1 and 1
         """
-        print(f"servo {servo} : {value}")
+        # print(f"servo {servo} : {value}")
         if value < 0.1:
             if servo == 1 and not self.pwm1_set:
+                print("set")
                 self.pwm1.ChangeDutyCycle(7)
                 self.pwm1_set = True
             elif servo == 2 and not self.pwm2_set:
+                print("set")
                 self.pwm2.ChangeDutyCycle(7)
                 self.pwm2_set = True
 
