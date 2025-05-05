@@ -37,12 +37,14 @@ class Antennas:
         :param value: A float between -1 and 1
         """
 
-        if value < 0.1:
+        # if value < 0.1:
+        if value ==0:
             return
         if -1 <= value <= 1:
             angle = self.map_input_to_angle(value * sign)
 
             duty = 2 + (angle / 18)  # Convert angle to duty cycle (1ms-2ms)
+            print(duty)
             if servo == 1:
                 self.pwm1.ChangeDutyCycle(duty)
             elif servo == 2:
