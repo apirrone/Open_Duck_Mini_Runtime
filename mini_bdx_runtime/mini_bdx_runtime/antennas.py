@@ -39,7 +39,7 @@ class Antennas:
         :param servo: 1 for the first servo, 2 for the second servo
         :param value: A float between -1 and 1
         """
-
+        print("servo {servo} : {value}")
         if value < 0.1:
             if servo == 1 and not self.pwm1_set:
                 self.pwm1.ChangeDutyCycle(7)
