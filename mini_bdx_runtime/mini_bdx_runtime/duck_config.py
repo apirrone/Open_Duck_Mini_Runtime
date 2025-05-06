@@ -48,6 +48,7 @@ class DuckConfig:
 
         self.start_paused = self.json_config.get("start_paused", False)
         self.imu_upside_down = self.json_config.get("imu_upside_down", False)
+        self.serial_port = self.json_config.get("serial_port", "/dev/ttyACM0")
         self.phase_frequency_factor_offset = self.json_config.get(
             "phase_frequency_factor_offset", 0.0
         )

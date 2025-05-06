@@ -1,6 +1,7 @@
 {
     "start_paused": false,
     "imu_upside_down": false,
+    "serial_port": "/dev/ttyACM0",
     "phase_frequency_factor_offset": 0.0,
     "expression_features": {
         "eyes": false,
