@@ -19,7 +19,9 @@ duck_config = DuckConfig()
 xbox_controller = XBoxController(50, only_head_control=True)
 
 if duck_config.speaker:
-    sounds = Sounds(volume=1.0, sound_directory="../mini_bdx_runtime/assets/")
+    from importlib.resources import files
+    assets_dir = files("mini_bdx_runtime") / "assets"
+    sounds = Sounds(volume=1.0, sound_directory=assets_dir.__str__())
 if duck_config.antennas:
     antennas = Antennas()
 if duck_config.eyes:

@@ -100,7 +100,9 @@ class RLWalk:
 
         # Reference motion, but we only really need the length of one phase
         # TODO
-        self.PRM = PolyReferenceMotion("./polynomial_coefficients.pkl")
+        from pathlib import Path
+        polynomial_coefficients = Path(__file__).parent / "polynomial_coefficients.pkl"
+        self.PRM = PolyReferenceMotion(polynomial_coefficients.as_posix())
         self.imitation_i = 0
         self.imitation_phase = np.array([0, 0])
         self.phase_frequency_factor = 1.0
@@ -114,8 +116,10 @@ class RLWalk:
         if self.duck_config.projector:
             self.projector = Projector()
         if self.duck_config.speaker:
+            from importlib.resources import files
+            assets_dir = files("mini_bdx_runtime") / "assets"
             self.sounds = Sounds(
-                volume=1.0, sound_directory="../mini_bdx_runtime/assets/"
+                volume=1.0, sound_directory=assets_dir.__str__()
             )
         if self.duck_config.antennas:
             self.antennas = Antennas()

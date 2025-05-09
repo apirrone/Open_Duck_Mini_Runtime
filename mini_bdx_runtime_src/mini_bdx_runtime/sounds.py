@@ -2,6 +2,7 @@ import pygame
 import time
 import os
 import random
+from importlib.resources import files
 
 
 class Sounds:
@@ -50,7 +51,8 @@ class Sounds:
 
 # Example usage
 if __name__ == "__main__":
-    sound_player = Sounds(1.0, "../assets/")
+    assets_dir = files("mini_bdx_runtime") / "assets"
+    sound_player = Sounds(1.0, assets_dir.__str__())
     time.sleep(1)
     while True:
         # sound_player.play_random_sound()
