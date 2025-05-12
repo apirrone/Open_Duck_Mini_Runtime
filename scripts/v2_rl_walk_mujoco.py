@@ -111,6 +111,7 @@ class RLWalk:
         # Optional expression features
         if self.duck_config.eyes:
             self.eyes = Eyes()
+            self.eyes.start_blink_thread()
         if self.duck_config.projector:
             self.projector = Projector()
         if self.duck_config.speaker:
@@ -119,6 +120,7 @@ class RLWalk:
             )
         if self.duck_config.antennas:
             self.antennas = Antennas()
+            self.antennas.home()
 
     def get_obs(self):
 

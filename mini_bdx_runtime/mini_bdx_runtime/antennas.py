@@ -2,6 +2,9 @@ import board
 import pwmio
 import math
 import time
+import logging
+
+logger = logging.getLogger(__name__)
 
 LEFT_ANTENNA_PIN = board.D13
 RIGHT_ANTENNA_PIN = board.D12
@@ -47,6 +50,9 @@ class Antennas:
 
 
 if __name__ == "__main__":
+    # Configure logging
+    logging.basicConfig(level=logging.DEBUG)
+    
     antennas = Antennas()
 
     try:

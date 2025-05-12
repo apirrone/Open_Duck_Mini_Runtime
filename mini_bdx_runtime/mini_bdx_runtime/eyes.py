@@ -7,6 +7,7 @@ from threading import Thread, Event
 LEFT_EYE_PIN = board.D24
 RIGHT_EYE_PIN = board.D23
 
+logger = logging.getLogger(__name__)
 
 class Eyes:
     def __init__(self, blink_duration=0.1, min_interval=1.0, max_interval=4.0):
