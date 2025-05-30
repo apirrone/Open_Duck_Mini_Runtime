@@ -29,23 +29,21 @@ hwi.set_kps(kps)
 hwi.set_kds(kds)
 hwi.turn_on()
 
-
-# limits = {
-#     "neck_pitch": [-20, 60],
-#     "head_pitch": [-60, 45],
-#     "head_yaw": [-60, 60],
-#     "head_roll": [-20, 20],
-# }
-
+# hwi.set_position("head_roll", head_roll_pos_rad)
+# hwi.set_position("head_pitch", head_pitch_pos_rad)
 
 t0 = 0.0
-while True:
+while time.time() - t0 < 10:
     t = time.time() - t0
 
-    head_yaw_pos_rad = np.deg2rad(20) * np.sin(2*np.pi*0.2*t)
+    hwi.set_position("head_yaw", np.deg2rad(30) * np.sin(2*np.pi*0.2*t))
 
-    hwi.set_position("head_yaw", head_yaw_pos_rad)
-    # hwi.set_position("head_roll", head_roll_pos_rad)
-    # hwi.set_position("head_pitch", head_pitch_pos_rad)
+    time.sleep(0.01)
+
+t0 = 0.0
+while time.time() - t0 < 10:
+    t = time.time() - t0
+
+    hwi.set_position("pitch", np.deg2rad(10) * np.sin(2*np.pi*0.2*t))
 
     time.sleep(0.01)
