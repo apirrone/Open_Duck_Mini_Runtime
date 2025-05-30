@@ -32,7 +32,7 @@ hwi.turn_on()
 # hwi.set_position("head_roll", head_roll_pos_rad)
 # hwi.set_position("head_pitch", head_pitch_pos_rad)
 
-t0 = 0.0
+t0 = time.time()
 while time.time() - t0 < 10:
     t = time.time() - t0
 
@@ -40,7 +40,7 @@ while time.time() - t0 < 10:
 
     time.sleep(0.01)
 
-t0 = 0.0
+t0 = time.time()
 while time.time() - t0 < 10:
     t = time.time() - t0
 
