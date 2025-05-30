@@ -44,6 +44,14 @@ t0 = time.time()
 while time.time() - t0 < 10:
     t = time.time() - t0
 
-    hwi.set_position("head_pitch", np.deg2rad(10) * np.sin(2*np.pi*0.2*t))
+    hwi.set_position("head_pitch", np.deg2rad(30) * np.sin(2*np.pi*0.2*t))
+
+    time.sleep(0.01)
+
+t0 = time.time()
+while time.time() - t0 < 10:
+    t = time.time() - t0
+
+    hwi.set_position("head_roll", np.deg2rad(30) * np.sin(2*np.pi*0.2*t))
 
     time.sleep(0.01)
