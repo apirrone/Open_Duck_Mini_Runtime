@@ -119,6 +119,12 @@ class Imu:
                 print("[IMU]:", e)
                 continue
 
+            if gyro is None or raw_orientation is None:
+                continue
+
+            if gyro.any() is None or raw_orientation.any() is None:
+                continue
+
             # Converting to correct axes
             # euler = self.convert_axes(euler)
             euler[1] -= np.deg2rad(self.pitch_bias)
