@@ -261,7 +261,7 @@ class RLWalk:
                 if obs is None:
                     continue
 
-                if np.linalg.norm(self.last_commands[3:]) > 0.01:
+                if np.linalg.norm(self.last_commands[:3]) > 0.01:
                     self.imitation_i += 1 * (
                         self.phase_frequency_factor + self.phase_frequency_factor_offset
                     )
