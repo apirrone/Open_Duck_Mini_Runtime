@@ -24,7 +24,7 @@ class IMUClient:
                 print(e)
                 time.sleep(0.5)
         self.imu_queue = Queue(maxsize=1)
-        self.last_imu = [0, 0, 0, 0]
+        self.last_imu = {"orientation": [0, 0, 0, 0], "gyro": [0, 0, 0]}
 
         Thread(target=self.imu_worker, daemon=True).start()
 
@@ -63,7 +63,9 @@ if __name__ == "__main__":
     pose[:3, 3] = [0.1, 0.1, 0.1]
     try:
         while True:
-            quat = client.get_imu()
+            data = client.get_imu()
+            quat = data["orientation"]
+            gyro = data["gyro"]
             try:
                 rot_mat = R.from_quat(quat).as_matrix()
                 pose[:3, :3] = rot_mat

@@ -164,9 +164,18 @@ if __name__ == "__main__":
     imu = Imu(50, calibrate=False, upside_down=False)
     # imu = Imu(50, upside_down=False)
     while True:
-        data = imu.get_data()
-        print(data)
-        print("gyro", np.around(data["gyro"], 3))
-        print("orientation", np.around(data["orientation"], 3))
+        data = imu.get_data(as_mat=True)
+        # print(data)
+        # print("gyro", np.around(data["gyro"], 3))
+        # print("orientation", np.around(data["orientation"], 3))
+        mat = data["orientation"]
+
+
+        # gravity = np.array(data.site_xmat[self.get_site_id_from_name("imu")]).reshape(
+        #     (3, 3)
+        # ).T @ np.array([0, 0, -1])
+
+        gravity = mat @ np.array([0, 0, -1])
+        print("gravity", np.around(gravity, 3))
         print("---")
         time.sleep(1 / 25)
