@@ -128,7 +128,7 @@ class RLWalk:
         if imu_data is None:
             print("IMU data is None, skipping observation retrieval")
             return None
-        gravity = imu_data["orientation"] @ np.array([0, 0, -1])
+        gravity = np.array(imu_data["orientation"]).reshape((3, 3)).T @ np.array([0, 0, -1])
         gyro = imu_data["gyro"]
 
         dof_pos = self.hwi.get_present_positions(
