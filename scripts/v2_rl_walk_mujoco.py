@@ -314,8 +314,8 @@ class RLWalk:
 
                 self.prev_motor_targets = self.motor_targets.copy()
 
-                head_motor_targets = self.last_commands[3:] + self.motor_targets[5:9]
-                self.motor_targets[5:9] = head_motor_targets
+                # head_motor_targets = self.last_commands[3:] + self.motor_targets[5:9]
+                # self.motor_targets[5:9] = head_motor_targets
 
                 action_dict = make_action_dict(
                     self.motor_targets, list(self.hwi.joints.keys())
@@ -354,7 +354,7 @@ if __name__ == "__main__":
         required=False,
         default=f"{HOME_DIR}/duck_config.json",
     )
-    parser.add_argument("-a", "--action_scale", type=float, default=1.0)
+    parser.add_argument("-a", "--action_scale", type=float, default=0.25)
     parser.add_argument("-p", type=int, default=30)
     parser.add_argument("-i", type=int, default=0)
     parser.add_argument("-d", type=int, default=0)
