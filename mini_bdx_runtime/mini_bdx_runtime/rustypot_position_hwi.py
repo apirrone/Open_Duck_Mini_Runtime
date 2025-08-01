@@ -50,22 +50,22 @@ class HWI:
         }
 
         self.init_pos = {
-            "left_hip_yaw": 0.002,
-            "left_hip_roll": 0.053,
-            "left_hip_pitch": -0.63,
-            "left_knee": 1.368,
-            "left_ankle": -0.784,
-            "neck_pitch": 0.0,
-            "head_pitch": 0.0,
+            "left_hip_yaw": 0.0,
+            "left_hip_roll": 0.09081,
+            "left_hip_pitch": -0.50983,
+            "left_knee": 1.13089,
+            "left_ankle": -0.62104,
+            "neck_pitch": 0.05236,
+            "head_pitch": -0.05236,
             "head_yaw": 0,
             "head_roll": 0,
             # "left_antenna": 0,
             # "right_antenna": 0,
-            "right_hip_yaw": -0.003,
-            "right_hip_roll": -0.065,
-            "right_hip_pitch": 0.635,
-            "right_knee": 1.379,
-            "right_ankle": -0.796,
+            "right_hip_yaw": 0.0,
+            "right_hip_roll": -0.09081,
+            "right_hip_pitch": 0.50983,
+            "right_knee": 1.13089,
+            "right_ankle": -0.62104,
         }
 
         self.joints_offsets = self.duck_config.joints_offset
