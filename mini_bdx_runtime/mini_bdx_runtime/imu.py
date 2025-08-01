@@ -139,23 +139,19 @@ class Imu:
             took = time.time() - s
             time.sleep(max(0, 1 / self.sampling_freq - took))
 
-    def get_data(self, rot_as_euler=False, rot_as_mat=False, gyro_as_euler=False):
+    def get_data(self, as_euler=False, as_mat=False):
         try:
             self.last_imu_data = self.imu_queue.get(False)  # non blocking
         except Exception:
             pass
 
         try:
-            if rot_as_euler:
+            if as_euler:
                 euler = R.from_quat(self.last_imu_data["orientation"]).as_euler("xyz")
                 self.last_imu_data["orientation"] = euler
-            elif rot_as_mat:
+            elif as_mat:
                 mat = R.from_quat(self.last_imu_data["orientation"]).as_matrix()
                 self.last_imu_data["orientation"] = mat
-
-            if gyro_as_euler:
-                euler = R.from_quat(self.last_imu_data["gyro"]).as_euler("xyz")
-                self.last_imu_data["gyro"] = euler
             
             return self.last_imu_data
 
@@ -168,7 +164,7 @@ if __name__ == "__main__":
     imu = Imu(50, calibrate=False, upside_down=False)
     # imu = Imu(50, upside_down=False)
     while True:
-        data = imu.get_data(rot_as_mat=True, gyro_as_euler=True)
+        data = imu.get_data(as_mat=True)
         if data is None:
             continue
         # print(data)

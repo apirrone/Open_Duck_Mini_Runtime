@@ -81,6 +81,7 @@ class RLWalk:
 
         # Scales
         self.action_scale = action_scale
+        self.dof_vel_scale = 0.1
 
         self.last_action = np.zeros(self.num_dofs)
         self.last_last_action = np.zeros(self.num_dofs)
@@ -123,7 +124,9 @@ class RLWalk:
 
     def get_obs(self):
 
-        imu_data = self.imu.get_data()
+        imu_data = self.imu.get_data(as_mat=True)
+        gravity = imu_data["orientation"] @ np.array([0, 0, -1])
+        gyro = imu_data["gyro"]
 
         dof_pos = self.hwi.get_present_positions(
             ignore=[
@@ -156,11 +159,11 @@ class RLWalk:
 
         obs = np.concatenate(
             [
-                imu_data["gyro"],
-                imu_data["accelero"],
+                gyro,
+                gravity,
                 cmds,
                 dof_pos - self.init_pos,
-                dof_vel * 0.1,
+                dof_vel * self.dof_vel_scale,
                 self.last_action,
                 self.last_last_action,
                 self.last_last_last_action,
