@@ -5,7 +5,8 @@ import numpy as np
 from mini_bdx_runtime.rustypot_position_hwi import HWI
 from mini_bdx_runtime.onnx_infer import OnnxInfer
 
-from mini_bdx_runtime.raw_imu import Imu
+# from mini_bdx_runtime.raw_imu import Imu
+from mini_bdx_runtime.imu import Imu
 from mini_bdx_runtime.poly_reference_motion import PolyReferenceMotion
 from mini_bdx_runtime.xbox_controller import XBoxController
 from mini_bdx_runtime.feet_contacts import FeetContacts
@@ -159,7 +160,7 @@ class RLWalk:
                 imu_data["accelero"],
                 cmds,
                 dof_pos - self.init_pos,
-                dof_vel * 0.05,
+                dof_vel * 0.1,
                 self.last_action,
                 self.last_last_action,
                 self.last_last_last_action,
@@ -347,12 +348,12 @@ if __name__ == "__main__":
         required=False,
         default=f"{HOME_DIR}/duck_config.json",
     )
-    parser.add_argument("-a", "--action_scale", type=float, default=0.25)
+    parser.add_argument("-a", "--action_scale", type=float, default=1.0)
     parser.add_argument("-p", type=int, default=30)
     parser.add_argument("-i", type=int, default=0)
     parser.add_argument("-d", type=int, default=0)
     parser.add_argument("-c", "--control_freq", type=int, default=50)
-    parser.add_argument("--pitch_bias", type=float, default=0, help="deg")
+    parser.add_argument("--pitch_bias", type=float, default=-10, help="deg")
     parser.add_argument(
         "--commands",
         action="store_true",

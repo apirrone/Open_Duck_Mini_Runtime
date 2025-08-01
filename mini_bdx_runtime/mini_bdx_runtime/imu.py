@@ -109,6 +109,7 @@ class Imu:
             try:
                 # imu returns scalar first
                 raw_orientation = np.array(self.imu.quaternion).copy()  # quat
+                gyro = np.array(self.imu.gyro).copy()  # gyro
                 euler = (
                     R.from_quat(raw_orientation, scalar_first=True)
                     .as_euler("xyz")
@@ -126,23 +127,27 @@ class Imu:
             # gives scalar last, which is what isaac wants
             final_orientation_quat = R.from_euler("xyz", euler).as_quat()
 
-            self.imu_queue.put(final_orientation_quat.copy())
+            self.imu_queue.put(
+                {"orientation": final_orientation_quat.copy(), "gyro": gyro.copy()}
+            )
             took = time.time() - s
             time.sleep(max(0, 1 / self.sampling_freq - took))
 
-    def get_data(self, euler=False, mat=False):
+    def get_data(self, as_euler=False, as_mat=False):
         try:
             self.last_imu_data = self.imu_queue.get(False)  # non blocking
         except Exception:
             pass
 
         try:
-            if not euler and not mat:
-                return self.last_imu_data
-            elif euler:
-                return R.from_quat(self.last_imu_data).as_euler("xyz")
-            elif mat:
-                return R.from_quat(self.last_imu_data).as_matrix()
+            if as_euler:
+                euler = R.from_quat(self.last_imu_data["orientation"]).as_euler("xyz")
+                self.last_imu_data["orientation"] = euler
+            elif as_mat:
+                mat = R.from_quat(self.last_imu_data["orientation"]).as_matrix()
+                self.last_imu_data["orientation"] = mat
+            
+            return self.last_imu_data
 
         except Exception as e:
             print("[IMU]: ", e)
@@ -156,6 +161,6 @@ if __name__ == "__main__":
         data = imu.get_data()
         # print(data)
         print("gyro", np.around(data["gyro"], 3))
-        print("accelero", np.around(data["accelero"], 3))
+        print("orientation", np.around(data["orientation"], 3))
         print("---")
         time.sleep(1 / 25)
