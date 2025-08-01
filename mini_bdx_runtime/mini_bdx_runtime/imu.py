@@ -95,7 +95,7 @@ class Imu:
             print("imu_calib_data.pkl not found")
             print("Imu is running uncalibrated")
 
-        self.last_imu_data = [0, 0, 0, 0]
+        self.last_imu_data = {"orientation": [0, 0, 0, 0], "gyro": [0, 0, 0]}
         self.imu_queue = Queue(maxsize=1)
         Thread(target=self.imu_worker, daemon=True).start()
 
@@ -159,7 +159,7 @@ if __name__ == "__main__":
     # imu = Imu(50, upside_down=False)
     while True:
         data = imu.get_data()
-        # print(data)
+        print(data)
         print("gyro", np.around(data["gyro"], 3))
         print("orientation", np.around(data["orientation"], 3))
         print("---")
