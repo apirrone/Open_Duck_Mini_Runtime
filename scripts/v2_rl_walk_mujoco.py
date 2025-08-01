@@ -125,6 +125,9 @@ class RLWalk:
     def get_obs(self):
 
         imu_data = self.imu.get_data(as_mat=True)
+        if imu_data is None:
+            print("IMU data is None, skipping observation retrieval")
+            return None
         gravity = imu_data["orientation"] @ np.array([0, 0, -1])
         gyro = imu_data["gyro"]
 
