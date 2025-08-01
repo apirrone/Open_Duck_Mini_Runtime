@@ -165,6 +165,8 @@ if __name__ == "__main__":
     # imu = Imu(50, upside_down=False)
     while True:
         data = imu.get_data(as_mat=True)
+        if data is None:
+            continue
         # print(data)
         # print("gyro", np.around(data["gyro"], 3))
         # print("orientation", np.around(data["orientation"], 3))
