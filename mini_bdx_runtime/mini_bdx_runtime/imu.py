@@ -150,8 +150,9 @@ class Imu:
                 euler = R.from_quat(self.last_imu_data["orientation"]).as_euler("xyz")
                 self.last_imu_data["orientation"] = euler
             elif as_mat:
-                mat = R.from_quat(self.last_imu_data["orientation"]).as_matrix()
-                self.last_imu_data["orientation"] = mat
+                if self.last_imu_data["orientation"].shape != (3, 3):
+                    mat = R.from_quat(self.last_imu_data["orientation"]).as_matrix()
+                    self.last_imu_data["orientation"] = mat
             
             return self.last_imu_data
 
