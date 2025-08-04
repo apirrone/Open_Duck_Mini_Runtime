@@ -81,7 +81,7 @@ class RLWalk:
 
         # Scales
         self.action_scale = action_scale
-        self.dof_vel_scale = 0.1
+        self.dof_vel_scale = 0.05
 
         self.last_action = np.zeros(self.num_dofs)
         self.last_last_action = np.zeros(self.num_dofs)
