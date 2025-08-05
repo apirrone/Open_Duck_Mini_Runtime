@@ -5,8 +5,8 @@ import numpy as np
 from mini_bdx_runtime.rustypot_position_hwi import HWI
 from mini_bdx_runtime.onnx_infer import OnnxInfer
 
-# from mini_bdx_runtime.raw_imu import Imu
-from mini_bdx_runtime.imu import Imu
+from mini_bdx_runtime.raw_imu import Imu
+# from mini_bdx_runtime.imu import Imu
 from mini_bdx_runtime.poly_reference_motion import PolyReferenceMotion
 from mini_bdx_runtime.xbox_controller import XBoxController
 from mini_bdx_runtime.feet_contacts import FeetContacts
@@ -128,8 +128,8 @@ class RLWalk:
         if imu_data is None:
             print("IMU data is None, skipping observation retrieval")
             return None
-        gravity = np.array(imu_data["orientation"]).reshape((3, 3)).T @ np.array([0, 0, -1])
-        # accelero = np.array(imu_data["accelero"])
+        # gravity = np.array(imu_data["orientation"]).reshape((3, 3)).T @ np.array([0, 0, -1])
+        accelero = np.array(imu_data["accelero"])
         gyro = imu_data["gyro"]
 
         dof_pos = self.hwi.get_present_positions(
@@ -163,9 +163,9 @@ class RLWalk:
 
         obs = np.concatenate(
             [
-                # accelero,
+                accelero,
                 gyro,
-                gravity,
+                # gravity,
                 cmds,
                 dof_pos - self.init_pos,
                 dof_vel * self.dof_vel_scale,
