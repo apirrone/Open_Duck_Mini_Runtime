@@ -129,6 +129,7 @@ class RLWalk:
             print("IMU data is None, skipping observation retrieval")
             return None
         gravity = np.array(imu_data["orientation"]).reshape((3, 3)).T @ np.array([0, 0, -1])
+        # accelero = np.array(imu_data["accelero"])
         gyro = imu_data["gyro"]
 
         dof_pos = self.hwi.get_present_positions(
@@ -162,6 +163,7 @@ class RLWalk:
 
         obs = np.concatenate(
             [
+                # accelero,
                 gyro,
                 gravity,
                 cmds,
@@ -261,12 +263,12 @@ class RLWalk:
                 if obs is None:
                     continue
 
-                if np.linalg.norm(self.last_commands[:3]) > 0.1:
-                    self.imitation_i += 1 * (
-                        self.phase_frequency_factor + self.phase_frequency_factor_offset
-                    )
-                else:
-                    self.imitation_i = 0
+                # if np.linalg.norm(self.last_commands[:3]) > 0.1:
+                self.imitation_i += 1 * (
+                    self.phase_frequency_factor + self.phase_frequency_factor_offset
+                )
+                # else:
+                    # self.imitation_i = 0
                 self.imitation_i = self.imitation_i % self.PRM.nb_steps_in_period
                 self.imitation_phase = np.array(
                     [
