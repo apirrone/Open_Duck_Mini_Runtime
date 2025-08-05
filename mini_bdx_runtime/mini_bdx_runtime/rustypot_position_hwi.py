@@ -49,23 +49,41 @@ class HWI:
             "right_ankle": 0,
         }
 
+        # 0.00476
+        # 0.09061
+        # -0.60255
+        # 1.14938
+        # -0.59941
+
+        # 0.05236
+        # -0.05236
+        # 0.00000
+        # 0.00000
+
+        # -0.00476
+        # -0.09061
+        # 0.60255
+        # 1.14938
+        # -0.59941
+
+
         self.init_pos = {
-            "left_hip_yaw": 0.00466,
-            "left_hip_roll": 0.08862,
-            "left_hip_pitch": -0.56751,
-            "left_knee": 1.08359,
-            "left_ankle": -0.56863,
+            "left_hip_yaw": 0.00476,
+            "left_hip_roll": 0.09061,
+            "left_hip_pitch": -0.60255,
+            "left_knee": 1.14938,
+            "left_ankle": -0.59941,
             "neck_pitch": 0.05236,
-            "head_pitch": -0.05237,
-            "head_yaw": -0.00000,
-            "head_roll": -0.00000,
+            "head_pitch": 0.05236,
+            "head_yaw": 0.00000,
+            "head_roll": 0.00000,
             # "left_antenna": 0,
             # "right_antenna": 0,
-            "right_hip_yaw": 0.00466,
-            "right_hip_roll": -0.08862,
-            "right_hip_pitch": 0.56751,
-            "right_knee": 1.08359,
-            "right_ankle": -0.56863,
+            "right_hip_yaw": 0.00476,
+            "right_hip_roll": -0.09061,
+            "right_hip_pitch": 0.60255,
+            "right_knee": 1.14938,
+            "right_ankle": -0.59941,
         }
 
         self.joints_offsets = self.duck_config.joints_offset
