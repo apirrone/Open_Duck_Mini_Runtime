@@ -6,7 +6,7 @@ import numpy as np
 from mini_bdx_runtime.buttons import Buttons
 
 
-X_RANGE = [-0.2, 0.25]
+X_RANGE = [-0.15, 0.15]
 Y_RANGE = [-0.2, 0.2]
 YAW_RANGE = [-1.0, 1.0]
 
