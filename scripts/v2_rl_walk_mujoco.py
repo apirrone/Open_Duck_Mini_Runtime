@@ -183,7 +183,7 @@ class RLWalk:
         kds = [self.pid[2]] * 14
 
         # lower head kps
-        # kps[5:9] = [8, 8, 8, 8]
+        kps[5:9] = [8, 8, 8, 8]
 
         self.hwi.set_kps(kps)
         self.hwi.set_kds(kds)
