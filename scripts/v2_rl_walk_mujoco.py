@@ -124,7 +124,10 @@ class RLWalk:
 
     def get_obs(self):
 
-        imu_data = self.imu.get_data(as_mat=True)
+
+        # imu_data = self.imu.get_data(as_mat=True)
+        # raw
+        imu_data = self.imu.get_data()
         if imu_data is None:
             print("IMU data is None, skipping observation retrieval")
             return None
