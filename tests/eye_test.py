@@ -5,13 +5,6 @@ from mini_bdx_runtime.eyes import Eyes, LEFT_EYE_GPIO, RIGHT_EYE_GPIO
 
 eye_delay = 2.5
 
-@pytest.fixture
-def eyes():
-    """Fixture to create and cleanup Eyes instance"""
-    eyes_instance = Eyes()
-    yield eyes_instance
-    eyes_instance.cleanup()  # Ensure cleanup after each test
-
 def test_eyes_initialization(eyes):
     """Test that eyes are properly initialized"""
     assert eyes is not None
