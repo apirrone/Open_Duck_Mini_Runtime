@@ -98,8 +98,8 @@ def test_no_overlap_play(monkeypatch):
     mock_sound = mock.MagicMock()
     mock_mixer.Sound.return_value = mock_sound
     # Simulate busy state for first call, then not busy
-    busy_states = [True, False]
-    mock_mixer.get_busy.side_effect = lambda: busy_states.pop(0) if busy_states else False
+    busy_states_iter = iter([True, False])
+    mock_mixer.get_busy.side_effect = lambda: next(busy_states_iter, False)
     # Patch os.listdir to return a fake .wav file
     with mock.patch("os.listdir", return_value=["happy1.wav"]):
         sound_player = Sounds(volume=0.5, sound_directory=assets_dir, mixer=mock_mixer)
