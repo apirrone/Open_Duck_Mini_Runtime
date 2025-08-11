@@ -115,7 +115,7 @@ class RLWalk:
             self.projector = Projector()
         if self.duck_config.speaker:
             self.sounds = Sounds(
-                volume=1.0, sound_directory="src/mini_bdx_runtime/assets/"
+                volume=1.0, sound_directory="mini_bdx_runtime/assets/"
             )
         if self.duck_config.antennas:
             self.antennas = Antennas()
