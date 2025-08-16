@@ -1,6 +1,6 @@
 import time
 
-from .led_controller import get_controller
+from open_duck_mini_runtime.led_controller import get_controller
 
 
 class Projector:

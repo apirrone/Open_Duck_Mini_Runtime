@@ -2,46 +2,41 @@
 Shared controller for a single 3-LED NeoPixel strip used by eyes (2 LEDs) and projector (1 LED).
 
 Design:
-- Index 0: left eye
+- Index 0: projector
 - Index 1: right eye
-- Index 2: projector
-
-This module lazily imports hardware libraries to avoid import errors on non-hardware hosts.
+- Index 2: left eye
 """
 from __future__ import annotations
 
 from threading import Lock
 from typing import Tuple, Optional
 
+# Direct hardware imports (we assume we're running on-device)
+import board
+import neopixel
+
+# Pin and pixel configuration
+PIXEL_PIN = board.D10
+NUM_PIXELS = 3
+
+# The order of the pixel colors - RGB or GRB. Some NeoPixels have red and green reversed!
+# For RGBW NeoPixels, simply change the ORDER to RGBW or GRBW.
+ORDER = neopixel.RGBW
+
+# Brightness and a single shared NeoPixel instance
+BRIGHTNESS = 1
+pixels = neopixel.NeoPixel(
+    PIXEL_PIN, NUM_PIXELS, brightness=BRIGHTNESS, auto_write=False, pixel_order=ORDER
+)
 
 class LedController:
-    def __init__(
-        self,
-        data_pin_name: str = "D23",  # default GPIO for NeoPixel data
-        num_pixels: int = 3,
-        brightness: float = 0.3,
-    ) -> None:
+    def __init__(self) -> None:
         self._lock = Lock()
         self._pixels = None  # type: ignore
         self._deinited = False
 
-        # Lazy import to prevent issues on dev machines/CI without hardware
-        # Importing here avoids name collision with our package module names.
-        import importlib
-
-        board = importlib.import_module("board")
-        neopixel = importlib.import_module("neopixel")
-
-        data_pin = getattr(board, data_pin_name)
-
-        # Initialize NeoPixel strip
-        self._pixels = neopixel.NeoPixel(
-            data_pin,
-            num_pixels,
-            brightness=brightness,
-            auto_write=False,
-            pixel_order=getattr(neopixel, "GRB", None) or getattr(neopixel, "RGB"),
-        )
+        # Use the module-level NeoPixel configured above
+        self._pixels = pixels
 
         # Cache simple color tuples
         self.OFF = (0, 0, 0)
@@ -73,10 +68,10 @@ class LedController:
             if proj_color is None:
                 proj_color = self.WHITE if self.projector_on else self.OFF
 
-            # Assign indices: 0-left, 1-right, 2-projector
-            self._pixels[0] = left_color
+            # Assign indices: 2-left, 1-right, 0-projector
+            self._pixels[0] = proj_color
             self._pixels[1] = right_color
-            self._pixels[2] = proj_color
+            self._pixels[2] = left_color
             self._pixels.show()
 
     # Eyes API

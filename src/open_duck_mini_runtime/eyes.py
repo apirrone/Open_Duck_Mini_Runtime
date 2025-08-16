@@ -2,7 +2,7 @@ import random
 import time
 from threading import Thread, Event
 
-from .led_controller import get_controller
+from open_duck_mini_runtime.led_controller import get_controller
 
 
 class Eyes:
