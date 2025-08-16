@@ -8,8 +8,11 @@ Design:
 """
 from __future__ import annotations
 
+import os
+import atexit
+import signal
 from threading import Lock
-from typing import Tuple, Optional, Union, Dict
+from typing import Tuple, Optional, Union
 
 # Direct hardware imports (we assume we're running on-device)
 import board
@@ -19,15 +22,21 @@ import neopixel
 PIXEL_PIN = board.D10
 NUM_PIXELS = 3
 
-# The order of the pixel colors - RGB or GRB. Some NeoPixels have red and green reversed!
-# For RGBW NeoPixels, simply change the ORDER to RGBW or GRBW.
-ORDER = neopixel.RGBW
+# Allow configuration of pixel order.
+# Default to GRBW (common on many RGBW strips). You can override via:
+# - env var ODUCK_LED_ORDER, e.g. "RGB", "GRB", "RGBW", "GRBW"
+# - duck_config.LED_ORDER (string matching neopixel constants)
+try:
+    from open_duck_mini_runtime.duck_config import LED_ORDER as _CFG_LED_ORDER  # type: ignore
+except Exception:
+    _CFG_LED_ORDER = None
 
-# Brightness and a single shared NeoPixel instance
-BRIGHTNESS = 1
-pixels = neopixel.NeoPixel(
-    PIXEL_PIN, NUM_PIXELS, brightness=BRIGHTNESS, auto_write=False, pixel_order=ORDER
-)
+_ORDER_NAME = os.getenv("ODUCK_LED_ORDER", _CFG_LED_ORDER or "GRBW").upper()
+ORDER = getattr(neopixel, _ORDER_NAME, neopixel.GRBW)
+
+# Brightness can be tuned via env
+BRIGHTNESS = float(os.getenv("ODUCK_LED_BRIGHTNESS", "1.0"))
+
 
 class LedController:
     def __init__(self) -> None:
@@ -35,12 +44,15 @@ class LedController:
         self._pixels = None  # type: ignore
         self._deinited = False
 
-        # Use the module-level NeoPixel configured above
-        self._pixels = pixels
+        # Lazily create the NeoPixel instance (avoid creating it at import-time)
+        self._pixels = neopixel.NeoPixel(
+            PIXEL_PIN, NUM_PIXELS, brightness=BRIGHTNESS, auto_write=False, pixel_order=ORDER
+        )
 
         # Cache simple color tuples (use 4-tuple for RGBW strips)
         # Colors are stored in logical (R, G, B, W) regardless of ORDER.
         self.OFF = (0, 0, 0, 0)
+        # On RGBW strips, "white" uses the W channel for best white.
         self.WHITE = (0, 0, 0, 255)
         self.RED = (255, 0, 0, 0)
         self.GREEN = (0, 255, 0, 0)
@@ -66,6 +78,9 @@ class LedController:
 
         # Ensure an initial known state
         self._apply()
+
+        # Ensure cleanup on interpreter shutdown
+        atexit.register(self.deinit)
 
     # Internal helper to apply current states to pixels
     def _apply(
@@ -98,8 +113,6 @@ class LedController:
         """
         r, g, b, w = color_rgba
         try:
-            # neopixel library generally accepts (r,g,b) or (r,g,b,w) depending on pixel type
-            # We map to the declared ORDER for clarity when direct indexing is used.
             if ORDER in (neopixel.RGB, neopixel.GRB):
                 mapping = {
                     neopixel.RGB: (r, g, b),
@@ -114,7 +127,7 @@ class LedController:
                 }
                 return mapping.get(ORDER, (r, g, b, w))
         except Exception:
-            # Fallback: return RGBA or RGB as-is
+            # Fallback
             return (r, g, b, w)
 
     # Eyes API
@@ -185,16 +198,19 @@ class LedController:
         self._apply()
 
     def deinit(self) -> None:
-        if self._deinited or self._pixels is None:
+        if self._deinited:
             return
         with self._lock:
             try:
-                self.all_off()
+                # Turn everything off before releasing the driver
+                if self._pixels is not None:
+                    self._pixels.fill(self._to_order(self.OFF))
+                    self._pixels.show()
             except Exception:
-                # Ignore if showing fails on teardown
                 pass
             try:
-                self._pixels.deinit()
+                if self._pixels is not None:
+                    self._pixels.deinit()
             finally:
                 self._deinited = True
                 self._pixels = None
@@ -208,3 +224,17 @@ def get_controller() -> LedController:
     if _controller is None:
         _controller = LedController()
     return _controller
+
+
+# Ensure graceful cleanup on Ctrl+C / SIGTERM without forcing controller creation.
+def _shutdown_handler(signum, frame):
+    global _controller
+    if _controller is not None:
+        _controller.deinit()
+
+try:
+    signal.signal(signal.SIGINT, _shutdown_handler)
+    signal.signal(signal.SIGTERM, _shutdown_handler)
+except Exception:
+    # Not all environments allow setting signals (e.g., some threads)
+    pass
