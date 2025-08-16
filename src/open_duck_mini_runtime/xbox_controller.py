@@ -3,7 +3,7 @@ from threading import Thread
 from queue import Queue
 import time
 import numpy as np
-from mini_bdx_runtime.buttons import Buttons
+from open_duck_mini_runtime.buttons import Buttons
 
 
 X_RANGE = [-0.15, 0.15]

@@ -4,22 +4,28 @@ Sets up the robot in init position, you control the head with the xbox controlle
 
 import time
 import numpy as np
-from mini_bdx_runtime.rustypot_position_hwi import HWI
-from mini_bdx_runtime.duck_config import DuckConfig
-from mini_bdx_runtime.xbox_controller import XBoxController
+from open_duck_mini_runtime.hwi import HWI
+from open_duck_mini_runtime.duck_config import DuckConfig
+from open_duck_mini_runtime.xbox_controller import XBoxController
 
 
-from mini_bdx_runtime.eyes import Eyes
-from mini_bdx_runtime.sounds import Sounds
-from mini_bdx_runtime.antennas import Antennas
-from mini_bdx_runtime.projector import Projector
+from open_duck_mini_runtime.eyes import Eyes
+from open_duck_mini_runtime.sounds import Sounds
+from open_duck_mini_runtime.antennas import Antennas
+from open_duck_mini_runtime.projector import Projector
+
+
+from importlib.resources import files
+import open_duck_mini_runtime
+
+ASSETS_ROOT_PATH: str = str(files(open_duck_mini_runtime).joinpath("assets/"))
 
 duck_config = DuckConfig()
 
 xbox_controller = XBoxController(50, only_head_control=True)
 
 if duck_config.speaker:
-    sounds = Sounds(volume=1.0, sound_directory="../mini_bdx_runtime/assets/")
+    sounds = Sounds(volume=1.0, sound_directory=ASSETS_ROOT_PATH)
 if duck_config.antennas:
     antennas = Antennas()
 if duck_config.eyes:
@@ -45,7 +51,6 @@ limits = {
 
 try:
     while True:
-
         last_commands, buttons, left_trigger, right_trigger = (
             xbox_controller.get_last_command()
         )

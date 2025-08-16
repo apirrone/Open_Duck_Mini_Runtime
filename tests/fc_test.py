@@ -1,3 +1,7 @@
+"""
+Warning, Obsolete code, kept for reference.
+"""
+
 from openai import OpenAI
 import time
 import json
@@ -5,10 +9,10 @@ import os
 from io import BytesIO
 import base64
 
-from v2_rl_walk_mujoco import RLWalk
+from v2_rl_walk_mujoco import RLWalk # TODO
 from threading import Thread
 import cv2
-from mini_bdx_runtime.camera import Cam
+from open_duck_mini_runtime.camera import Cam
 
 # TODO mission : find an object ?
 

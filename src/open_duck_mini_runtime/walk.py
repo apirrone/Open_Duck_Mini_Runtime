@@ -2,24 +2,27 @@ import time
 import pickle
 
 import numpy as np
-from mini_bdx_runtime.rustypot_position_hwi import HWI
-from mini_bdx_runtime.onnx_infer import OnnxInfer
+from open_duck_mini_runtime.hwi import HWI
+from open_duck_mini_runtime.onnx_infer import OnnxInfer
 
-from mini_bdx_runtime.raw_imu import Imu
-# from mini_bdx_runtime.imu import Imu
-from mini_bdx_runtime.poly_reference_motion import PolyReferenceMotion
-from mini_bdx_runtime.xbox_controller import XBoxController
-from mini_bdx_runtime.feet_contacts import FeetContacts
-from mini_bdx_runtime.eyes import Eyes
-from mini_bdx_runtime.sounds import Sounds
-from mini_bdx_runtime.antennas import Antennas
-from mini_bdx_runtime.projector import Projector
-from mini_bdx_runtime.rl_utils import make_action_dict, LowPassActionFilter
-from mini_bdx_runtime.duck_config import DuckConfig
+from open_duck_mini_runtime.raw_imu import Imu
+from open_duck_mini_runtime.poly_reference_motion import PolyReferenceMotion
+from open_duck_mini_runtime.xbox_controller import XBoxController
+from open_duck_mini_runtime.feet_contacts import FeetContacts
+from open_duck_mini_runtime.eyes import Eyes
+from open_duck_mini_runtime.sounds import Sounds
+from open_duck_mini_runtime.antennas import Antennas
+from open_duck_mini_runtime.projector import Projector
+from open_duck_mini_runtime.rl_utils import make_action_dict, LowPassActionFilter
+from open_duck_mini_runtime.duck_config import DuckConfig
+
+from importlib.resources import files
+import open_duck_mini_runtime
 
 import os
 
 HOME_DIR = os.path.expanduser("~")
+ASSETS_ROOT_PATH: str = str(files(open_duck_mini_runtime).joinpath("assets/"))
 
 
 class RLWalk:
@@ -37,7 +40,6 @@ class RLWalk:
         replay_obs=None,
         cutoff_frequency=None,
     ):
-
         self.duck_config = DuckConfig(config_json_path=duck_config_path)
 
         self.commands = commands
@@ -101,8 +103,9 @@ class RLWalk:
             self.xbox_controller = XBoxController(self.command_freq)
 
         # Reference motion, but we only really need the length of one phase
-        # TODO
-        self.PRM = PolyReferenceMotion("./polynomial_coefficients.pkl")
+        self.PRM = PolyReferenceMotion(
+            f"{ASSETS_ROOT_PATH}/polynomial_coefficients.pkl"
+        )
         self.imitation_i = 0
         self.imitation_phase = np.array([0, 0])
         self.phase_frequency_factor = 1.0
@@ -116,17 +119,11 @@ class RLWalk:
         if self.duck_config.projector:
             self.projector = Projector()
         if self.duck_config.speaker:
-            self.sounds = Sounds(
-                volume=1.0, sound_directory="../mini_bdx_runtime/assets/"
-            )
+            self.sounds = Sounds(volume=1.0, sound_directory=ASSETS_ROOT_PATH)
         if self.duck_config.antennas:
             self.antennas = Antennas()
 
     def get_obs(self):
-
-
-        # imu_data = self.imu.get_data(as_mat=True)
-        # raw
         imu_data = self.imu.get_data()
         if imu_data is None:
             print("IMU data is None, skipping observation retrieval")
@@ -197,7 +194,6 @@ class RLWalk:
         time.sleep(2)
 
     def get_phase_frequency_factor(self, x_velocity):
-
         max_phase_frequency = 1.2
         min_phase_frequency = 1.0
 
@@ -345,17 +341,27 @@ class RLWalk:
         except KeyboardInterrupt:
             if self.duck_config.antennas:
                 self.antennas.stop()
+            if self.duck_config.eyes:
+                self.eyes.stop()
+            if self.duck_config.projector:
+                self.projector.stop()
+            self.feet_contacts.stop()
 
         if self.save_obs:
             pickle.dump(self.saved_obs, open("robot_saved_obs.pkl", "wb"))
         print("TURNING OFF")
 
 
-if __name__ == "__main__":
+def main():
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--onnx_model_path", type=str, required=True)
+    parser.add_argument(
+        "--onnx_model_path",
+        type=str,
+        required=False,
+        default=f"{HOME_DIR}/BEST_WALK_ONNX_2.onnx",
+    )
     parser.add_argument(
         "--duck_config_path",
         type=str,
@@ -408,3 +414,7 @@ if __name__ == "__main__":
     )
     print("Done instantiating RLWalk")
     rl_walk.run()
+
+
+if __name__ == "__main__":
+    main()
