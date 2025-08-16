@@ -20,7 +20,6 @@ This repository contains the runtime software for the Open Duck Mini, a small, o
     - [Speaker Wiring and Configuration](#speaker-wiring-and-configuration)
   - [Testing and Calibration](#testing-and-calibration)
     - [Test the IMU](#test-the-imu)
-    - [Test Motors](#test-motors)
     - [Make your duck\_config.json](#make-your-duck_configjson)
     - [Find the Joints Offsets](#find-the-joints-offsets)
   - [Run the walk !](#run-the-walk-)
@@ -133,7 +132,7 @@ pip install lgpio
 
 4.  Test the connection:
     ```bash
-    python3 open_duck_mini_runtime/xbox_controller.py
+    python3 src/open_duck_mini_runtime/xbox_controller.py
     ```
 
 ## Hardware Configuration
@@ -149,7 +148,7 @@ Follow this Adafruit tutorial for wiring the speaker: [Adafruit MAX98357 I2S Cla
 
 Run a basic test to ensure the IMU is working:
 ```bash
-python3 open_duck_mini_runtime/raw_imu.py
+python3 src/open_duck_mini_runtime/raw_imu.py
 ```
 
 To visualize the IMU data, run the server on the robot and the client on your computer:
@@ -161,12 +160,6 @@ python3 dev/hardware/imu_server.py
 python3 dev/hardware/imu_client.py --ip <robot_ip>
 ```
 > Use `ifconfig` on the robot to find its IP address.
-
-### Test Motors
-Verify that all motors are connected and configured correctly:
-```bash
-python3 dev/hardware/configure_all_motors.py
-```
 
 ### Make your duck_config.json
 
@@ -187,11 +180,9 @@ python3 tools/find_soft_offsets.py
 ## Run the walk !
 
 1.  Download the [latest policy checkpoint](https://github.com/apirrone/Open_Duck_Mini/blob/v2/BEST_WALK_ONNX_2.onnx).
-2.  Copy the checkpoint file to your duck.
-3.  Run the walk script:
-    ```bash
-    python3 run_rl_walk.py --onnx_model_path <path_to>/BEST_WALK_ONNX_2.onnx
-    ```
+2.  Copy the checkpoint file to your duck's home directory.
+3.  Run the walk by just runnning `walk`. (run `walk -h` to see the possible command line arguments):
+    
 
 ## Controls
 
