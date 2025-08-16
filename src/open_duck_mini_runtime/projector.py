@@ -1,24 +1,21 @@
-import board
-import digitalio
 import time
 
-PROJECTOR_GPIO = board.D25
+from .led_controller import get_controller
 
 
 class Projector:
     def __init__(self):
-        self.project = digitalio.DigitalInOut(PROJECTOR_GPIO)
-        self.project.direction = digitalio.Direction.OUTPUT
+        self.ctrl = get_controller()
         self.on = False
+        self.ctrl.set_projector(False)
 
     def switch(self):
         self.on = not self.on
-
-        self.project.value = self.on
+        self.ctrl.set_projector(self.on)
 
     def stop(self):
-        self.project.value = False
-        self.project.deinit()
+        self.on = False
+        self.ctrl.set_projector(False)
 
 
 if __name__ == "__main__":
