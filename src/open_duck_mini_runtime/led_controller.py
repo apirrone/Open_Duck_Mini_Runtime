@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import os
 import atexit
-import signal
 from threading import Lock
 from typing import Tuple, Optional, Union
 
@@ -20,7 +19,7 @@ import neopixel
 
 # Pin and pixel configuration
 PIXEL_PIN = board.D10
-NUM_PIXELS = 3
+NUM_PIXELS = 10
 
 # Allow configuration of pixel order.
 # Default to GRBW (common on many RGBW strips). You can override via:
@@ -31,11 +30,20 @@ try:
 except Exception:
     _CFG_LED_ORDER = None
 
-_ORDER_NAME = os.getenv("ODUCK_LED_ORDER", _CFG_LED_ORDER or "GRBW").upper()
-ORDER = getattr(neopixel, _ORDER_NAME, neopixel.GRBW)
+_ORDER_NAME = os.getenv("ODUCK_LED_ORDER", _CFG_LED_ORDER or "RGBW").upper()
+ORDER = getattr(neopixel, _ORDER_NAME, neopixel.RGBW)
 
 # Brightness can be tuned via env
 BRIGHTNESS = float(os.getenv("ODUCK_LED_BRIGHTNESS", "1.0"))
+
+# White rendering mode: "W" uses the dedicated white channel (RGBW strips),
+# "RGB" mixes white from RGB. Useful if a particular LED's W phosphor has tint.
+try:
+    from open_duck_mini_runtime.duck_config import LED_WHITE_MODE as _CFG_WHITE_MODE  # type: ignore
+except Exception:
+    _CFG_WHITE_MODE = None
+
+WHITE_MODE = os.getenv("ODUCK_LED_WHITE_MODE", _CFG_WHITE_MODE or "W").upper()
 
 
 class LedController:
@@ -46,14 +54,18 @@ class LedController:
 
         # Lazily create the NeoPixel instance (avoid creating it at import-time)
         self._pixels = neopixel.NeoPixel(
-            PIXEL_PIN, NUM_PIXELS, brightness=BRIGHTNESS, auto_write=False, pixel_order=ORDER
+            PIXEL_PIN, NUM_PIXELS, brightness=BRIGHTNESS, auto_write=True, pixel_order=ORDER
         )
 
         # Cache simple color tuples (use 4-tuple for RGBW strips)
         # Colors are stored in logical (R, G, B, W) regardless of ORDER.
         self.OFF = (0, 0, 0, 0)
-        # On RGBW strips, "white" uses the W channel for best white.
-        self.WHITE = (0, 0, 0, 255)
+        # White color can be sourced from W channel or mixed from RGB.
+        if WHITE_MODE == "RGB":
+            self.WHITE = (255, 255, 255, 0)
+        else:
+            # Default: use dedicated W channel on RGBW strips
+            self.WHITE = (0, 0, 0, 255)
         self.RED = (255, 0, 0, 0)
         self.GREEN = (0, 255, 0, 0)
         self.BLUE = (0, 0, 255, 0)
@@ -226,15 +238,6 @@ def get_controller() -> LedController:
     return _controller
 
 
-# Ensure graceful cleanup on Ctrl+C / SIGTERM without forcing controller creation.
-def _shutdown_handler(signum, frame):
-    global _controller
-    if _controller is not None:
-        _controller.deinit()
-
-try:
-    signal.signal(signal.SIGINT, _shutdown_handler)
-    signal.signal(signal.SIGTERM, _shutdown_handler)
-except Exception:
-    # Not all environments allow setting signals (e.g., some threads)
-    pass
+# Note: We intentionally avoid installing signal handlers here.
+# Libraries should not override application-level signal behavior.
+# atexit cleanup above is sufficient in most cases.
