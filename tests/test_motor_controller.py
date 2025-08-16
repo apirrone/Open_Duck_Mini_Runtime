@@ -3,8 +3,8 @@ Debug script to check all motors in the robot.
 Verifies each motor is accessible and allows testing movement.
 """
 
-from mini_bdx_runtime.rustypot_position_hwi import HWI
-from mini_bdx_runtime.duck_config import DuckConfig
+from open_duck_mini_runtime.hwi import HWI
+from open_duck_mini_runtime.duck_config import DuckConfig
 import time
 import numpy as np
 import traceback

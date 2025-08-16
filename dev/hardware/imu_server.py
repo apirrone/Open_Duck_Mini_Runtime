@@ -1,7 +1,7 @@
 import socket
 import time
 import pickle
-from mini_bdx_runtime.imu import Imu
+from open_duck_mini_runtime.imu import Imu
 from threading import Thread
 import time
 

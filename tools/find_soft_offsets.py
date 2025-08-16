@@ -2,8 +2,8 @@
 Find the offsets to set in self.joints_offsets in hwi_feetech_pwm_control.py
 """
 
-from mini_bdx_runtime.rustypot_position_hwi import HWI
-from mini_bdx_runtime.duck_config import DuckConfig
+from open_duck_mini_runtime.hwi import HWI
+from open_duck_mini_runtime.duck_config import DuckConfig
 import time
 
 dummy_config = DuckConfig(config_json_path=None, ignore_default=True)

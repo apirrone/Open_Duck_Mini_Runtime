@@ -50,7 +50,7 @@ class Buttons:
 
 
 if __name__ == "__main__":
-    from mini_bdx_runtime.xbox_controller import XBoxController
+    from open_duck_mini_runtime.xbox_controller import XBoxController
 
     xbox_controller = XBoxController(30)
     buttons = Buttons()

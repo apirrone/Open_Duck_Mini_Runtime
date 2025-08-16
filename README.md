@@ -133,7 +133,7 @@ pip install lgpio
 
 4.  Test the connection:
     ```bash
-    python3 mini_bdx_runtime/xbox_controller.py
+    python3 open_duck_mini_runtime/xbox_controller.py
     ```
 
 ## Hardware Configuration
@@ -149,7 +149,7 @@ Follow this Adafruit tutorial for wiring the speaker: [Adafruit MAX98357 I2S Cla
 
 Run a basic test to ensure the IMU is working:
 ```bash
-python3 mini_bdx_runtime/raw_imu.py
+python3 open_duck_mini_runtime/raw_imu.py
 ```
 
 To visualize the IMU data, run the server on the robot and the client on your computer:
