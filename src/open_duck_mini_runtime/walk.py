@@ -341,7 +341,7 @@ class RLWalk:
         print("TURNING OFF")
 
 
-if __name__ == "__main__":
+def main():
     import argparse
 
     parser = argparse.ArgumentParser()
@@ -403,3 +403,7 @@ if __name__ == "__main__":
     )
     print("Done instantiating RLWalk")
     rl_walk.run()
+
+
+if __name__ == "__main__":
+    main()
