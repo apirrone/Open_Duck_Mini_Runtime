@@ -142,6 +142,7 @@ class Imu:
                 "gyro": gyro,
                 "accelero": accelero,
                 "gravity": gravity,
+                "quat": final_orientation_quat,
             }
 
             self.imu_queue.put(data)
@@ -165,5 +166,6 @@ if __name__ == "__main__":
         print("gyro", np.around(data["gyro"], 3))
         print("accelero", np.around(data["accelero"], 3))
         print("gravity", np.around(data["gravity"], 3))
+        print("quat", np.around(data["quat"], 3))
         print("---")
         time.sleep(1 / 25)

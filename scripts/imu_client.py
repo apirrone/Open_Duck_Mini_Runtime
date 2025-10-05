@@ -63,7 +63,7 @@ if __name__ == "__main__":
     pose[:3, 3] = [0.1, 0.1, 0.1]
     try:
         while True:
-            quat = client.get_imu()
+            quat = client.get_imu()["quat"]
             try:
                 rot_mat = R.from_quat(quat).as_matrix()
                 pose[:3, :3] = rot_mat
