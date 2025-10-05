@@ -5,7 +5,8 @@ import pickle
 from queue import Queue
 from threading import Thread
 from scipy.spatial.transform import Rotation as R
-from FramesViewer.viewer import Viewer
+from FramesViewer import Viewer
+
 import argparse
 
 
@@ -24,7 +25,7 @@ class IMUClient:
                 print(e)
                 time.sleep(0.5)
         self.imu_queue = Queue(maxsize=1)
-        self.last_imu = [0, 0, 0, 0]
+        self.last_imu = {"accelero": np.zeros(3), "gyro": np.zeros(3), "quat": np.array([0, 0, 0, 1])}
 
         Thread(target=self.imu_worker, daemon=True).start()
 
@@ -63,11 +64,12 @@ if __name__ == "__main__":
     pose[:3, 3] = [0.1, 0.1, 0.1]
     try:
         while True:
-            quat = client.get_imu()["quat"]
+            data = client.get_imu()
+            quat = data["quat"]
             try:
                 rot_mat = R.from_quat(quat).as_matrix()
                 pose[:3, :3] = rot_mat
-                fv.pushFrame(pose, "pose")
+                fv.push_frame(pose, "pose")
             except Exception as e:
                 print("error", e)
                 pass

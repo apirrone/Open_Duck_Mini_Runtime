@@ -156,16 +156,11 @@ class RLWalk:
         obs = np.concatenate(
             [
                 imu_data["gyro"],
-                imu_data["accelero"],
-                cmds,
+                imu_data["gravity"],
                 dof_pos - self.init_pos,
-                dof_vel * 0.05,
+                dof_vel,
                 self.last_action,
-                self.last_last_action,
-                self.last_last_last_action,
-                self.motor_targets,
-                feet_contacts,
-                self.imitation_phase,
+                cmds[:3]
             ]
         )
 
