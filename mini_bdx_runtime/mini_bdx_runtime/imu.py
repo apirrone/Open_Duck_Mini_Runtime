@@ -96,6 +96,11 @@ class Imu:
             print("Imu is running uncalibrated")
 
         self.last_imu_data = [0, 0, 0, 0]
+        self.last_imu_data = {
+            "gyro": np.array([0.0, 0.0, 0.0]),
+            "accelero": np.array([0.0, 0.0, 0.0]),
+            "gravity" : np.array([0.0, 0.0, 0.0]),
+        }
         self.imu_queue = Queue(maxsize=1)
         Thread(target=self.imu_worker, daemon=True).start()
 
@@ -108,6 +113,8 @@ class Imu:
             s = time.time()
             try:
                 # imu returns scalar first
+                gyro = np.array(self.imu.gyro).copy()  # rad/s
+                accelero = np.array(self.imu.acceleration).copy()  # m/s^
                 raw_orientation = np.array(self.imu.quaternion).copy()  # quat
                 euler = (
                     R.from_quat(raw_orientation, scalar_first=True)
@@ -126,36 +133,37 @@ class Imu:
             # gives scalar last, which is what isaac wants
             final_orientation_quat = R.from_euler("xyz", euler).as_quat()
 
-            self.imu_queue.put(final_orientation_quat.copy())
+            mat = R.from_quat(final_orientation_quat).as_matrix()
+
+            gravity = mat.T @ np.array([0, 0, -1])
+
+
+            data = {
+                "gyro": gyro,
+                "accelero": accelero,
+                "gravity": gravity,
+            }
+
+            self.imu_queue.put(data)
             took = time.time() - s
             time.sleep(max(0, 1 / self.sampling_freq - took))
 
-    def get_data(self, euler=False, mat=False):
+    def get_data(self):
         try:
             self.last_imu_data = self.imu_queue.get(False)  # non blocking
         except Exception:
             pass
 
-        try:
-            if not euler and not mat:
-                return self.last_imu_data
-            elif euler:
-                return R.from_quat(self.last_imu_data).as_euler("xyz")
-            elif mat:
-                return R.from_quat(self.last_imu_data).as_matrix()
-
-        except Exception as e:
-            print("[IMU]: ", e)
-            return None
-
+        return self.last_imu_data
 
 if __name__ == "__main__":
-    imu = Imu(50, calibrate=True, upside_down=False)
+    imu = Imu(50, calibrate=False, upside_down=True)
     # imu = Imu(50, upside_down=False)
     while True:
         data = imu.get_data()
         # print(data)
         print("gyro", np.around(data["gyro"], 3))
         print("accelero", np.around(data["accelero"], 3))
+        print("gravity", np.around(data["gravity"], 3))
         print("---")
         time.sleep(1 / 25)
