@@ -39,11 +39,11 @@ class Imu:
 
         else:
             self.imu.axis_remap = (
-                adafruit_bno055.AXIS_REMAP_Y,
                 adafruit_bno055.AXIS_REMAP_X,
+                adafruit_bno055.AXIS_REMAP_Y,
                 adafruit_bno055.AXIS_REMAP_Z,
                 adafruit_bno055.AXIS_REMAP_NEGATIVE,
-                adafruit_bno055.AXIS_REMAP_POSITIVE,
+                adafruit_bno055.AXIS_REMAP_NEGATIVE,
                 adafruit_bno055.AXIS_REMAP_POSITIVE,
             )
 
