@@ -361,7 +361,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--commands",
         action="store_true",
-        default=True,
+        default=False,
         help="external commands, keyboard or gamepad. Launch control_server.py on host computer",
     )
     parser.add_argument(
