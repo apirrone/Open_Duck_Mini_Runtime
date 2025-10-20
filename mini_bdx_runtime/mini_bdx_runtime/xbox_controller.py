@@ -35,6 +35,7 @@ CONSECUTIVE_SAMPLES = 4    # require N consistent samples on same axis to accept
 AXIS_PAUSE_S = 3.0         # seconds between axis detections (stick prompts)
 POLL_DT = 1.0 / 120.0
 TIMEOUT_S = 15.0
+RELEASE_QUIET_WINDOW_S = 0.25  # sustained time near baseline to confirm release
 
 def _default_mapping_path() -> str:
     """Always use ~/.config/gamepad_mapping.json, ensure directory exists."""
@@ -118,8 +119,9 @@ def _wait_for_axis_motion(joy: pygame.joystick.Joystick, prompt: str,
     Robustly detect a single axis by CHANGE from a settled baseline.
     - Settles a baseline, then waits for a quiet period before arming detection.
     - Requires the same axis to dominate for CONSECUTIVE_SAMPLES (debounce).
-    - If `require_release_cycle` is True (good for triggers), requires a pull-and-release
-      on that axis before finalizing.
+    - If `require_release_cycle` is True (good for triggers), uses a two-phase state machine:
+        phase 1: wait for motion on a dominant axis (pick target_axis)
+        phase 2: wait for sustained release (axis returns within QUIET_TOL of baseline for RELEASE_QUIET_WINDOW_S)
     - Respects `excluded_axes`.
     Note: we no longer rely on expect_positive for sticks; invert is computed later from sign.
     """
@@ -168,13 +170,15 @@ def _wait_for_axis_motion(joy: pygame.joystick.Joystick, prompt: str,
                 quiet_start = None
             time.sleep(POLL_DT)
 
-    # 3) Debounced dominant motion + optional release cycle
+    start_time = time.time()
+
+    # Phase tracking for release-cycle mode
+    phase = 1  # 1=waiting for motion, 2=waiting for release
+    target_axis = None
+    release_since = None
     same_axis_count = 0
     last_axis_idx = None
-    motion_started = False
-    peak_ai = None
 
-    start_time = time.time()
     while time.time() - start_time < TIMEOUT_S:
         for ev in pygame.event.get():
             if ev.type == pygame.KEYDOWN and ev.key == pygame.K_ESCAPE:
@@ -187,43 +191,52 @@ def _wait_for_axis_motion(joy: pygame.joystick.Joystick, prompt: str,
                 print(f"   ✔ Detected button {bi}")
                 return ("button", AxisMapping(index=-1, type="button", button_index=bi))
 
-        deltas = []
-        for ai in range(joy.get_numaxes()):
-            if ai in excluded_axes:
-                continue
-            v = joy.get_axis(ai)
-            d = abs(v - baseline[ai])
-            deltas.append((d, ai, v))
+        if phase == 1:
+            # Look for dominant motion on a single axis (debounced) and pick target
+            deltas = []
+            for ai in range(joy.get_numaxes()):
+                if ai in excluded_axes:
+                    continue
+                v = joy.get_axis(ai)
+                d = abs(v - baseline[ai])
+                deltas.append((d, ai, v))
 
-        if deltas:
-            deltas.sort(reverse=True)
-            best_d, best_ai, best_v = deltas[0]
-            runner_up_d = deltas[1][0] if len(deltas) > 1 else 0.0
+            if deltas:
+                deltas.sort(reverse=True)
+                best_d, best_ai, best_v = deltas[0]
+                runner_up_d = deltas[1][0] if len(deltas) > 1 else 0.0
 
-            if best_d >= THRESH_AXIS_MOVE and runner_up_d <= CROSS_AXIS_TOL:
-                if last_axis_idx is None or best_ai == last_axis_idx:
-                    same_axis_count += 1
-                else:
-                    same_axis_count = 1
-                last_axis_idx = best_ai
-
-                if same_axis_count >= CONSECUTIVE_SAMPLES:
-                    # We do not set invert here; run_calibration_wizard will deduce it from sign.
-                    print(f"   ✔ Identified axis {best_ai} (value {best_v:.2f})")
-                    if not require_release_cycle:
-                        return ("axis", AxisMapping(index=best_ai))
+                if best_d >= THRESH_AXIS_MOVE and runner_up_d <= CROSS_AXIS_TOL:
+                    if last_axis_idx is None or best_ai == last_axis_idx:
+                        same_axis_count += 1
                     else:
-                        if not motion_started:
-                            motion_started = True
-                            peak_ai = best_ai
-                        else:
-                            if abs(joy.get_axis(peak_ai) - baseline[peak_ai]) <= QUIET_TOL:
-                                print(f"   ✔ Identified axis {peak_ai} (trigger, with release)")
-                                return ("axis", AxisMapping(index=peak_ai))
+                        same_axis_count = 1
+                    last_axis_idx = best_ai
 
+                    if same_axis_count >= CONSECUTIVE_SAMPLES:
+                        target_axis = best_ai
+                        print(f"   ✔ Identified axis {best_ai} (value {best_v:.2f})")
+                        if not require_release_cycle:
+                            return ("axis", AxisMapping(index=best_ai))
+                        # else go to Phase 2
+                        phase = 2
+                        release_since = None
+                        # continue to next loop iteration
+                else:
+                    same_axis_count = 0
+                    last_axis_idx = None
+
+        else:
+            # Phase 2: wait for sustained release near baseline on the target axis
+            v = joy.get_axis(target_axis)
+            if abs(v - baseline[target_axis]) <= QUIET_TOL:
+                if release_since is None:
+                    release_since = time.time()
+                elif (time.time() - release_since) >= RELEASE_QUIET_WINDOW_S:
+                    print(f"   ✔ Release detected on axis {target_axis}")
+                    return ("axis", AxisMapping(index=target_axis))
             else:
-                same_axis_count = 0
-                last_axis_idx = None
+                release_since = None
 
         time.sleep(POLL_DT)
 
