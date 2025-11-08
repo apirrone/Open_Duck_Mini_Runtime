@@ -1,5 +1,13 @@
 # Open Duck Mini Runtime
 
+## Simplified install via pre-built Duck image
+
+As an alternative to setting up everything manually, the image release (current version: 0.2.3), available in the releases section of this repository, provides a ready-to-flash system image for the Open Duck Mini platform. It is tested to work on Open Duck hardware built to the standard specs.
+
+The image includes all essential runtime dependencies, autostart scripts, and environment configurations pre-installed. It is optimized for first-boot setup, ensuring plug-and-play operation of walking, puppet, and control modules after you add your configuration data. This image is currently only tested on the Raspberry Pi Zero 2W and based on Raspberry Pi OS Lite (64-Bit). If you run into issues with the pre-built image or have any feedback, please message MaxMakesStuff on the Discord community.
+
+Please follow the instructions in "INSTALL.md" in the docs folder closely to use this image file. If you wish to compile and publish your own release, you can learn how to do so by following "RELEASE_GUIDE.md".
+
 ## Raspberry Pi zero 2W setup
 
 ### Install Raspberry Pi OS
