@@ -12,6 +12,7 @@ As a next step, you can modify the system as described below in order to add the
 3. a **unified launcher** that auto-detects the correct username/paths
 4. a **systemd service** that runs the launcher at boot
 5. the **Wi-Fi fallback** (hotspot) scripts + service
+8. a **auto venv mounter** and **user information** that is shown after SSH login
 
 ---
 
@@ -433,6 +434,186 @@ sudo systemctl restart open-duck-walk.service
   sudo systemctl status openduck-wifi-fallback.service
   ```
 
+# 9) Automatically mount the virtual environment and show greeting message
+
+This adds a friendly **SSH login banner** (with a simple mute switch) and **auto-activates the venv** so users don’t get confused. Everything is username-agnostic.
+
+---
+
+## 9a) (Optional) Defaults file
+
+**Create (or update) the defaults file:**
+bash
+```bash
+sudo nano /etc/default/openduck
+```
+
+**Paste this content, then save & close:**
+```
+# Used by the login hook
+PROJECT_DIR_NAME=Open_Duck_Mini_Runtime
+VENV_NAME=open-duck-mini-runtime
+```
+
+---
+
+## 9b) Helper CLI to mute the banner / toggle auto-venv
+
+**Create the helper:**
+bash
+```bash
+sudo nano /usr/local/bin/openduck-login
+```
+
+**Paste this content, then save & close:**
+```bash
+#!/bin/bash
+set -euo pipefail
+CONFIG_DIR="${HOME}/.config/openduck"
+MUTE_WELCOME="${CONFIG_DIR}/mute_welcome"
+NO_AUTO_VENV="${CONFIG_DIR}/no_auto_venv"
+mkdir -p "${CONFIG_DIR}"
+
+cmd="${1:-status}"; arg="${2:-}"
+
+case "$cmd" in
+  welcome)
+    case "$arg" in
+      off|mute)   : >"${MUTE_WELCOME}";  echo "Welcome message OFF for ${USER}";;
+      on|unmute)  rm -f "${MUTE_WELCOME}"; echo "Welcome message ON for ${USER}";;
+      *) echo "Usage: openduck-login welcome on|off"; exit 1;;
+    esac
+    ;;
+  venv)
+    case "$arg" in
+      off|disable) : >"${NO_AUTO_VENV}";  echo "Auto-venv OFF for ${USER}";;
+      on|enable)   rm -f "${NO_AUTO_VENV}"; echo "Auto-venv ON for ${USER}";;
+      *) echo "Usage: openduck-login venv on|off"; exit 1;;
+    esac
+    ;;
+  status|*)
+    echo "Welcome:   $([ -f "${MUTE_WELCOME}" ] && echo OFF || echo ON)"
+    echo "Auto-venv: $([ -f "${NO_AUTO_VENV}" ] && echo OFF || echo ON)"
+    echo "Usage:  openduck-login welcome on|off   # show/hide welcome"
+    echo "        openduck-login venv on|off      # enable/disable auto-venv"
+    ;;
+esac
+```
+
+**Make it executable:**
+bash
+```bash
+sudo chmod +x /usr/local/bin/openduck-login
+```
+
+---
+
+## 9c) Login hook (banner + auto-activate venv + safe PYTHONPATH)
+
+**Create the profile script:**
+bash
+```bash
+sudo nano /etc/profile.d/openduck-init.sh
+```
+
+**Paste this content, then save & close:**
+```bash
+# OpenDuck login helper: banner + auto-venv + PYTHONPATH for SSH/interactive shells.
+
+# Load defaults if present
+[ -f /etc/default/openduck ] && . /etc/default/openduck
+
+# Defaults (if not provided)
+PROJECT_DIR_NAME="${PROJECT_DIR_NAME:-Open_Duck_Mini_Runtime}"
+VENV_NAME="${VENV_NAME:-open-duck-mini-runtime}"
+
+# Only for interactive shells or SSH sessions
+case "$-" in *i*) interactive=1;; esac
+if [ -z "${interactive:-}" ] && [ -z "${SSH_CONNECTION:-}" ]; then
+  return 0
+fi
+
+# Keep virtualenvwrapper (if installed) using system Python, not the venv
+[ -x /usr/bin/python3 ] && export VIRTUALENVWRAPPER_PYTHON="/usr/bin/python3"
+
+# Per-user config flags
+CONFIG_DIR="${HOME}/.config/openduck"
+MUTE_WELCOME="${CONFIG_DIR}/mute_welcome"
+NO_AUTO_VENV="${CONFIG_DIR}/no_auto_venv"
+[ -d "$CONFIG_DIR" ] || mkdir -p "$CONFIG_DIR" >/dev/null 2>&1 || true
+
+# ---- Friendly welcome (mute with: openduck-login welcome off) ----
+if [ ! -f "$MUTE_WELCOME" ]; then
+  bold="$(tput bold 2>/dev/null || true)"; normal="$(tput sgr0 2>/dev/null || true)"
+  printf "\n${bold}Welcome to your Open Duck Mini${normal}\n"
+  cat <<'MSG'
+Please complete these steps before using the duck:
+
+- IMU configuration / calibration
+- Motor configuration
+- Xbox Bluetooth pairing
+- Creation of duck_config.json in your home folder
+
+Read: ~/Open_Duck_Mini_Runtime/README.md (main repository readme).
+
+Tip: mute this message once you're done:
+  openduck-login welcome off
+Unmute anytime:
+  openduck-login welcome on
+--------------------------------------------------------------------------------
+MSG
+fi
+
+# ---- Auto-activate venv (disable with: openduck-login venv off) ----
+# Skip for root, and if already inside a venv, or if user disabled it.
+if [ "$(id -u)" -ne 0 ] && [ -z "${VIRTUAL_ENV:-}" ] && [ ! -f "$NO_AUTO_VENV" ]; then
+  VENV_ACT="${HOME}/.virtualenvs/${VENV_NAME}/bin/activate"
+  if [ -f "$VENV_ACT" ]; then
+    # Activate venv
+    . "$VENV_ACT" 2>/dev/null || true
+
+    # Helpful PYTHONPATH so imports work from anywhere
+    PROJ="${HOME}/${PROJECT_DIR_NAME}"
+    if [ -d "$PROJ" ]; then
+      export PYTHONPATH="${PROJ}/mini_bdx_runtime:${PROJ}/src:${PROJ}:${PYTHONPATH:-}"
+    fi
+
+    echo "[OpenDuck] Activated venv '${VENV_NAME}'. Disable with: openduck-login venv off"
+  fi
+fi
+```
+
+**Set permissions:**
+bash
+```bash
+sudo chmod 644 /etc/profile.d/openduck-init.sh
+```
+
+---
+
+## 9d) How to use & test
+
+* **Open a new SSH session** — you should see the banner and the venv prompt.
+* **Check current toggles:**
+bash
+```bash
+openduck-login status
+```
+* **Mute/unmute the banner:**
+bash
+```bash
+openduck-login welcome off
+openduck-login welcome on
+```
+* **Disable/enable auto-venv:**
+bash
+```bash
+openduck-login venv off
+openduck-login venv on
+```
+
+> Per-user settings are stored under `~/.config/openduck/` so each user can choose independently.
+
 ---
 
 Great! So you got your Duck up and running. Before you melt down your SD card into a re-distributable image file, be sure to "clean it up" as described below.
@@ -454,8 +635,6 @@ When you clone a Pi image for other people, you want to remove anything that “
 * **Shell history** for all users: `~/.bash_history`, `~/.lesshst`, `~/.wget-hsts`, `~/.python_history`
 * **SSH client keys & servers you connected to**: `~/.ssh/*` (especially `authorized_keys`, `known_hosts`, any `id_*.pub/id_*`)
 * **Caches**: `~/.cache`, pip cache, etc.
-* **Old duplicates** from our early approach: e.g. `~/start-walk.sh`, `~/check_gpio.py` in *home directories*.
-  (We moved canonical files to `/usr/local/...`.)
 
 **Networking**
 
