@@ -2,6 +2,7 @@ import pygame
 from threading import Thread
 from queue import Queue
 import time
+import os
 import numpy as np
 from mini_bdx_runtime.buttons import Buttons
 
@@ -40,13 +41,31 @@ class XBoxController:
         self.RB_pressed = False
 
         self.buttons = Buttons()
+        self.is_connected = True
 
         Thread(target=self.commands_worker, daemon=True).start()
 
     def commands_worker(self):
-        while True:
-            self.cmd_queue.put(self.get_commands())
-            time.sleep(1 / self.command_freq)
+        # Find the joystick device path (Linux-specific)
+        self.joystick_device_path = None
+        for i in range(10):
+            path = f"/dev/input/js{i}"
+            if os.path.exists(path):
+                self.joystick_device_path = path
+                break
+
+        try:
+            while self.is_connected:
+                # Check if joystick device still exists (Linux)
+                if self.joystick_device_path and not os.path.exists(self.joystick_device_path):
+                    print(f"Controller disconnected ({self.joystick_device_path} no longer exists)")
+                    self.is_connected = False
+                    break
+                self.cmd_queue.put(self.get_commands())
+                time.sleep(1 / self.command_freq)
+        except Exception as e:
+            print(f"Controller disconnected: {e}")
+            self.is_connected = False
 
     def get_commands(self):
         last_commands = self.last_commands
@@ -118,6 +137,23 @@ class XBoxController:
             last_commands[6] = head_roll
 
         for event in pygame.event.get():
+            # Check for controller disconnection
+            if event.type == pygame.JOYDEVICEREMOVED:
+                print("Controller removed event detected")
+                self.is_connected = False
+                return (
+                    np.around(last_commands, 3),
+                    self.A_pressed,
+                    self.B_pressed,
+                    self.X_pressed,
+                    self.Y_pressed,
+                    self.LB_pressed,
+                    self.RB_pressed,
+                    left_trigger,
+                    right_trigger,
+                    0,
+                )
+
             if event.type == pygame.JOYBUTTONDOWN:
 
                 if self.p1.get_button(0):  # A button
