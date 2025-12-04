@@ -5,6 +5,11 @@ Find the offsets to set in self.joints_offsets in hwi_feetech_pwm_control.py
 from mini_bdx_runtime.rustypot_position_hwi import HWI
 from mini_bdx_runtime.duck_config import DuckConfig
 import time
+import json
+import os
+
+HOME_DIR = os.path.expanduser("~")
+DUCK_CONFIG_PATH = os.path.join(HOME_DIR, "duck_config.json")
 
 dummy_config = DuckConfig(config_json_path=None, ignore_default=True)
 
@@ -77,7 +82,31 @@ try:
             print("===")
 
     print("Done ! ")
-    print("Now you can copy the offsets in your duck_config.json")
+    print("")
+    print("=== New offsets ===")
+    print(json.dumps({"joints_offsets": hwi.joints_offsets}, indent=2))
+    print("===================")
+    
+    # Update duck_config.json
+    save = input(f"\nSave to {DUCK_CONFIG_PATH}? (Y/n): ").lower()
+    if save == "y" or save == "":
+        # Load existing config or start with empty dict
+        if os.path.exists(DUCK_CONFIG_PATH):
+            with open(DUCK_CONFIG_PATH, "r") as f:
+                config = json.load(f)
+        else:
+            config = {}
+        
+        # Update only the joints_offsets key
+        config["joints_offsets"] = hwi.joints_offsets
+        
+        # Write back
+        with open(DUCK_CONFIG_PATH, "w") as f:
+            json.dump(config, f, indent=2)
+        
+        print(f"✓ Saved offsets to {DUCK_CONFIG_PATH}")
+    else:
+        print("Not saved. You can copy the JSON above manually.")
 
 
 except KeyboardInterrupt:
