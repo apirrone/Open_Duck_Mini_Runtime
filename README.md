@@ -1,5 +1,9 @@
 # Open Duck Mini Runtime
 
+Chinese Tutorials
+
+https://zihao-ai.feishu.cn/wiki/BQW1wQAssi1vkSkiz5LcAG7rnpb
+
 ## Raspberry Pi zero 2W setup
 
 ### Install Raspberry Pi OS
