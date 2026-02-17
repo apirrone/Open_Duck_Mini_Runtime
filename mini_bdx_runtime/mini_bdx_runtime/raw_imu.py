@@ -127,12 +127,20 @@ class Imu:
                 accelero = np.array(self.imu.acceleration).copy()
                 # Get quaternion for projected gravity computation
                 # BNO055 returns [w, x, y, z] (scalar first)
-                quaternion = np.array(self.imu.quaternion).copy()
+                quaternion = None
+                try:
+                    quat_raw = self.imu.quaternion
+                    if quat_raw is not None:
+                        quaternion = np.array(quat_raw).copy()
+                except Exception as quat_e:
+                    # Quaternion might not be available in some cases
+                    # Fall back to using accelerometer
+                    pass
             except Exception as e:
                 print("[IMU]:", e)
                 continue
 
-            if gyro is None or accelero is None or quaternion is None:
+            if gyro is None or accelero is None:
                 continue
 
             if gyro.any() is None or accelero.any() is None:
@@ -143,8 +151,11 @@ class Imu:
             data = {
                 "gyro": gyro,
                 "accelero": accelero,
-                "quaternion": quaternion,  # [w, x, y, z] scalar first
             }
+
+            # Add quaternion only if available
+            if quaternion is not None:
+                data["quaternion"] = quaternion  # [w, x, y, z] scalar first
 
             self.imu_queue.put(data)
             took = time.time() - s

@@ -194,8 +194,19 @@ class RLWalk:
 
         # Compute projected gravity from IMU quaternion
         # raw_imu returns quaternion in [w, x, y, z] format (scalar first) from BNO055
-        imu_quat = imu_data["quaternion"]
-        projected_gravity = self.compute_projected_gravity(imu_quat)
+        if "quaternion" in imu_data and imu_data["quaternion"] is not None:
+            imu_quat = imu_data["quaternion"]
+            projected_gravity = self.compute_projected_gravity(imu_quat)
+        else:
+            # Fallback: use normalized accelerometer as projected gravity
+            # When robot is not accelerating, accelerometer reads gravity
+            accelero = imu_data["accelero"]
+            norm = np.linalg.norm(accelero)
+            if norm > 0.1:
+                projected_gravity = accelero / norm
+            else:
+                # Last resort: assume upright
+                projected_gravity = np.array([0.0, 0.0, -1.0], dtype=np.float32)
 
         # Base angular velocity from gyro
         gyro = imu_data["gyro"]
