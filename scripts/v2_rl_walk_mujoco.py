@@ -82,8 +82,6 @@ class RLWalk:
         self.action_scale = action_scale
 
         self.last_action = np.zeros(self.num_dofs)
-        self.last_last_action = np.zeros(self.num_dofs)
-        self.last_last_last_action = np.zeros(self.num_dofs)
 
         self.init_pos = list(self.hwi.init_pos.values())
 
@@ -120,8 +118,53 @@ class RLWalk:
         if self.duck_config.antennas:
             self.antennas = Antennas()
 
-    def get_obs(self):
+    def quat_rotate_inverse(self, quat, vec):
+        """Rotate a vector by the inverse of a quaternion [w, x, y, z].
 
+        This projects the world gravity vector into the robot's body frame.
+        """
+        w = quat[0]
+        xyz = quat[1:4]  # [x, y, z]
+
+        # t = xyz × vec * 2
+        t = np.cross(xyz, vec) * 2
+
+        # result = vec - w * t + xyz × t
+        return vec - w * t + np.cross(xyz, t)
+
+    def compute_projected_gravity(self, imu_quat):
+        """Compute projected gravity from IMU quaternion.
+
+        Args:
+            imu_quat: Quaternion from IMU in [w, x, y, z] format (scalar first)
+
+        Returns:
+            3D vector representing gravity in body frame, normalized
+        """
+        # World gravity (pointing down)
+        world_gravity = np.array([0.0, 0.0, -1.0], dtype=np.float32)
+
+        # Rotate world gravity into body frame
+        proj_grav = self.quat_rotate_inverse(imu_quat, world_gravity)
+
+        # Normalize to unit vector
+        norm = np.linalg.norm(proj_grav)
+        if norm > 0.1:
+            proj_grav = proj_grav / norm
+
+        return proj_grav
+
+    def get_obs(self):
+        """Get observations matching the trained policy input structure.
+
+        Observation order (51 dimensions total):
+        1. base_ang_vel (gyro) - 3D
+        2. projected_gravity - 3D
+        3. joint_pos (relative to init_pos) - 14D
+        4. joint_vel - 14D
+        5. actions (last action) - 14D
+        6. command (velocity only) - 3D
+        """
         imu_data = self.imu.get_data()
 
         dof_pos = self.hwi.get_present_positions(
@@ -149,23 +192,26 @@ class RLWalk:
             print(f"ERROR len(dof_vel) != {self.num_dofs}")
             return None
 
-        cmds = self.last_commands
+        # Compute projected gravity from IMU quaternion
+        # raw_imu returns quaternion in [w, x, y, z] format (scalar first) from BNO055
+        imu_quat = imu_data["quaternion"]
+        projected_gravity = self.compute_projected_gravity(imu_quat)
 
-        feet_contacts = self.feet_contacts.get()
+        # Base angular velocity from gyro
+        gyro = imu_data["gyro"]
 
+        # Velocity commands only (first 3 elements)
+        velocity_command = np.array(self.last_commands[:3], dtype=np.float32)
+
+        # Build observation vector (51D)
         obs = np.concatenate(
             [
-                imu_data["gyro"],
-                imu_data["accelero"],
-                cmds,
-                dof_pos - self.init_pos,
-                dof_vel * 0.05,
-                self.last_action,
-                self.last_last_action,
-                self.last_last_last_action,
-                self.motor_targets,
-                feet_contacts,
-                self.imitation_phase,
+                gyro,                           # 3D - base angular velocity
+                projected_gravity,              # 3D - projected gravity
+                dof_pos - self.init_pos,        # 14D - joint positions (relative)
+                dof_vel * 0.05,                 # 14D - joint velocities (scaled)
+                self.last_action,               # 14D - last action
+                velocity_command,               # 3D - velocity command
             ]
         )
 
@@ -281,8 +327,6 @@ class RLWalk:
 
                 action = self.policy.infer(obs)
 
-                self.last_last_last_action = self.last_last_action.copy()
-                self.last_last_action = self.last_action.copy()
                 self.last_action = action.copy()
 
                 # action = np.zeros(10)

@@ -57,7 +57,7 @@ class Imu:
         self.pitch_bias = self.nominal_pitch_bias + self.user_pitch_bias
 
         if self.calibrate:
-            self.imu.mode = adafruit_bno055.NDOF_MODE
+            self.imu.mode = adafruit_bno055.IMUPLUS_MODE
             calibrated = self.imu.calibrated
             while not calibrated:
                 print("Calibration status: ", self.imu.calibration_status)
@@ -67,12 +67,11 @@ class Imu:
             print("CALIBRATION DONE")
             offsets_accelerometer = self.imu.offsets_accelerometer
             offsets_gyroscope = self.imu.offsets_gyroscope
-            offsets_magnetometer = self.imu.offsets_magnetometer
+            # No magnetometer in IMUPLUS_MODE
 
             imu_calib_data = {
                 "offsets_accelerometer": offsets_accelerometer,
                 "offsets_gyroscope": offsets_gyroscope,
-                "offsets_magnetometer": offsets_magnetometer,
             }
             for k, v in imu_calib_data.items():
                 print(k, v)
@@ -88,7 +87,7 @@ class Imu:
             time.sleep(0.1)
             self.imu.offsets_accelerometer = imu_calib_data["offsets_accelerometer"]
             self.imu.offsets_gyroscope = imu_calib_data["offsets_gyroscope"]
-            self.imu.offsets_magnetometer = imu_calib_data["offsets_magnetometer"]
+            # No magnetometer in IMUPLUS_MODE (skip loading if not present)
             self.imu.mode = adafruit_bno055.IMUPLUS_MODE
             time.sleep(0.1)
         else:
