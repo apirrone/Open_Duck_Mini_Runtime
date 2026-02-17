@@ -131,8 +131,10 @@ class Imu:
                 try:
                     quat_raw = self.imu.quaternion
                     if quat_raw is not None:
-                        quaternion = np.array(quat_raw).copy()
-                except Exception as quat_e:
+                        # Validate that all components are not None
+                        if all(q is not None for q in quat_raw):
+                            quaternion = np.array(quat_raw, dtype=np.float32).copy()
+                except Exception:
                     # Quaternion might not be available in some cases
                     # Fall back to using accelerometer
                     pass
