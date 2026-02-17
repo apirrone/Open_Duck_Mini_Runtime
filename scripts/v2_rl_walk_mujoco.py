@@ -98,9 +98,9 @@ class RLWalk:
 
         # Reference motion, but we only really need the length of one phase
         # TODO
-        self.PRM = PolyReferenceMotion("./polynomial_coefficients.pkl")
-        self.imitation_i = 0
-        self.imitation_phase = np.array([0, 0])
+        # self.PRM = PolyReferenceMotion("./polynomial_coefficients.pkl")
+        # self.imitation_i = 0
+        # self.imitation_phase = np.array([0, 0])
         self.phase_frequency_factor = 1.0
         self.phase_frequency_factor_offset = (
             self.duck_config.phase_frequency_factor_offset
@@ -300,20 +300,20 @@ class RLWalk:
                 if obs is None:
                     continue
 
-                self.imitation_i += 1 * (
-                    self.phase_frequency_factor + self.phase_frequency_factor_offset
-                )
-                self.imitation_i = self.imitation_i % self.PRM.nb_steps_in_period
-                self.imitation_phase = np.array(
-                    [
-                        np.cos(
-                            self.imitation_i / self.PRM.nb_steps_in_period * 2 * np.pi
-                        ),
-                        np.sin(
-                            self.imitation_i / self.PRM.nb_steps_in_period * 2 * np.pi
-                        ),
-                    ]
-                )
+                # self.imitation_i += 1 * (
+                    # self.phase_frequency_factor + self.phase_frequency_factor_offset
+                # )
+                # self.imitation_i = self.imitation_i % self.PRM.nb_steps_in_period
+                # self.imitation_phase = np.array(
+                    # [
+                        # np.cos(
+                            # self.imitation_i / self.PRM.nb_steps_in_period * 2 * np.pi
+                        # ),
+                        # np.sin(
+                            # self.imitation_i / self.PRM.nb_steps_in_period * 2 * np.pi
+                        # ),
+                    # ]
+                # )
 
                 if self.save_obs:
                     self.saved_obs.append(obs)
