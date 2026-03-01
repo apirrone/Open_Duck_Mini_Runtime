@@ -37,6 +37,7 @@ class DualSenseController:
         self.triangle_pressed = False
         self.l1_pressed = False
         self.r1_pressed = False
+        self.start_pressed = False
 
         self.buttons = Buttons()
 
@@ -139,6 +140,14 @@ class DualSenseController:
                 if self.p1.get_button(5):  # R1 button
                     self.r1_pressed = True
 
+                if self.p1.get_button(0):  # TODO: change to actual Options index once identified
+                    self.start_pressed = True
+
+                # Debug: uncomment to find the real button index for Options
+                # for i in range(self.p1.get_numbuttons()):
+                #     if self.p1.get_button(i):
+                #         print(f"Button {i} pressed")
+
             if event.type == pygame.JOYBUTTONUP:
                 self.cross_pressed = False
                 self.circle_pressed = False
@@ -146,6 +155,7 @@ class DualSenseController:
                 self.triangle_pressed = False
                 self.l1_pressed = False
                 self.r1_pressed = False
+                self.start_pressed = False
 
         up_down = self.p1.get_hat(0)[1]
         pygame.event.pump()  # process event queue
@@ -158,6 +168,7 @@ class DualSenseController:
             self.triangle_pressed,
             self.l1_pressed,
             self.r1_pressed,
+            self.start_pressed,
             left_trigger,
             right_trigger,
             up_down,
@@ -170,6 +181,7 @@ class DualSenseController:
         triangle_pressed = False
         l1_pressed = False
         r1_pressed = False
+        start_pressed = False
         up_down = 0
         try:
             (
@@ -180,6 +192,7 @@ class DualSenseController:
                 triangle_pressed,
                 l1_pressed,
                 r1_pressed,
+                start_pressed,
                 self.last_left_trigger,
                 self.last_right_trigger,
                 up_down,
@@ -198,6 +211,7 @@ class DualSenseController:
             r1_pressed,
             up_down == 1,
             up_down == -1,
+            start=start_pressed,
         )
 
         return (

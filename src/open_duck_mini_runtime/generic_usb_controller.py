@@ -55,6 +55,7 @@ _DEFAULT_BUTTON_MAP = {
     "Y": 3,
     "LB": 4,
     "RB": 5,
+    "START": 0,  # TODO: change to actual Start index once identified
 }
 
 
@@ -110,6 +111,7 @@ class GenericUSBController:
         self._Y_pressed = False
         self._LB_pressed = False
         self._RB_pressed = False
+        self._start_pressed = False
 
         self.buttons = Buttons()
 
@@ -213,6 +215,9 @@ class GenericUSBController:
                 if self._read_button("RB"):
                     self._RB_pressed = True
 
+                if self._read_button("START"):
+                    self._start_pressed = True
+
             if event.type == pygame.JOYBUTTONUP:
                 self._A_pressed = False
                 self._B_pressed = False
@@ -220,6 +225,7 @@ class GenericUSBController:
                 self._Y_pressed = False
                 self._LB_pressed = False
                 self._RB_pressed = False
+                self._start_pressed = False
 
         up_down = self.p1.get_hat(0)[1] if self.p1.get_numhats() > 0 else 0
         pygame.event.pump()
@@ -232,6 +238,7 @@ class GenericUSBController:
             self._Y_pressed,
             self._LB_pressed,
             self._RB_pressed,
+            self._start_pressed,
             left_trigger,
             right_trigger,
             up_down,
@@ -249,6 +256,7 @@ class GenericUSBController:
         Y_pressed = False
         LB_pressed = False
         RB_pressed = False
+        start_pressed = False
         up_down = 0
         try:
             (
@@ -259,6 +267,7 @@ class GenericUSBController:
                 Y_pressed,
                 LB_pressed,
                 RB_pressed,
+                start_pressed,
                 self.last_left_trigger,
                 self.last_right_trigger,
                 up_down,
@@ -275,6 +284,7 @@ class GenericUSBController:
             RB_pressed,
             up_down == 1,
             up_down == -1,
+            start=start_pressed,
         )
 
         return (

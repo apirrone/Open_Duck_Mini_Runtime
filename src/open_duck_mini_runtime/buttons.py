@@ -37,8 +37,9 @@ class Buttons:
         self.RB = Button()
         self.dpad_up = Button()
         self.dpad_down = Button()
+        self.START = Button()
 
-    def update(self, A, B, X, Y, LB, RB, dpad_up, dpad_down):
+    def update(self, A, B, X, Y, LB, RB, dpad_up, dpad_down, start=False):
         self.A.update(A)
         self.B.update(B)
         self.X.update(X)
@@ -47,6 +48,7 @@ class Buttons:
         self.RB.update(RB)
         self.dpad_up.update(dpad_up)
         self.dpad_down.update(dpad_down)
+        self.START.update(start)
 
 
 if __name__ == "__main__":

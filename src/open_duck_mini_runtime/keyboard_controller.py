@@ -80,6 +80,7 @@ class KeyboardController:
 
         # Key state for held movement keys (all lowercase – reader thread lowercases input)
         self._keys: dict[str, _KeyState] = {k: _KeyState() for k in "wasdeqxblp "}
+        # Enter / Return is handled as a one-shot START event (raw mode sends \r)
 
         # Queued one-shot button events (triggered on edge – key just pressed)
         self._event_queue: Queue[str] = Queue()
@@ -120,7 +121,7 @@ class KeyboardController:
                     self._keys[key].press()
 
                 # Enqueue one-shot events for button-trigger keys
-                if key in (" ", "x", "b", "p"):
+                if key in (" ", "x", "b", "p", "\r"):
                     self._event_queue.put(key)
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
@@ -217,6 +218,7 @@ class KeyboardController:
             "│  X           – Toggle projector   │\n"
             "│  B           – Play random sound  │\n"
             "│  P           – Head-control mode  │\n"
+            "│  Enter       – Toggle motors on/off│\n"
             "│  Ctrl-C / ESC – Exit              │\n"
             "└──────────────────────────────────┘\n"
         )

@@ -95,6 +95,7 @@ class RLWalk:
         self.last_commands = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
         self.paused = self.duck_config.start_paused
+        self.motors_enabled = True
 
         self.command_freq = 20  # hz
         if self.commands:
@@ -256,6 +257,19 @@ class RLWalk:
                             print("PAUSE")
                         else:
                             print("UNPAUSE")
+
+                    if self.buttons.START.triggered:
+                        if self.motors_enabled:
+                            print("START pressed – turning motors OFF")
+                            self.hwi.turn_off()
+                            self.motors_enabled = False
+                            self.paused = True
+                        else:
+                            print("START pressed – turning motors ON and reinitialising")
+                            self.start()
+                            self.motors_enabled = True
+                            self.paused = False
+                            start_t = time.time()  # reset action-filter warmup timer
 
                 if self.paused:
                     time.sleep(0.1)

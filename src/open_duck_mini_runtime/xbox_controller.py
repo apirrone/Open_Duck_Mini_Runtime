@@ -37,6 +37,7 @@ class XBoxController:
         self.Y_pressed = False
         self.LB_pressed = False
         self.RB_pressed = False
+        self.start_pressed = False
 
         self.buttons = Buttons()
 
@@ -139,6 +140,9 @@ class XBoxController:
                 if self.p1.get_button(7):  # RB button
                     self.RB_pressed = True
 
+                if self.p1.get_button(11):  # Start / Menu button
+                    self.start_pressed = True
+
             if event.type == pygame.JOYBUTTONUP:
                 self.A_pressed = False
                 self.B_pressed = False
@@ -146,8 +150,9 @@ class XBoxController:
                 self.Y_pressed = False
                 self.LB_pressed = False
                 self.RB_pressed = False
+                self.start_pressed = False
 
-            # for i in range(10):
+            # for i in range(self.p1.get_numbuttons()):
             #     if self.p1.get_button(i):
             #         print(f"Button {i} pressed")
 
@@ -162,6 +167,7 @@ class XBoxController:
             self.Y_pressed,
             self.LB_pressed,
             self.RB_pressed,
+            self.start_pressed,
             left_trigger,
             right_trigger,
             up_down,
@@ -174,6 +180,7 @@ class XBoxController:
         Y_pressed = False
         LB_pressed = False
         RB_pressed = False
+        start_pressed = False
         up_down = 0
         try:
             (
@@ -184,6 +191,7 @@ class XBoxController:
                 Y_pressed,
                 LB_pressed,
                 RB_pressed,
+                start_pressed,
                 self.last_left_trigger,
                 self.last_right_trigger,
                 up_down,
@@ -202,6 +210,7 @@ class XBoxController:
             RB_pressed,
             up_down == 1,
             up_down == -1,
+            start=start_pressed,
         )
 
         return (
