@@ -52,6 +52,10 @@ class DuckConfig:
             "phase_frequency_factor_offset", 0.0
         )
 
+        # Controller selection: "xbox" | "dualsense" | "generic_usb" | "keyboard"
+        # This does NOT affect onboard arrow-key / button-based movement scripts.
+        self.controller_type = self.json_config.get("controller_type", "xbox")
+
         expression_features = self.json_config.get("expression_features", {})
 
         self.eyes = expression_features.get("eyes", False)

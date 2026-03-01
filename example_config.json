@@ -2,6 +2,7 @@
     "start_paused": false,
     "imu_upside_down": false,
     "phase_frequency_factor_offset": 0.0,
+    "controller_type": "xbox",
     "expression_features": {
         "eyes": false,
         "projector": false,

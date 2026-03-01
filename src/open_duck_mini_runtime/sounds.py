@@ -1,4 +1,5 @@
 import argparse
+import random
 import time
 from pathlib import Path
 
@@ -25,6 +26,30 @@ def play_sound(path: Path, volume: float = 1.0) -> None:
     ch = snd.play()
     while ch.get_busy():
         time.sleep(0.05)
+
+
+class Sounds:
+    """High-level sound manager used by :class:`~open_duck_mini_runtime.walk.RLWalk`."""
+
+    def __init__(self, volume: float = 1.0, sound_directory: str = None):
+        self.volume = volume
+        if sound_directory is not None:
+            assets = Path(sound_directory)
+        else:
+            assets = find_assets_dir()
+        self.wav_files: list[Path] = list_wavs(assets)
+        if not pygame.mixer.get_init():
+            pygame.mixer.init()
+
+    def play_random_sound(self) -> None:
+        if not self.wav_files:
+            return
+        path = random.choice(self.wav_files)
+        play_sound(path, volume=self.volume)
+
+    def play_sound(self, index: int) -> None:
+        if 0 <= index < len(self.wav_files):
+            play_sound(self.wav_files[index], volume=self.volume)
 
 
 def main():

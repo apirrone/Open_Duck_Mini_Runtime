@@ -1,3 +1,56 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "open-duck-mini-runtime"
+version = "1.0.0"
+description = "Runtime code for Open Duck Mini"
+authors = [
+    { name = "Antoine Pirrone", email = "antoine.pirrone@gmail.com" },
+]
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "RPi.GPIO==0.7.1",
+    "rustypot==0.1.0",
+    "onnxruntime==1.18.1",
+    "numpy==1.26.4",
+    "adafruit-circuitpython-bno055==5.4.13",
+    "adafruit-circuitpython-neopixel",
+    "rpi-ws281x==5.0.0",
+    "scipy==1.15.1",
+    "pygame==2.6.0",
+    "pypot @ git+https://github.com/pollen-robotics/pypot@support-feetech-sts3215",
+    "openai==1.70.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/apirrone/Open_Duck_Mini_Runtime"
+
+[project.scripts]
+walk = "open_duck_mini_runtime.walk:main"
+walk-keyboard = "open_duck_mini_runtime.walk_keyboard:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=7",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"open_duck_mini_runtime" = ["assets/**/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+# Exclude hardware integration tests that require a physically connected robot.
+# Run them manually: uv run pytest tests/test_motor_controller.py
+addopts = ["--ignore=tests/test_motor_controller.py"]
+markers = [
+    "hardware: marks tests that require a physically connected robot (deselect with -m 'not hardware')",
+]

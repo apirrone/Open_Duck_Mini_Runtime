@@ -1,10 +1,17 @@
 """
-Shared controller for a single 3-LED NeoPixel strip used by eyes (2 LEDs) and projector (1 LED).
+Shared controller for a single NeoPixel strip used by eyes (2 LEDs) and
+projector (1 LED).
 
-Design:
+LED index layout
+----------------
 - Index 0: projector
 - Index 1: right eye
 - Index 2: left eye
+
+Hardware imports (``board`` / ``neopixel``) are deferred until the first
+:class:`LedController` instantiation so that the module can be safely
+imported on non-Raspberry-Pi machines (e.g. during unit tests or
+development on a laptop).
 """
 from __future__ import annotations
 
@@ -13,59 +20,81 @@ import atexit
 from threading import Lock
 from typing import Tuple, Optional, Union
 
-# Direct hardware imports (we assume we're running on-device)
-import board
-import neopixel
 
-# Pin and pixel configuration
-PIXEL_PIN = board.D10
-NUM_PIXELS = 10
+# ---------------------------------------------------------------------------
+# Configuration constants (resolved at import time using only stdlib / env)
+# ---------------------------------------------------------------------------
 
-# Allow configuration of pixel order.
-# Default to GRBW (common on many RGBW strips). You can override via:
-# - env var ODUCK_LED_ORDER, e.g. "RGB", "GRB", "RGBW", "GRBW"
-# - duck_config.LED_ORDER (string matching neopixel constants)
-try:
-    from open_duck_mini_runtime.duck_config import LED_ORDER as _CFG_LED_ORDER  # type: ignore
-except Exception:
-    _CFG_LED_ORDER = None
+NUM_PIXELS: int = 10
 
-_ORDER_NAME = os.getenv("ODUCK_LED_ORDER", _CFG_LED_ORDER or "RGBW").upper()
-ORDER = getattr(neopixel, _ORDER_NAME, neopixel.RGBW)
+# Allow pixel order / brightness overrides via environment variables so they
+# can be set in a systemd unit or SSH session without touching the code.
+_ORDER_NAME: str = os.getenv("ODUCK_LED_ORDER", "RGBW").upper()
+BRIGHTNESS: float = float(os.getenv("ODUCK_LED_BRIGHTNESS", "1.0"))
+WHITE_MODE: str = os.getenv("ODUCK_LED_WHITE_MODE", "W").upper()
 
-# Brightness can be tuned via env
-BRIGHTNESS = float(os.getenv("ODUCK_LED_BRIGHTNESS", "1.0"))
 
-# White rendering mode: "W" uses the dedicated white channel (RGBW strips),
-# "RGB" mixes white from RGB. Useful if a particular LED's W phosphor has tint.
-try:
-    from open_duck_mini_runtime.duck_config import LED_WHITE_MODE as _CFG_WHITE_MODE  # type: ignore
-except Exception:
-    _CFG_WHITE_MODE = None
-
-WHITE_MODE = os.getenv("ODUCK_LED_WHITE_MODE", _CFG_WHITE_MODE or "W").upper()
-
+# ---------------------------------------------------------------------------
+# LedController
+# ---------------------------------------------------------------------------
 
 class LedController:
+    """Thread-safe NeoPixel manager for eyes and projector.
+
+    Hardware imports (``board``, ``neopixel``) are performed inside
+    ``__init__`` so importing this module never raises
+    :exc:`ModuleNotFoundError` on non-Raspberry-Pi machines.
+    """
+
     def __init__(self) -> None:
+        # --- Lazy hardware imports -------------------------------------------
+        try:
+            import board
+            import neopixel as _neopixel
+        except (ModuleNotFoundError, NotImplementedError) as exc:
+            raise RuntimeError(
+                "NeoPixel hardware libraries are not available. "
+                "Ensure 'adafruit-circuitpython-neopixel' and 'rpi-ws281x' "
+                "are installed and that you are running on the robot hardware."
+            ) from exc
+
+        # Allow duck_config to override pixel order (env var takes priority).
+        order_name = _ORDER_NAME
+        try:
+            from open_duck_mini_runtime.duck_config import LED_ORDER as _cfg_order  # type: ignore
+            if _cfg_order:
+                order_name = _cfg_order.upper()
+        except Exception:
+            pass
+
+        white_mode = WHITE_MODE
+        try:
+            from open_duck_mini_runtime.duck_config import LED_WHITE_MODE as _cfg_wm  # type: ignore
+            if _cfg_wm:
+                white_mode = _cfg_wm.upper()
+        except Exception:
+            pass
+
+        self._neopixel = _neopixel
+        self._order = getattr(_neopixel, order_name, _neopixel.RGBW)
+        self._white_mode = white_mode
+
+        PIXEL_PIN = board.D10
+
         self._lock = Lock()
-        self._pixels = None  # type: ignore
         self._deinited = False
 
-        # Lazily create the NeoPixel instance (avoid creating it at import-time)
-        self._pixels = neopixel.NeoPixel(
-            PIXEL_PIN, NUM_PIXELS, brightness=BRIGHTNESS, auto_write=True, pixel_order=ORDER
+        self._pixels = _neopixel.NeoPixel(
+            PIXEL_PIN,
+            NUM_PIXELS,
+            brightness=BRIGHTNESS,
+            auto_write=True,
+            pixel_order=self._order,
         )
 
-        # Cache simple color tuples (use 4-tuple for RGBW strips)
-        # Colors are stored in logical (R, G, B, W) regardless of ORDER.
+        # Cache simple colour tuples in logical (R, G, B, W) order.
         self.OFF = (0, 0, 0, 0)
-        # White color can be sourced from W channel or mixed from RGB.
-        if WHITE_MODE == "RGB":
-            self.WHITE = (255, 255, 255, 0)
-        else:
-            # Default: use dedicated W channel on RGBW strips
-            self.WHITE = (0, 0, 0, 255)
+        self.WHITE = (255, 255, 255, 0) if white_mode == "RGB" else (0, 0, 0, 255)
         self.RED = (255, 0, 0, 0)
         self.GREEN = (0, 255, 0, 0)
         self.BLUE = (0, 0, 255, 0)
@@ -78,33 +107,33 @@ class LedController:
             "blue": self.BLUE,
         }
 
-        # Track on/off states (for toggling and consistent show)
+        # On/off state (independent of colour)
         self.eye_left_on = True
         self.eye_right_on = True
         self.projector_on = False
 
-        # Track current colors for each pixel (default WHITE)
+        # Current colour per pixel (default WHITE)
         self.left_color = self.WHITE
         self.right_color = self.WHITE
         self.proj_color = self.WHITE
 
-        # Ensure an initial known state
         self._apply()
 
-        # Ensure cleanup on interpreter shutdown
         atexit.register(self.deinit)
 
-    # Internal helper to apply current states to pixels
+    # ------------------------------------------------------------------
+    # Internal helpers
+    # ------------------------------------------------------------------
+
     def _apply(
         self,
-        left_color: Optional[Tuple[int, int, int, int]] = None,
-        right_color: Optional[Tuple[int, int, int, int]] = None,
-        proj_color: Optional[Tuple[int, int, int, int]] = None,
+        left_color: Optional[Tuple] = None,
+        right_color: Optional[Tuple] = None,
+        proj_color: Optional[Tuple] = None,
     ) -> None:
         if self._pixels is None or self._deinited:
             return
         with self._lock:
-            # Determine colors from boolean states when not explicitly specified
             if left_color is None:
                 left_color = self.left_color if self.eye_left_on else self.OFF
             if right_color is None:
@@ -112,37 +141,46 @@ class LedController:
             if proj_color is None:
                 proj_color = self.proj_color if self.projector_on else self.OFF
 
-            # Assign indices: 2-left, 1-right, 0-projector
             self._pixels[0] = self._to_order(proj_color)
             self._pixels[1] = self._to_order(right_color)
             self._pixels[2] = self._to_order(left_color)
             self._pixels.show()
 
-    def _to_order(self, color_rgba: Tuple[int, int, int, int]):
-        """
-        Convert logical (R,G,B,W) into the configured NeoPixel ORDER tuple.
-        For RGB strips (no W), we will drop the W channel.
-        """
+    def _to_order(self, color_rgba: Tuple) -> Tuple:
+        """Convert logical (R, G, B, W) to the configured NeoPixel ORDER tuple."""
         r, g, b, w = color_rgba
+        neopixel = self._neopixel
         try:
-            if ORDER in (neopixel.RGB, neopixel.GRB):
-                mapping = {
-                    neopixel.RGB: (r, g, b),
-                    neopixel.GRB: (g, r, b),
-                }
-                return mapping[ORDER]
-            else:
-                # RGBW variants
-                mapping = {
-                    neopixel.RGBW: (r, g, b, w),
-                    neopixel.GRBW: (g, r, b, w),
-                }
-                return mapping.get(ORDER, (r, g, b, w))
+            if self._order in (neopixel.RGB, neopixel.GRB):
+                return (r, g, b) if self._order == neopixel.RGB else (g, r, b)
+            mapping = {
+                neopixel.RGBW: (r, g, b, w),
+                neopixel.GRBW: (g, r, b, w),
+            }
+            return mapping.get(self._order, (r, g, b, w))
         except Exception:
-            # Fallback
             return (r, g, b, w)
 
+    def _norm_color(
+        self,
+        color: Union[str, Tuple[int, int, int], Tuple[int, int, int, int]],
+    ) -> Tuple[int, int, int, int]:
+        if isinstance(color, str):
+            c = self._named_colors.get(color.lower())
+            if c is None:
+                raise ValueError(f"Unknown colour name: {color!r}")
+            return c
+        if isinstance(color, tuple) and len(color) == 3:
+            r, g, b = color
+            return (r, g, b, 0)
+        if isinstance(color, tuple) and len(color) == 4:
+            return color
+        raise ValueError("Colour must be a name string or (R,G,B) / (R,G,B,W) tuple")
+
+    # ------------------------------------------------------------------
     # Eyes API
+    # ------------------------------------------------------------------
+
     def set_eyes(self, on: bool) -> None:
         self.eye_left_on = on
         self.eye_right_on = on
@@ -156,65 +194,58 @@ class LedController:
         self.eye_right_on = on
         self._apply()
 
-    # Projector API
-    def set_projector(self, on: bool) -> None:
-        self.projector_on = on
-        self._apply()
-
-    # Color API (accepts name or tuple)
-    def _norm_color(self, color: Union[str, Tuple[int, int, int], Tuple[int, int, int, int]]
-                   ) -> Tuple[int, int, int, int]:
-        if isinstance(color, str):
-            c = self._named_colors.get(color.lower())
-            if c is None:
-                raise ValueError(f"Unknown color name: {color}")
-            return c
-        # If 3-tuple provided, assume RGB on RGBW strip -> map to (r,g,b,0)
-        if isinstance(color, tuple) and len(color) == 3:
-            r, g, b = color
-            return (r, g, b, 0)
-        if isinstance(color, tuple) and len(color) == 4:
-            return color  # already RGBA(W)
-        raise ValueError("Color must be a name or RGB/RGBW tuple")
-
-    def set_left_eye_color(self, color: Union[str, Tuple[int, int, int], Tuple[int, int, int, int]]):
+    def set_left_eye_color(self, color: Union[str, Tuple]) -> None:
         self.left_color = self._norm_color(color)
         self._apply()
 
-    def set_right_eye_color(self, color: Union[str, Tuple[int, int, int], Tuple[int, int, int, int]]):
+    def set_right_eye_color(self, color: Union[str, Tuple]) -> None:
         self.right_color = self._norm_color(color)
         self._apply()
 
-    def set_projector_color(self, color: Union[str, Tuple[int, int, int], Tuple[int, int, int, int]]):
-        self.proj_color = self._norm_color(color)
-        self._apply()
-
-    def set_eyes_color(self, color: Union[str, Tuple[int, int, int], Tuple[int, int, int, int]]):
+    def set_eyes_color(self, color: Union[str, Tuple]) -> None:
         norm = self._norm_color(color)
         self.left_color = norm
         self.right_color = norm
         self._apply()
 
-    def set_all_color(self, color: Union[str, Tuple[int, int, int], Tuple[int, int, int, int]]):
+    # ------------------------------------------------------------------
+    # Projector API
+    # ------------------------------------------------------------------
+
+    def set_projector(self, on: bool) -> None:
+        self.projector_on = on
+        self._apply()
+
+    def set_projector_color(self, color: Union[str, Tuple]) -> None:
+        self.proj_color = self._norm_color(color)
+        self._apply()
+
+    # ------------------------------------------------------------------
+    # Combined helpers
+    # ------------------------------------------------------------------
+
+    def set_all_color(self, color: Union[str, Tuple]) -> None:
         norm = self._norm_color(color)
         self.left_color = norm
         self.right_color = norm
         self.proj_color = norm
         self._apply()
 
-    # Utilities
     def all_off(self) -> None:
         self.eye_left_on = False
         self.eye_right_on = False
         self.projector_on = False
         self._apply()
 
+    # ------------------------------------------------------------------
+    # Lifecycle
+    # ------------------------------------------------------------------
+
     def deinit(self) -> None:
         if self._deinited:
             return
         with self._lock:
             try:
-                # Turn everything off before releasing the driver
                 if self._pixels is not None:
                     self._pixels.fill(self._to_order(self.OFF))
                     self._pixels.show()
@@ -228,16 +259,16 @@ class LedController:
                 self._pixels = None
 
 
+# ---------------------------------------------------------------------------
+# Module-level singleton helper
+# ---------------------------------------------------------------------------
+
 _controller: Optional[LedController] = None
 
 
 def get_controller() -> LedController:
+    """Return (creating if necessary) the module-level :class:`LedController`."""
     global _controller
     if _controller is None:
         _controller = LedController()
     return _controller
-
-
-# Note: We intentionally avoid installing signal handlers here.
-# Libraries should not override application-level signal behavior.
-# atexit cleanup above is sufficient in most cases.

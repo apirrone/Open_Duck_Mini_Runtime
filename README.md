@@ -1,86 +1,104 @@
 # Open Duck Mini Runtime
 
-This repository contains the runtime software for the Open Duck Mini, a small, open-source robotic duck. This guide will walk you through setting up the hardware and software to get your duck waddling.
+Runtime software for the [Open Duck Mini](https://github.com/apirrone/Open_Duck_Mini) – a small, open-source robotic duck that walks using a reinforcement-learning policy.
+
+---
 
 ## Table of Contents
-- [Open Duck Mini Runtime](#open-duck-mini-runtime)
-  - [Table of Contents](#table-of-contents)
-  - [Raspberry Pi Setup](#raspberry-pi-setup)
-    - [Install Raspberry Pi OS](#install-raspberry-pi-os)
-    - [Setup SSH (If not setup during the installation)](#setup-ssh-if-not-setup-during-the-installation)
-    - [System Updates and Dependencies](#system-updates-and-dependencies)
-    - [Enable I2C](#enable-i2c)
-    - [Set the USB Serial Latency Timer](#set-the-usb-serial-latency-timer)
-    - [Motor Control Board udev Rules](#motor-control-board-udev-rules)
-  - [Install the Runtime](#install-the-runtime)
-    - [Make a Virtual Environment and Activate it](#make-a-virtual-environment-and-activate-it)
-    - [Install the Repository](#install-the-repository)
-    - [Xbox One Controller Setup](#xbox-one-controller-setup)
-  - [Hardware Configuration](#hardware-configuration)
-    - [Speaker Wiring and Configuration](#speaker-wiring-and-configuration)
-  - [Testing and Calibration](#testing-and-calibration)
-    - [Test the IMU](#test-the-imu)
-    - [Make your duck\_config.json](#make-your-duck_configjson)
-    - [Find the Joints Offsets](#find-the-joints-offsets)
-  - [Run the walk !](#run-the-walk-)
-  - [Controls](#controls)
+
+- [Quick Start](#quick-start)
+- [Raspberry Pi Setup](#raspberry-pi-setup)
+  - [Install Raspberry Pi OS](#install-raspberry-pi-os)
+  - [Setup SSH](#setup-ssh)
+  - [System Updates and Dependencies](#system-updates-and-dependencies)
+  - [Enable I2C](#enable-i2c)
+  - [Set the USB Serial Latency Timer](#set-the-usb-serial-latency-timer)
+  - [Motor Control Board udev Rules](#motor-control-board-udev-rules)
+- [Install the Runtime](#install-the-runtime)
+- [Configuration](#configuration)
+  - [duck_config.json Reference](#duck_configjson-reference)
+  - [Controller Types](#controller-types)
+  - [Generic USB Controller Mapping](#generic-usb-controller-mapping)
+- [Hardware Configuration](#hardware-configuration)
+  - [Speaker Wiring](#speaker-wiring)
+- [Testing and Calibration](#testing-and-calibration)
+  - [Test the IMU](#test-the-imu)
+  - [Find Joint Offsets](#find-joint-offsets)
+- [Running the Duck](#running-the-duck)
+  - [Gamepad Walking](#gamepad-walking)
+  - [SSH Keyboard Walking](#ssh-keyboard-walking)
+- [Controls Reference](#controls-reference)
+  - [Xbox / DualSense Controls](#xbox--dualsense-controls)
+  - [Keyboard Controls (SSH)](#keyboard-controls-ssh)
+- [Running Tests](#running-tests)
+
+---
+
+## Quick Start
+
+```bash
+# 1. Install uv (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# 2. Clone and enter the repo
+git clone https://github.com/apirrone/Open_Duck_Mini_Runtime
+cd Open_Duck_Mini_Runtime
+
+# 3. Install all dependencies into a managed virtual environment
+uv sync
+
+# 4. Walk!
+uv run walk
+```
+
+---
 
 ## Raspberry Pi Setup
 
-These instructions are for setting up a Raspberry Pi Zero 2W.
+These instructions target a **Raspberry Pi Zero 2W** running Raspberry Pi OS Lite (64-bit).
 
 ### Install Raspberry Pi OS
 
-1.  Download [Raspberry Pi OS Lite (64-bit)](https://www.raspberrypi.com/software/operating-systems/).
-2.  Follow the official instructions to install the OS on an SD card: [Getting Started Guide](https://www.raspberrypi.com/documentation/computers/getting-started.html).
-3.  Using the Raspberry Pi Imager, you can pre-configure your user, Wi-Fi, and SSH settings.
+1. Download [Raspberry Pi OS Lite (64-bit)](https://www.raspberrypi.com/software/operating-systems/).
+2. Flash it with the [Raspberry Pi Imager](https://www.raspberrypi.com/documentation/computers/getting-started.html).
+3. In the Imager's advanced options, pre-configure your username, Wi-Fi, and SSH key.
 
-    ![imager_setup](https://github.com/user-attachments/assets/7a4987b2-de83-41dd-ab7f-585259685f16)
-    > **Tip:** Configure the Raspberry Pi to connect to your phone's hotspot for easy access anywhere.
+> **Tip:** Configure Wi-Fi to connect to your phone's hotspot for easy field access.
 
-### Setup SSH (If not setup during the installation)
+### Setup SSH
 
-If you didn't enable SSH during the OS installation, you'll need a screen and keyboard for the initial boot.
+If SSH was not enabled during imaging, connect a screen and keyboard, then:
 
-1.  Connect to a Wi-Fi network.
-2.  Enable SSH using this guide: [Raspberry Pi Configuration](https://www.raspberrypi.com/documentation/computers/configuration.html#setting-up-wifi).
-
-Once SSH is enabled, you can connect to your Raspberry Pi remotely.
+1. Connect to a Wi-Fi network.
+2. Enable SSH: [Raspberry Pi SSH guide](https://www.raspberrypi.com/documentation/computers/configuration.html#setting-up-wifi).
 
 ### System Updates and Dependencies
 
-Update your system and install the required packages:
-
 ```bash
-sudo apt update
-sudo apt upgrade
-sudo apt install git python3-pip python3-virtualenvwrapper
-# Optional for camera support
-sudo apt install python3-picamzero
-```
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y git curl
 
-Add the following lines to the end of your `.bashrc` file to configure the virtual environment wrapper:
+# Install uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-```bash
-export WORKON_HOME=$HOME/.virtualenvs
-export PROJECT_HOME=$HOME/Devel
-source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
+# Optional: camera support
+sudo apt install -y python3-picamzero
 ```
 
 ### Enable I2C
 
-Use the Raspberry Pi configuration tool to enable I2C:
-`sudo raspi-config` -> `Interface Options` -> `I2C`
-
-*(TODO: Set to 400KHz?)*
+```bash
+sudo raspi-config
+# Interface Options → I2C → Enable
+```
 
 ### Set the USB Serial Latency Timer
 
-Create a udev rule to set the latency timer for the USB-to-serial adapter:
 ```bash
 sudo nano /etc/udev/rules.d/99-usb-serial.rules
 ```
-Add the following line to the file:
+
+Add:
 ```
 SUBSYSTEM=="usb-serial", DRIVER=="ftdi_sio", ATTR{latency_timer}="1"
 ```
@@ -89,106 +107,215 @@ SUBSYSTEM=="usb-serial", DRIVER=="ftdi_sio", ATTR{latency_timer}="1"
 
 *(TODO)*
 
+---
+
 ## Install the Runtime
 
-### Make a Virtual Environment and Activate it
-
-```bash
-mkvirtualenv -p python3 open-duck-mini-runtime
-workon open-duck-mini-runtime
-```
-
-### Install the Repository
-
-Clone the repository and install it in editable mode:
 ```bash
 git clone https://github.com/apirrone/Open_Duck_Mini_Runtime
 cd Open_Duck_Mini_Runtime
-pip install -e .
+uv sync
 ```
 
-**For Raspberry Pi 5:** You may need to replace the GPIO library.
+**Raspberry Pi 5 only** — replace the GPIO library after sync:
 ```bash
-pip uninstall -y RPi.GPIO
-pip install lgpio
+uv pip uninstall RPi.GPIO
+uv pip install lgpio
 ```
 
+---
 
-### Xbox One Controller Setup
+## Configuration
 
-1.  Turn on your Xbox One controller and put it in pairing mode by long-pressing the sync button.
-2.  On your Raspberry Pi, run the following commands:
-    ```bash
-    bluetoothctl
-    scan on
-    ```
-3.  Wait for the controller to appear, then pair, trust, and connect to it:
-    ```bash
-    pair <controller_mac_address>
-    trust <controller_mac_address>
-    connect <controller_mac_address>
-    ```
-    The controller's LED should stop blinking.
+### duck_config.json Reference
 
-4.  Test the connection:
-    ```bash
-    python3 src/open_duck_mini_runtime/xbox_controller.py
-    ```
+Copy the example config to your home directory:
+```bash
+cp example_config.json ~/duck_config.json
+```
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `start_paused` | bool | `false` | Start the walk loop in a paused state |
+| `imu_upside_down` | bool | `false` | Flip IMU orientation (robot upside-down mount) |
+| `phase_frequency_factor_offset` | float | `0.0` | Offset added to gait phase frequency |
+| `controller_type` | string | `"xbox"` | Which controller to use. See [Controller Types](#controller-types) |
+| `expression_features.enable_eyes` | bool | `false` | Enable NeoPixel eye LEDs |
+| `expression_features.enable_projector` | bool | `false` | Enable NeoPixel projector LED |
+| `expression_features.enable_sounds` | bool | `false` | Enable audio playback |
+| `expression_features.enable_antennas` | bool | `false` | Enable servo-driven antennas |
+| `joints_offset` | object | `{}` | Per-joint offset corrections (radians) |
+
+### Controller Types
+
+Set `"controller_type"` in `~/duck_config.json` to one of:
+
+| Value | Description |
+|---|---|
+| `"xbox"` | Xbox One / Xbox Series controller via Bluetooth |
+| `"dualsense"` | PlayStation 5 DualSense controller via Bluetooth or USB |
+| `"generic_usb"` | Any SDL2-compatible USB gamepad with a configurable axis/button map |
+| `"keyboard"` | WASD keyboard input via raw stdin — ideal for SSH sessions |
+
+### Generic USB Controller Mapping
+
+When using `"controller_type": "generic_usb"`, add an optional `generic_usb_controller` block to your config (defaults shown):
+
+```json
+{
+  "controller_type": "generic_usb",
+  "generic_usb_controller": {
+    "joystick_index": 0,
+    "axis_map": {
+      "left_x": 0,
+      "left_y": 1,
+      "right_x": 2,
+      "right_y": 3,
+      "left_trigger": 4,
+      "right_trigger": 5
+    },
+    "button_map": {
+      "A": 0,
+      "B": 1,
+      "X": 2,
+      "Y": 3,
+      "LB": 4,
+      "RB": 5
+    }
+  }
+}
+```
+
+---
 
 ## Hardware Configuration
 
-### Speaker Wiring and Configuration
-Follow this Adafruit tutorial for wiring the speaker: [Adafruit MAX98357 I2S Class-D Mono Amp](https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp?view=all).
+### Speaker Wiring
 
-> **Note:** For now, do not activate `/dev/zero` when prompted in the tutorial.
+Follow the [Adafruit MAX98357 I2S Class-D Mono Amp](https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp?view=all) tutorial for wiring.
+
+> **Note:** Do **not** activate `/dev/zero` when prompted by the tutorial.
+
+---
 
 ## Testing and Calibration
 
 ### Test the IMU
 
-Run a basic test to ensure the IMU is working:
 ```bash
+# Quick sanity check
 python3 src/open_duck_mini_runtime/raw_imu.py
+
+# Visualise IMU data (server on robot, client on your machine)
+python3 dev/hardware/imu_server.py                   # on the robot
+python3 dev/hardware/imu_client.py --ip <robot_ip>   # on your machine
 ```
 
-To visualize the IMU data, run the server on the robot and the client on your computer:
-```bash
-# On the robot
-python3 dev/hardware/imu_server.py
+Use `ifconfig` on the robot to find its IP address.
 
-# On your computer
-python3 dev/hardware/imu_client.py --ip <robot_ip>
-```
-> Use `ifconfig` on the robot to find its IP address.
+### Find Joint Offsets
 
-### Make your duck_config.json
+This script guides you through finding the correct resting-position offsets for each servo. Add the reported values to `~/duck_config.json` under `joints_offset`.
 
-Copy the example configuration file to your home directory and rename it:
-```bash
-cp example_config.json ~/duck_config.json
-```
-This file allows you to configure features like expressions, IMU orientation, and joint offsets.
-
-### Find the Joints Offsets
-
-This script helps you find the correct joint offsets for your robot. The offsets should be added to your `duck_config.json` file.
 ```bash
 python3 tools/find_soft_offsets.py
 ```
-> **Note:** This step will be replaced in the future by flashing offsets directly to each motor's EEPROM.
 
-## Run the walk !
+> **Note:** This step will eventually be replaced by flashing offsets into each motor's EEPROM.
 
-1.  Download the [latest policy checkpoint](https://github.com/apirrone/Open_Duck_Mini/blob/v2/BEST_WALK_ONNX_2.onnx).
-2.  Copy the checkpoint file to your duck's home directory.
-3.  Run the walk by just runnning `walk`. (run `walk -h` to see the possible command line arguments):
-    
+---
 
-## Controls
+## Running the Duck
 
--   **A**: Pause/Unpause
--   **X**: Turn on/off the projector
--   **B**: Play a random sound
--   **Y**: Turn on/off head control (experimental, use with caution)
--   **Left/Right Triggers**: Control the left and right antennas
--   **LB (Hold)**: Increase walking frequency (sprint mode)
+### Gamepad Walking
+
+Use an Xbox One, Xbox Series, or DualSense controller paired over Bluetooth (or DualSense via USB).
+
+```bash
+uv run walk                           # uses ~/duck_config.json
+uv run walk --help                    # show all options
+uv run walk --onnx_model_path /path/to/model.onnx
+```
+
+**Xbox One Controller Bluetooth Pairing**
+
+1. Long-press the sync button on the controller to enter pairing mode.
+2. On the Pi:
+   ```bash
+   bluetoothctl
+   scan on
+   # wait for your controller MAC to appear, then:
+   pair    <MAC>
+   trust   <MAC>
+   connect <MAC>
+   ```
+
+### SSH Keyboard Walking
+
+Walk the duck entirely over SSH — no Bluetooth controller required.
+
+```bash
+uv run walk-keyboard                  # uses ~/duck_config.json
+uv run walk-keyboard --help           # show all options
+```
+
+The terminal switches to raw mode while running. Press **Space** to pause, **Ctrl-C** to quit.
+
+---
+
+## Controls Reference
+
+### Xbox / DualSense Controls
+
+| Input | Action |
+|---|---|
+| **Left stick** | Forward / Back / Turn |
+| **Right stick X** | Strafe left / right |
+| **LB (hold)** | Sprint (increase walk frequency) |
+| **A** | Pause / Unpause |
+| **X** | Toggle projector |
+| **B** | Play a random sound |
+| **Y** | Toggle head control *(experimental)* |
+| **Left trigger** | Left antenna |
+| **Right trigger** | Right antenna |
+
+### Keyboard Controls (SSH)
+
+| Key | Action |
+|---|---|
+| **W / S** | Forward / Backward |
+| **A / D** | Turn left / Turn right |
+| **Q / E** | Strafe left / Strafe right |
+| **L (hold)** | Sprint (increase walk frequency) |
+| **Space** | Pause / Unpause |
+| **X** | Toggle projector |
+| **B** | Play a random sound |
+| **P** | Toggle head control *(experimental)* |
+
+---
+
+## Running Tests
+
+### Unit Tests (no hardware required)
+
+```bash
+uv run pytest
+```
+
+85 tests covering duck_config parsing, button state machine, keyboard controller commands, controller dispatch, RL utilities, and DualSense API parity. No connected robot needed.
+
+### Hardware Integration Tests
+
+These tests require the duck to be plugged in and powered on (`/dev/ttyACM0`).
+
+```bash
+uv run pytest -m hardware
+```
+
+Runs `tests/test_servo_presence.py`, which polls each of the 14 servos individually and reports any that do not respond.
+
+To explicitly exclude hardware tests during normal development:
+
+```bash
+uv run pytest -m "not hardware"
+```

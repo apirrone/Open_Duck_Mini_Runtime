@@ -7,7 +7,6 @@ from open_duck_mini_runtime.onnx_infer import OnnxInfer
 
 from open_duck_mini_runtime.raw_imu import Imu
 from open_duck_mini_runtime.poly_reference_motion import PolyReferenceMotion
-from open_duck_mini_runtime.xbox_controller import XBoxController
 from open_duck_mini_runtime.feet_contacts import FeetContacts
 from open_duck_mini_runtime.eyes import Eyes
 from open_duck_mini_runtime.sounds import Sounds
@@ -16,13 +15,12 @@ from open_duck_mini_runtime.projector import Projector
 from open_duck_mini_runtime.rl_utils import make_action_dict, LowPassActionFilter
 from open_duck_mini_runtime.duck_config import DuckConfig
 
-from importlib.resources import files
-import open_duck_mini_runtime
-
 import os
+from pathlib import Path
 
 HOME_DIR = os.path.expanduser("~")
-ASSETS_ROOT_PATH: str = str(files(open_duck_mini_runtime).joinpath("assets/"))
+# src/assets/ sits two levels above this file (src/open_duck_mini_runtime/walk.py)
+ASSETS_ROOT_PATH: str = str(Path(__file__).parent.parent / "assets")
 
 
 class RLWalk:
@@ -39,6 +37,7 @@ class RLWalk:
         save_obs=False,
         replay_obs=None,
         cutoff_frequency=None,
+        controller_type_override: str = None,
     ):
         self.duck_config = DuckConfig(config_json_path=duck_config_path)
 
@@ -99,7 +98,8 @@ class RLWalk:
 
         self.command_freq = 20  # hz
         if self.commands:
-            self.xbox_controller = XBoxController(self.command_freq)
+            ctype = controller_type_override or self.duck_config.controller_type
+            self.controller = self._make_controller(ctype)
 
         # Reference motion, but we only really need the length of one phase
         self.PRM = PolyReferenceMotion(
@@ -121,6 +121,22 @@ class RLWalk:
             self.sounds = Sounds(volume=1.0, sound_directory=ASSETS_ROOT_PATH)
         if self.duck_config.antennas:
             self.antennas = Antennas()
+
+    def _make_controller(self, controller_type: str):
+        """Instantiate the correct controller based on duck_config.controller_type."""
+        ctype = controller_type.lower()
+        if ctype == "dualsense":
+            from open_duck_mini_runtime.dualsense_controller import DualSenseController
+            return DualSenseController(self.command_freq)
+        elif ctype == "generic_usb":
+            from open_duck_mini_runtime.generic_usb_controller import GenericUSBController
+            return GenericUSBController(self.command_freq)
+        elif ctype == "keyboard":
+            from open_duck_mini_runtime.keyboard_controller import KeyboardController
+            return KeyboardController(self.command_freq)
+        else:  # default: "xbox"
+            from open_duck_mini_runtime.xbox_controller import XBoxController
+            return XBoxController(self.command_freq)
 
     def get_obs(self):
         imu_data = self.imu.get_data()
@@ -208,19 +224,8 @@ class RLWalk:
 
                 if self.commands:
                     self.last_commands, self.buttons, left_trigger, right_trigger = (
-                        self.xbox_controller.get_last_command()
+                        self.controller.get_last_command()
                     )
-                    if self.buttons.dpad_up.triggered:
-                        self.phase_frequency_factor_offset += 0.05
-                        print(
-                            f"Phase frequency factor offset {round(self.phase_frequency_factor_offset, 3)}"
-                        )
-
-                    if self.buttons.dpad_down.triggered:
-                        self.phase_frequency_factor_offset -= 0.05
-                        print(
-                            f"Phase frequency factor offset {round(self.phase_frequency_factor_offset, 3)}"
-                        )
 
                     if self.buttons.LB.is_pressed:
                         self.phase_frequency_factor = 1.3
