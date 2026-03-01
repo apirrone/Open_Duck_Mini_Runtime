@@ -140,7 +140,9 @@ class DualSenseController:
                 if self.p1.get_button(5):  # R1 button
                     self.r1_pressed = True
 
-                if self.p1.get_button(0):  # TODO: change to actual Options index once identified
+                if self.p1.get_button(
+                    0
+                ):  # TODO: change to actual Options index once identified
                     self.start_pressed = True
 
                 # Debug: uncomment to find the real button index for Options

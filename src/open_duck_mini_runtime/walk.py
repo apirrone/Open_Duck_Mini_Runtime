@@ -265,7 +265,9 @@ class RLWalk:
                             self.motors_enabled = False
                             self.paused = True
                         else:
-                            print("START pressed – turning motors ON and reinitialising")
+                            print(
+                                "START pressed – turning motors ON and reinitialising"
+                            )
                             self.start()
                             self.motors_enabled = True
                             self.paused = False
