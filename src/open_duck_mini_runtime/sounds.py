@@ -54,9 +54,20 @@ class Sounds:
 
 def main():
     parser = argparse.ArgumentParser(description="Step through sounds in assets/")
-    parser.add_argument("--auto", action="store_true", help="Automatically advance without waiting for Enter")
-    parser.add_argument("--delay", type=float, default=0.5, help="Delay between sounds when --auto is set")
-    parser.add_argument("--volume", type=float, default=1.0, help="Playback volume (0.0 - 1.0)")
+    parser.add_argument(
+        "--auto",
+        action="store_true",
+        help="Automatically advance without waiting for Enter",
+    )
+    parser.add_argument(
+        "--delay",
+        type=float,
+        default=0.5,
+        help="Delay between sounds when --auto is set",
+    )
+    parser.add_argument(
+        "--volume", type=float, default=1.0, help="Playback volume (0.0 - 1.0)"
+    )
     args = parser.parse_args()
 
     assets = find_assets_dir()

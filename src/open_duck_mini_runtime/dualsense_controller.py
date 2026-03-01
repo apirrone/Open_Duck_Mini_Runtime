@@ -5,7 +5,6 @@ import time
 import numpy as np
 from open_duck_mini_runtime.buttons import Buttons
 
-
 X_RANGE = [-0.15, 0.15]
 Y_RANGE = [-0.2, 0.2]
 YAW_RANGE = [-1.0, 1.0]
@@ -207,6 +206,7 @@ class DualSenseController:
             self.last_left_trigger,
             self.last_right_trigger,
         )
+
 
 if __name__ == "__main__":
     controller = DualSenseController(20)

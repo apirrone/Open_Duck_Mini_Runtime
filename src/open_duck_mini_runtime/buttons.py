@@ -80,6 +80,11 @@ if __name__ == "__main__":
             up_down == -1,
         )
 
-        print(buttons.dpad_up.triggered, buttons.dpad_up.is_pressed, buttons.dpad_down.triggered, buttons.dpad_down.is_pressed)
+        print(
+            buttons.dpad_up.triggered,
+            buttons.dpad_up.is_pressed,
+            buttons.dpad_down.triggered,
+            buttons.dpad_down.is_pressed,
+        )
 
         time.sleep(0.05)

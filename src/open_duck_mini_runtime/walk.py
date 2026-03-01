@@ -127,15 +127,21 @@ class RLWalk:
         ctype = controller_type.lower()
         if ctype == "dualsense":
             from open_duck_mini_runtime.dualsense_controller import DualSenseController
+
             return DualSenseController(self.command_freq)
         elif ctype == "generic_usb":
-            from open_duck_mini_runtime.generic_usb_controller import GenericUSBController
+            from open_duck_mini_runtime.generic_usb_controller import (
+                GenericUSBController,
+            )
+
             return GenericUSBController(self.command_freq)
         elif ctype == "keyboard":
             from open_duck_mini_runtime.keyboard_controller import KeyboardController
+
             return KeyboardController(self.command_freq)
         else:  # default: "xbox"
             from open_duck_mini_runtime.xbox_controller import XBoxController
+
             return XBoxController(self.command_freq)
 
     def get_obs(self):

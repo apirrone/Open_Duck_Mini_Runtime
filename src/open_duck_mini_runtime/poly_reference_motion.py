@@ -1,6 +1,7 @@
 import numpy as np
 import pickle
 
+
 class PolyReferenceMotion:
     def __init__(self, polynomial_coefficients: str):
         data = pickle.load(open(polynomial_coefficients, "rb"))

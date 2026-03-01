@@ -37,7 +37,6 @@ import numpy as np
 
 from open_duck_mini_runtime.buttons import Buttons
 
-
 X_RANGE = [-0.15, 0.15]
 Y_RANGE = [-0.2, 0.2]
 YAW_RANGE = [-1.0, 1.0]
@@ -140,17 +139,17 @@ class KeyboardController:
         ang_vel = 0.0
 
         if self._keys["w"].is_held():
-            lin_vel_x += X_RANGE[1]   # forward
+            lin_vel_x += X_RANGE[1]  # forward
         if self._keys["s"].is_held():
-            lin_vel_x += X_RANGE[0]   # backward
+            lin_vel_x += X_RANGE[0]  # backward
         if self._keys["q"].is_held():
-            lin_vel_y += Y_RANGE[1]   # strafe left
+            lin_vel_y += Y_RANGE[1]  # strafe left
         if self._keys["e"].is_held():
-            lin_vel_y += Y_RANGE[0]   # strafe right
+            lin_vel_y += Y_RANGE[0]  # strafe right
         if self._keys["a"].is_held():
-            ang_vel += YAW_RANGE[1]   # turn left
+            ang_vel += YAW_RANGE[1]  # turn left
         if self._keys["d"].is_held():
-            ang_vel += YAW_RANGE[0]   # turn right
+            ang_vel += YAW_RANGE[0]  # turn right
 
         # Clamp to valid ranges
         lin_vel_x = float(np.clip(lin_vel_x, X_RANGE[0], X_RANGE[1]))
@@ -187,16 +186,16 @@ class KeyboardController:
             X_pressed,
             Y_pressed,
             LB_pressed,
-            False,        # RB – not mapped
-            False,        # dpad_up
-            False,        # dpad_down
+            False,  # RB – not mapped
+            False,  # dpad_up
+            False,  # dpad_down
         )
 
         return (
             list(self.last_commands),
             self.buttons,
-            0.0,   # left_trigger  (not used with keyboard)
-            0.0,   # right_trigger (not used with keyboard)
+            0.0,  # left_trigger  (not used with keyboard)
+            0.0,  # right_trigger (not used with keyboard)
         )
 
     def stop(self) -> None:

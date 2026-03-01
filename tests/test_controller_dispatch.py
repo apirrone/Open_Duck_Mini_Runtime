@@ -8,11 +8,11 @@ All controller constructors are mocked so that no hardware is required.
 import pytest
 from unittest.mock import patch, MagicMock
 
-
 # ---------------------------------------------------------------------------
 # Helper: build a minimal RLWalk-like object with only the controller
 # factory method under test, without touching any hardware.
 # ---------------------------------------------------------------------------
+
 
 class _FakeRLWalk:
     """Minimal shim that exposes only _make_controller."""
@@ -25,21 +25,28 @@ class _FakeRLWalk:
         ctype = controller_type.lower()
         if ctype == "dualsense":
             from open_duck_mini_runtime.dualsense_controller import DualSenseController
+
             return DualSenseController(self.command_freq)
         elif ctype == "generic_usb":
-            from open_duck_mini_runtime.generic_usb_controller import GenericUSBController
+            from open_duck_mini_runtime.generic_usb_controller import (
+                GenericUSBController,
+            )
+
             return GenericUSBController(self.command_freq)
         elif ctype == "keyboard":
             from open_duck_mini_runtime.keyboard_controller import KeyboardController
+
             return KeyboardController(self.command_freq)
         else:
             from open_duck_mini_runtime.xbox_controller import XBoxController
+
             return XBoxController(self.command_freq)
 
 
 # ---------------------------------------------------------------------------
 # Controller dispatch per type
 # ---------------------------------------------------------------------------
+
 
 class TestControllerDispatch:
     def test_xbox_type(self):
@@ -50,14 +57,18 @@ class TestControllerDispatch:
             mock_cls.assert_called_once_with(20)
 
     def test_dualsense_type(self):
-        with patch("open_duck_mini_runtime.dualsense_controller.DualSenseController") as mock_cls:
+        with patch(
+            "open_duck_mini_runtime.dualsense_controller.DualSenseController"
+        ) as mock_cls:
             mock_cls.return_value = MagicMock()
             fw = _FakeRLWalk()
             fw._make_controller("dualsense")
             mock_cls.assert_called_once_with(20)
 
     def test_generic_usb_type(self):
-        with patch("open_duck_mini_runtime.generic_usb_controller.GenericUSBController") as mock_cls:
+        with patch(
+            "open_duck_mini_runtime.generic_usb_controller.GenericUSBController"
+        ) as mock_cls:
             mock_cls.return_value = MagicMock()
             fw = _FakeRLWalk()
             fw._make_controller("generic_usb")
@@ -68,6 +79,7 @@ class TestControllerDispatch:
             fw = _FakeRLWalk()
             controller = fw._make_controller("keyboard")
             from open_duck_mini_runtime.keyboard_controller import KeyboardController
+
             assert isinstance(controller, KeyboardController)
 
     def test_unknown_type_defaults_to_xbox(self):
@@ -78,7 +90,9 @@ class TestControllerDispatch:
             mock_cls.assert_called_once_with(20)
 
     def test_case_insensitive(self):
-        with patch("open_duck_mini_runtime.dualsense_controller.DualSenseController") as mock_cls:
+        with patch(
+            "open_duck_mini_runtime.dualsense_controller.DualSenseController"
+        ) as mock_cls:
             mock_cls.return_value = MagicMock()
             fw = _FakeRLWalk()
             fw._make_controller("DualSense")
@@ -91,7 +105,9 @@ class TestControllerDispatch:
             mock_cls.assert_called_once()
 
     def test_generic_usb_case_insensitive(self):
-        with patch("open_duck_mini_runtime.generic_usb_controller.GenericUSBController") as mock_cls:
+        with patch(
+            "open_duck_mini_runtime.generic_usb_controller.GenericUSBController"
+        ) as mock_cls:
             mock_cls.return_value = MagicMock()
             fw = _FakeRLWalk()
             fw._make_controller("Generic_USB")

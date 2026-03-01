@@ -28,7 +28,6 @@ import time
 import numpy as np
 from open_duck_mini_runtime.buttons import Buttons
 
-
 X_RANGE = [-0.15, 0.15]
 Y_RANGE = [-0.2, 0.2]
 YAW_RANGE = [-1.0, 1.0]
@@ -76,7 +75,12 @@ class GenericUSBController:
         }
     """
 
-    def __init__(self, command_freq: float, only_head_control: bool = False, config_overrides: dict = None):
+    def __init__(
+        self,
+        command_freq: float,
+        only_head_control: bool = False,
+        config_overrides: dict = None,
+    ):
         self.command_freq = command_freq
         self.head_control_mode = only_head_control
         self.only_head_control = only_head_control
@@ -172,9 +176,21 @@ class GenericUSBController:
             head_pitch = l_y
             head_roll = r_x
 
-            head_yaw *= np.abs(HEAD_YAW_RANGE[0]) if head_yaw >= 0 else np.abs(HEAD_YAW_RANGE[1])
-            head_pitch *= np.abs(HEAD_PITCH_RANGE[0]) if head_pitch >= 0 else np.abs(HEAD_PITCH_RANGE[1])
-            head_roll *= np.abs(HEAD_ROLL_RANGE[0]) if head_roll >= 0 else np.abs(HEAD_ROLL_RANGE[1])
+            head_yaw *= (
+                np.abs(HEAD_YAW_RANGE[0])
+                if head_yaw >= 0
+                else np.abs(HEAD_YAW_RANGE[1])
+            )
+            head_pitch *= (
+                np.abs(HEAD_PITCH_RANGE[0])
+                if head_pitch >= 0
+                else np.abs(HEAD_PITCH_RANGE[1])
+            )
+            head_roll *= (
+                np.abs(HEAD_ROLL_RANGE[0])
+                if head_roll >= 0
+                else np.abs(HEAD_ROLL_RANGE[1])
+            )
 
             last_commands[4] = head_pitch
             last_commands[5] = head_yaw

@@ -7,7 +7,7 @@ io = FeetechSTS3215IO("/dev/ttyACM0")
 
 # accelerations = [0, 10, 50, 100, 200, 255]
 accelerations = [0]
-switch=False
+switch = False
 # kps = [4, 8, 16, 32]
 # kds = [0, 4, 8, 16, 32]
 
@@ -96,5 +96,8 @@ for acceleration in accelerations:
 
             pickle.dump(
                 data,
-                open(f"data_{'switch_' if switch else ''}acceleration_{acceleration}_kp_{kp}_kd_{kd}.pkl", "wb"),
+                open(
+                    f"data_{'switch_' if switch else ''}acceleration_{acceleration}_kp_{kp}_kd_{kd}.pkl",
+                    "wb",
+                ),
             )

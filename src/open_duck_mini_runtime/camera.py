@@ -3,6 +3,7 @@ import cv2
 import base64
 import os
 
+
 class Cam:
     def __init__(self):
         self.cam = Camera()
@@ -16,8 +17,6 @@ class Cam:
         cv2.imwrite("/home/bdxv2/aze.jpg", im)
 
         return self.encode_image("/home/bdxv2/aze.jpg")
-
-
 
     # def encode_image(self, image):
     #     return base64.b64encode(image).decode("utf-8")

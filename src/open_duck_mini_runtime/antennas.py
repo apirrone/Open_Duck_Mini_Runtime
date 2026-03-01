@@ -19,8 +19,12 @@ def value_to_duty_cycle(v):
 class Antennas:
     def __init__(self):
         neutral_duty = value_to_duty_cycle(0)
-        self.pwm_left = pwmio.PWMOut(LEFT_ANTENNA_PIN, frequency=50, duty_cycle=neutral_duty)
-        self.pwm_right = pwmio.PWMOut(RIGHT_ANTENNA_PIN, frequency=50, duty_cycle=neutral_duty)
+        self.pwm_left = pwmio.PWMOut(
+            LEFT_ANTENNA_PIN, frequency=50, duty_cycle=neutral_duty
+        )
+        self.pwm_right = pwmio.PWMOut(
+            RIGHT_ANTENNA_PIN, frequency=50, duty_cycle=neutral_duty
+        )
 
     def set_position_left(self, position):
         self.set_position(self.pwm_left, position, LEFT_SIGN)
@@ -32,7 +36,9 @@ class Antennas:
         # if value == 0:
         #     return
         if -1 <= value <= 1:
-            duty_cycle = value_to_duty_cycle(value * sign) # Convert value to duty cycle (1ms-2ms)
+            duty_cycle = value_to_duty_cycle(
+                value * sign
+            )  # Convert value to duty cycle (1ms-2ms)
             pwm.duty_cycle = duty_cycle
         else:
             print("Invalid input! Enter a value between -1 and 1.")

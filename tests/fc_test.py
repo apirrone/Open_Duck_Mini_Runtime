@@ -9,7 +9,7 @@ import os
 from io import BytesIO
 import base64
 
-from v2_rl_walk_mujoco import RLWalk # TODO
+from v2_rl_walk_mujoco import RLWalk  # TODO
 from threading import Thread
 import cv2
 from open_duck_mini_runtime.camera import Cam
@@ -43,7 +43,6 @@ class Tools:
     #     url = f"http://s-nguyen.net:4444/images/{image_name}"
     #     os.system(command)
     #     return url
-
 
     def move_forward(self, seconds=2):
         seconds = max(2, min(seconds, 5))
@@ -93,6 +92,7 @@ class Tools:
     def play_happy_sound(self):
         self.rl_walk.sounds.play_happy()
         return "Played happy sound"
+
 
 # Tool instance
 tools_instance = Tools()
@@ -181,7 +181,7 @@ openai_tools = [
             "properties": {},
             # No required properties for playing a sound
         },
-    }
+    },
 ]
 
 # Mapping function names to actual methods

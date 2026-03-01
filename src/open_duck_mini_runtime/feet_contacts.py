@@ -5,6 +5,7 @@ import time
 LEFT_FOOT_PIN = board.D22
 RIGHT_FOOT_PIN = board.D27
 
+
 class FeetContacts:
     def __init__(self):
         self.left_foot = digitalio.DigitalInOut(LEFT_FOOT_PIN)
@@ -23,6 +24,7 @@ class FeetContacts:
     def stop(self):
         self.left_foot.deinit()
         self.right_foot.deinit()
+
 
 if __name__ == "__main__":
     feet_contacts = FeetContacts()

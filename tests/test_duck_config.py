@@ -6,10 +6,10 @@ import json
 import pytest
 from open_duck_mini_runtime.duck_config import DuckConfig
 
-
 # ---------------------------------------------------------------------------
 # Basic defaults
 # ---------------------------------------------------------------------------
+
 
 def test_duck_config_defaults(tmp_duck_config):
     cfg = DuckConfig(config_json_path=tmp_duck_config, ignore_default=True)
@@ -43,6 +43,7 @@ def test_duck_config_full(full_duck_config):
 # controller_type field
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.parametrize("ctype", ["xbox", "dualsense", "generic_usb", "keyboard"])
 def test_controller_type_parsed(tmp_path, ctype):
     cfg_data = {"controller_type": ctype}
@@ -64,6 +65,7 @@ def test_controller_type_defaults_to_xbox(tmp_path):
 # Missing config file → defaults
 # ---------------------------------------------------------------------------
 
+
 def test_duck_config_missing_file(tmp_path):
     nonexistent = str(tmp_path / "does_not_exist.json")
     cfg = DuckConfig(config_json_path=nonexistent, ignore_default=True)
@@ -75,6 +77,7 @@ def test_duck_config_missing_file(tmp_path):
 # ---------------------------------------------------------------------------
 # joints_offsets
 # ---------------------------------------------------------------------------
+
 
 def test_joints_offsets_parsed(full_duck_config):
     cfg = DuckConfig(config_json_path=full_duck_config, ignore_default=False)
@@ -94,7 +97,10 @@ def test_joints_offsets_default_zero(tmp_path):
 # Expression features
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("feature", ["eyes", "projector", "antennas", "speaker", "microphone", "camera"])
+
+@pytest.mark.parametrize(
+    "feature", ["eyes", "projector", "antennas", "speaker", "microphone", "camera"]
+)
 def test_expression_feature_individually(tmp_path, feature):
     cfg_data = {"expression_features": {feature: True}}
     p = tmp_path / "cfg.json"

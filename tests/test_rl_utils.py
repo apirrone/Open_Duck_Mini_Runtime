@@ -16,17 +16,29 @@ from open_duck_mini_runtime.rl_utils import (
     mujoco_joints_order,
 )
 
-
 # ---------------------------------------------------------------------------
 # make_action_dict
 # ---------------------------------------------------------------------------
 
+
 class TestMakeActionDict:
     _joints = [
-        "left_hip_yaw", "left_hip_roll", "left_hip_pitch", "left_knee", "left_ankle",
-        "neck_pitch", "head_pitch", "head_yaw", "head_roll",
-        "left_antenna", "right_antenna",
-        "right_hip_yaw", "right_hip_roll", "right_hip_pitch", "right_knee", "right_ankle",
+        "left_hip_yaw",
+        "left_hip_roll",
+        "left_hip_pitch",
+        "left_knee",
+        "left_ankle",
+        "neck_pitch",
+        "head_pitch",
+        "head_yaw",
+        "head_roll",
+        "left_antenna",
+        "right_antenna",
+        "right_hip_yaw",
+        "right_hip_roll",
+        "right_hip_pitch",
+        "right_knee",
+        "right_ankle",
     ]
 
     def test_antennas_excluded(self):
@@ -43,10 +55,26 @@ class TestMakeActionDict:
                 assert j in result
 
     def test_values_match_action(self):
-        action = np.array([1.0, 2.0, 3.0, 4.0, 5.0,
-                           6.0, 7.0, 8.0, 9.0,
-                           99.0, 99.0,
-                           10.0, 11.0, 12.0, 13.0, 14.0])
+        action = np.array(
+            [
+                1.0,
+                2.0,
+                3.0,
+                4.0,
+                5.0,
+                6.0,
+                7.0,
+                8.0,
+                9.0,
+                99.0,
+                99.0,
+                10.0,
+                11.0,
+                12.0,
+                13.0,
+                14.0,
+            ]
+        )
         result = make_action_dict(action, self._joints)
         assert result["left_hip_yaw"] == pytest.approx(1.0)
         assert result["right_ankle"] == pytest.approx(14.0)
@@ -59,6 +87,7 @@ class TestMakeActionDict:
 # ---------------------------------------------------------------------------
 # action_to_pd_targets
 # ---------------------------------------------------------------------------
+
 
 class TestActionToPDTargets:
     def test_basic(self):
@@ -78,6 +107,7 @@ class TestActionToPDTargets:
 # ---------------------------------------------------------------------------
 # LowPassActionFilter
 # ---------------------------------------------------------------------------
+
 
 class TestLowPassActionFilter:
     def test_alpha_in_valid_range(self):
@@ -115,6 +145,7 @@ class TestLowPassActionFilter:
 # ActionFilter (moving average)
 # ---------------------------------------------------------------------------
 
+
 class TestActionFilter:
     def test_average_over_window(self):
         f = ActionFilter(window_size=4)
@@ -135,6 +166,7 @@ class TestActionFilter:
 # ---------------------------------------------------------------------------
 # Joint order conversions (round-trip identity)
 # ---------------------------------------------------------------------------
+
 
 class TestJointOrderConversions:
     def test_isaac_mujoco_roundtrip(self):
@@ -158,6 +190,7 @@ class TestJointOrderConversions:
 # ---------------------------------------------------------------------------
 # quat_rotate_inverse
 # ---------------------------------------------------------------------------
+
 
 class TestQuatRotateInverse:
     def test_identity_quaternion(self):

@@ -1,4 +1,3 @@
-
 from open_duck_mini_runtime.raw_imu import Imu
 
 if __name__ == "__main__":

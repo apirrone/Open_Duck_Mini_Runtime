@@ -60,21 +60,17 @@ def test_servo_responds(servo_io, joint_name: str, joint_id: int):
     try:
         result = servo_io.read_present_position([joint_id])
     except Exception as exc:
-        pytest.fail(
-            f"Servo {joint_name!r} (ID {joint_id}) raised an exception: {exc}"
-        )
+        pytest.fail(f"Servo {joint_name!r} (ID {joint_id}) raised an exception: {exc}")
 
-    assert result is not None, (
-        f"Servo {joint_name!r} (ID {joint_id}) returned None"
-    )
-    assert len(result) == 1, (
-        f"Expected 1 position value for {joint_name!r} (ID {joint_id}), got {len(result)}"
-    )
+    assert result is not None, f"Servo {joint_name!r} (ID {joint_id}) returned None"
+    assert (
+        len(result) == 1
+    ), f"Expected 1 position value for {joint_name!r} (ID {joint_id}), got {len(result)}"
     position = float(result[0])
     # A sane present-position is roughly in [-2π, 2π] radians for these joints.
-    assert -10.0 <= position <= 10.0, (
-        f"Servo {joint_name!r} (ID {joint_id}) returned implausible position {position:.4f} rad"
-    )
+    assert (
+        -10.0 <= position <= 10.0
+    ), f"Servo {joint_name!r} (ID {joint_id}) returned implausible position {position:.4f} rad"
 
 
 @pytest.mark.hardware
@@ -90,7 +86,8 @@ def test_all_servos_present(servo_io):
         except Exception as exc:
             failed.append(f"{joint_name} (ID {joint_id}): {exc}")
 
-    assert not failed, (
-        f"{len(failed)}/{len(all_ids)} servo(s) did not respond:\n"
-        + "\n".join(f"  - {f}" for f in failed)
+    assert (
+        not failed
+    ), f"{len(failed)}/{len(all_ids)} servo(s) did not respond:\n" + "\n".join(
+        f"  - {f}" for f in failed
     )

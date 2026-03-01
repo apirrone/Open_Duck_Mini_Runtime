@@ -13,13 +13,13 @@ Hardware imports (``board`` / ``neopixel``) are deferred until the first
 imported on non-Raspberry-Pi machines (e.g. during unit tests or
 development on a laptop).
 """
+
 from __future__ import annotations
 
 import os
 import atexit
 from threading import Lock
 from typing import Tuple, Optional, Union
-
 
 # ---------------------------------------------------------------------------
 # Configuration constants (resolved at import time using only stdlib / env)
@@ -37,6 +37,7 @@ WHITE_MODE: str = os.getenv("ODUCK_LED_WHITE_MODE", "W").upper()
 # ---------------------------------------------------------------------------
 # LedController
 # ---------------------------------------------------------------------------
+
 
 class LedController:
     """Thread-safe NeoPixel manager for eyes and projector.
@@ -62,6 +63,7 @@ class LedController:
         order_name = _ORDER_NAME
         try:
             from open_duck_mini_runtime.duck_config import LED_ORDER as _cfg_order  # type: ignore
+
             if _cfg_order:
                 order_name = _cfg_order.upper()
         except Exception:
@@ -70,6 +72,7 @@ class LedController:
         white_mode = WHITE_MODE
         try:
             from open_duck_mini_runtime.duck_config import LED_WHITE_MODE as _cfg_wm  # type: ignore
+
             if _cfg_wm:
                 white_mode = _cfg_wm.upper()
         except Exception:

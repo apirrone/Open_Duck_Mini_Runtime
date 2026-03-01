@@ -16,10 +16,10 @@ from open_duck_mini_runtime.keyboard_controller import (
     YAW_RANGE,
 )
 
-
 # ---------------------------------------------------------------------------
 # _KeyState – per-key hold tracking
 # ---------------------------------------------------------------------------
+
 
 class TestKeyState:
     def test_not_held_before_press(self):
@@ -50,10 +50,12 @@ class TestKeyState:
 # KeyboardController – initialise with mocked thread
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def keyboard_ctrl():
     """Return a KeyboardController whose stdin thread is mocked out.
-    All button last_pressed_time values are pre-aged so trigger checks pass immediately."""
+    All button last_pressed_time values are pre-aged so trigger checks pass immediately.
+    """
     with patch("open_duck_mini_runtime.keyboard_controller.Thread") as mock_thread_cls:
         mock_thread_cls.return_value = MagicMock()
         ctrl = KeyboardController(command_freq=20)
@@ -66,6 +68,7 @@ def keyboard_ctrl():
 # ---------------------------------------------------------------------------
 # Movement command generation
 # ---------------------------------------------------------------------------
+
 
 class TestKeyboardControllerCommands:
     def test_idle_commands_are_zero(self, keyboard_ctrl):
@@ -125,6 +128,7 @@ class TestKeyboardControllerCommands:
 # Button events via event queue
 # ---------------------------------------------------------------------------
 
+
 class TestKeyboardControllerButtons:
     def test_space_triggers_A_button(self, keyboard_ctrl):
         keyboard_ctrl._event_queue.put(" ")
@@ -162,6 +166,7 @@ class TestKeyboardControllerButtons:
 # Commands list is always length 7
 # ---------------------------------------------------------------------------
 
+
 def test_commands_length(keyboard_ctrl):
     cmds, _, _, _ = keyboard_ctrl.get_last_command()
     assert len(cmds) == 7
@@ -170,6 +175,7 @@ def test_commands_length(keyboard_ctrl):
 # ---------------------------------------------------------------------------
 # print_controls – smoke test
 # ---------------------------------------------------------------------------
+
 
 def test_print_controls_does_not_raise(capsys):
     KeyboardController.print_controls()
