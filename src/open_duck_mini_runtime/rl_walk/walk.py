@@ -1,4 +1,4 @@
-import logging
+import threading
 import time
 import pickle
 
@@ -143,10 +143,44 @@ class RLWalk:
         if self.duck_config.antennas:
             self.antennas = Antennas()
 
-    @staticmethod
-    def _ec(color):
-        """Normalize an eye color from config (list or string) to what Eyes.set_color accepts."""
-        return tuple(color) if isinstance(color, list) else color
+        # Shared telemetry for the TUI — updated each control-loop iteration.
+        self.telemetry: dict = {
+            "state": "initializing",
+            "hz": 0.0,
+            "paused": self.paused,
+            "motors_enabled": True,
+            "imu": {"gyro": [0.0, 0.0, 0.0], "accel": [0.0, 0.0, 0.0]},
+            "motor_names": list(self.hwi.joints.keys()),
+            "motor_targets": list(self.motor_targets),
+            "motor_positions": [0.0] * self.num_dofs,
+            "motor_velocities": [0.0] * self.num_dofs,
+            "feet_contacts": [False, False],
+            "phase": 0.0,
+            "commands": list(self.last_commands),
+        }
+        self._telem_lock = threading.Lock()
+
+    def _make_controller(self, controller_type: str):
+        """Instantiate the correct controller based on duck_config.controller_type."""
+        ctype = controller_type.lower()
+        if ctype == "dualsense":
+            from open_duck_mini_runtime.dualsense_controller import DualSenseController
+
+            return DualSenseController(self.command_freq)
+        elif ctype == "generic_usb":
+            from open_duck_mini_runtime.generic_usb_controller import (
+                GenericUSBController,
+            )
+
+            return GenericUSBController(self.command_freq)
+        elif ctype == "keyboard":
+            from open_duck_mini_runtime.keyboard_controller import KeyboardController
+
+            return KeyboardController(self.command_freq)
+        else:  # default: "xbox"
+            from open_duck_mini_runtime.xbox_controller import XBoxController
+
+            return XBoxController(self.command_freq)
 
     def get_obs(self):
 
@@ -377,8 +411,11 @@ class RLWalk:
                         self.eyes.set_color(self._ec(self.duck_config.eye_color_off))
 
                 if self.paused:
-                    if self.motors_enabled and self.duck_config.fall_detection:
-                        self._update_fall_calibration()
+                    with self._telem_lock:
+                        self.telemetry["state"] = "paused"
+                        self.telemetry["paused"] = True
+                        self.telemetry["motors_enabled"] = self.motors_enabled
+                        self.telemetry["commands"] = list(self.last_commands)
                     time.sleep(0.1)
                     continue
 
@@ -454,7 +491,25 @@ class RLWalk:
                 i += 1
 
                 took = time.time() - t
-                logger.trace("Loop %d: %.4fs (%.1f Hz)", i, took, 1 / took if took else 0)
+
+                with self._telem_lock:
+                    self.telemetry.update({
+                        "state": "walking",
+                        "hz": round(1.0 / max(took, 1e-6), 1),
+                        "paused": False,
+                        "motors_enabled": self.motors_enabled,
+                        "imu": {
+                            "gyro": imu_data["gyro"].tolist(),
+                            "accel": imu_data["accelero"].tolist(),
+                        },
+                        "motor_targets": self.motor_targets.tolist(),
+                        "motor_positions": list(dof_pos),
+                        "motor_velocities": list(dof_vel),
+                        "feet_contacts": list(feet_contacts),
+                        "phase": float(self.imitation_i),
+                        "commands": list(self.last_commands),
+                    })
+                # print("Full loop took", took, "fps : ", np.around(1 / took, 2))
                 if (1 / self.control_freq - took) < 0:
                     logger.debug(
                         "Control budget exceeded by %.3fs", took - 1 / self.control_freq

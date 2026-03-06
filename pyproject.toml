@@ -24,16 +24,17 @@ dependencies = [
     "pygame==2.6.0",
     "pypot @ git+https://github.com/pollen-robotics/pypot@support-feetech-sts3215",
     "openai==1.70.0",
-    "pigpio>=1.78",
+    "textual>=0.80",
+    "textual-serve>=0.2",
 ]
 
 [project.urls]
 Homepage = "https://github.com/apirrone/Open_Duck_Mini_Runtime"
 
 [project.scripts]
-walk = "open_duck_mini_runtime.rl_walk.walk:main"
-walk-keyboard = "open_duck_mini_runtime.rl_walk.walk_keyboard:main"
-walk-watchdog = "open_duck_mini_runtime.watchdog:main"
+walk = "open_duck_mini_runtime.walk_tui:main"
+walk-keyboard = "open_duck_mini_runtime.walk_keyboard:main"
+walk-serve = "open_duck_mini_runtime.walk_tui:serve_main"
 
 [dependency-groups]
 dev = [
