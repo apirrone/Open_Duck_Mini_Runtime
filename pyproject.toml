@@ -35,6 +35,8 @@ Homepage = "https://github.com/apirrone/Open_Duck_Mini_Runtime"
 walk = "open_duck_mini_runtime.walk_tui:main"
 walk-keyboard = "open_duck_mini_runtime.walk_keyboard:main"
 walk-serve = "open_duck_mini_runtime.walk_tui:serve_main"
+test-hardware = "open_duck_mini_runtime.test_hardware:main"
+test-hw = "open_duck_mini_runtime.hardware_tui:main"
 
 [dependency-groups]
 dev = [

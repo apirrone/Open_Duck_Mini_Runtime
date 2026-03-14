@@ -16,10 +16,22 @@
 in {
   # ── Hardware interfaces ────────────────────────────────────────────────────
 
-  # Enable I2C via device tree parameter (needed for BNO055 IMU on /dev/i2c-1)
+  # Enable I2C, SPI, and I2S via device tree parameters.
+  # I2C:  BNO055 IMU on /dev/i2c-1
+  # SPI:  NeoPixel LED strip
+  # I2S:  Adafruit MAX98357A mono amp (dtoverlay=max98357a required)
   hardware.raspberry-pi.config.all.base-dt-params = {
     i2c_arm = {enable = true; value = "on";};
     spi     = {enable = true; value = "on";};
+    i2s     = {enable = true; value = "on";};
+  };
+
+  # I2S amp overlay for Adafruit MAX98357A.
+  # See: https://learn.adafruit.com/adafruit-max98357-i2s-class-d-mono-amp/raspberry-pi-usage
+  # If this attribute path is invalid for your nixos-raspberrypi version, replace with:
+  #   boot.kernelParams = [ "dtparam=i2s=on" "dtoverlay=max98357a" ];
+  hardware.raspberry-pi.config.all.dt-overlays = {
+    max98357a = {enable = true;};
   };
 
   # Load kernel modules so /dev/i2c-* and /dev/spidev* get character devices
@@ -78,8 +90,19 @@ in {
   };
 
   # ── Python runtime ─────────────────────────────────────────────────────────
-  # The virtualenv is installed system-wide. Entry points `walk` and
-  # `walk-keyboard` are available on PATH from runtimeEnv/bin/.
+  # The virtualenv is installed system-wide. Entry points `walk`,
+  # `walk-keyboard`, `test-hardware`, and `test-hw` are available on PATH
+  # from runtimeEnv/bin/.
+  #
+  # Run `test-hw` for the interactive Textual TUI (select and test each
+  # hardware subsystem independently with live feedback):
+  #   test-hw
+  #
+  # Or use the non-interactive CLI to run all tests in sequence:
+  #   test-hardware                  # full suite, no servo motion
+  #   test-hardware --no-move        # explicit safe mode (same as default)
+  #   test-hardware --skip-sounds    # skip if no speaker attached
+  #   test-hardware --skip-servos    # skip if motor controller not connected
   #
   # Pi 5 note: uv.lock pins RPi.GPIO which doesn't support Pi 5 kernel.
   # If using foot contact sensors on Pi 5, install lgpio separately:
@@ -97,6 +120,7 @@ in {
     htop
     python3
     i2c-tools
+    alsa-utils  # aplay / amixer — useful for debugging I2S audio
     minicom
     usbutils
     pciutils
