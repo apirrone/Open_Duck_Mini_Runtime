@@ -42,6 +42,7 @@ class Imu:
             adafruit_bno055.AXIS_REMAP_NEGATIVE,
             adafruit_bno055.AXIS_REMAP_POSITIVE,
             adafruit_bno055.AXIS_REMAP_POSITIVE,
+        )
         # if upside_down:
             # self.imu.axis_remap = (
                 # adafruit_bno055.AXIS_REMAP_Y,
