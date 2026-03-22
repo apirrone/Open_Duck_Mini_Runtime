@@ -5,7 +5,7 @@ import numpy as np
 from mini_bdx_runtime.rustypot_position_hwi import HWI
 from mini_bdx_runtime.onnx_infer import OnnxInfer
 
-from mini_bdx_runtime.raw_imu import Imu
+from mini_bdx_runtime.imu import Imu
 from mini_bdx_runtime.poly_reference_motion import PolyReferenceMotion
 from mini_bdx_runtime.xbox_controller import XBoxController
 from mini_bdx_runtime.feet_contacts import FeetContacts
@@ -29,7 +29,7 @@ class RLWalk:
         serial_port: str = "/dev/ttyACM0",
         control_freq: float = 50,
         pid=[30, 0, 0],
-        action_scale=0.25,
+        action_scale=1.0,
         commands=False,
         pitch_bias=0,
         save_obs=False,
@@ -161,7 +161,7 @@ class RLWalk:
         1. base_ang_vel (gyro) - 3D
         2. projected_gravity - 3D
         3. joint_pos (relative to init_pos) - 14D
-        4. joint_vel - 14D
+        4. joint_vel (raw rad/s) - 14D
         5. actions (last action) - 14D
         6. command (velocity only) - 3D
         """
@@ -193,7 +193,7 @@ class RLWalk:
             return None
 
         # Compute projected gravity from IMU quaternion
-        # raw_imu returns quaternion in [w, x, y, z] format (scalar first) from BNO055
+        # imu returns quaternion in [w, x, y, z] format (scalar first), pitch-bias corrected
         projected_gravity = None
 
         if "quaternion" in imu_data and imu_data["quaternion"] is not None:
@@ -206,15 +206,8 @@ class RLWalk:
                     print(f"[WARNING] Failed to compute projected gravity from quaternion: {e}")
 
         if projected_gravity is None:
-            # Fallback: use normalized accelerometer as projected gravity
-            # When robot is not accelerating, accelerometer reads gravity
-            accelero = imu_data["accelero"]
-            norm = np.linalg.norm(accelero)
-            if norm > 0.1:
-                projected_gravity = accelero / norm
-            else:
-                # Last resort: assume upright
-                projected_gravity = np.array([0.0, 0.0, -1.0], dtype=np.float32)
+            # Fallback: assume upright
+            projected_gravity = np.array([0.0, 0.0, -1.0], dtype=np.float32)
 
         # Base angular velocity from gyro
         gyro = imu_data["gyro"]
@@ -228,7 +221,7 @@ class RLWalk:
                 gyro,                           # 3D - base angular velocity
                 projected_gravity,              # 3D - projected gravity
                 dof_pos - self.init_pos,        # 14D - joint positions (relative)
-                dof_vel * 0.05,                 # 14D - joint velocities (scaled)
+                dof_vel,                        # 14D - joint velocities
                 self.last_action,               # 14D - last action
                 velocity_command,               # 3D - velocity command
             ]
@@ -415,7 +408,7 @@ if __name__ == "__main__":
         required=False,
         default=f"{HOME_DIR}/duck_config.json",
     )
-    parser.add_argument("-a", "--action_scale", type=float, default=0.25)
+    parser.add_argument("-a", "--action_scale", type=float, default=1.0)
     parser.add_argument("-p", type=int, default=30)
     parser.add_argument("-i", type=int, default=0)
     parser.add_argument("-d", type=int, default=0)

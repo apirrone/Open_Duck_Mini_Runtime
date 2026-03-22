@@ -94,20 +94,20 @@ class Imu:
             print("imu_calib_data.pkl not found")
             print("Imu is running uncalibrated")
 
-        self.last_imu_data = [0, 0, 0, 0]
+        self.last_imu_data = {
+            "quaternion": np.array([1.0, 0.0, 0.0, 0.0], dtype=np.float32),  # [w, x, y, z]
+            "gyro": np.zeros(3, dtype=np.float32),
+        }
         self.imu_queue = Queue(maxsize=1)
         Thread(target=self.imu_worker, daemon=True).start()
-
-    def convert_axes(self, euler):
-        euler = [np.pi + euler[1], euler[0], euler[2]]
-        return euler
 
     def imu_worker(self):
         while True:
             s = time.time()
             try:
-                # imu returns scalar first
-                raw_orientation = np.array(self.imu.quaternion).copy()  # quat
+                # imu returns scalar first [w, x, y, z]
+                raw_orientation = np.array(self.imu.quaternion).copy()
+                gyro = np.array(self.imu.gyro, dtype=np.float32).copy()
                 euler = (
                     R.from_quat(raw_orientation, scalar_first=True)
                     .as_euler("xyz")
@@ -117,35 +117,26 @@ class Imu:
                 print("[IMU]:", e)
                 continue
 
-            # Converting to correct axes
-            # euler = self.convert_axes(euler)
             euler[1] -= np.deg2rad(self.pitch_bias)
-            # euler[2] = 0  # ignoring yaw
 
-            # gives scalar last, which is what isaac wants
-            final_orientation_quat = R.from_euler("xyz", euler).as_quat()
+            # Convert back to quaternion in scalar-first [w, x, y, z] format
+            quat_scalar_last = R.from_euler("xyz", euler).as_quat()  # [x, y, z, w]
+            quat_scalar_first = np.array(
+                [quat_scalar_last[3], quat_scalar_last[0], quat_scalar_last[1], quat_scalar_last[2]],
+                dtype=np.float32,
+            )
 
-            self.imu_queue.put(final_orientation_quat.copy())
+            self.imu_queue.put({"quaternion": quat_scalar_first, "gyro": gyro})
             took = time.time() - s
             time.sleep(max(0, 1 / self.sampling_freq - took))
 
-    def get_data(self, euler=False, mat=False):
+    def get_data(self):
         try:
             self.last_imu_data = self.imu_queue.get(False)  # non blocking
         except Exception:
             pass
 
-        try:
-            if not euler and not mat:
-                return self.last_imu_data
-            elif euler:
-                return R.from_quat(self.last_imu_data).as_euler("xyz")
-            elif mat:
-                return R.from_quat(self.last_imu_data).as_matrix()
-
-        except Exception as e:
-            print("[IMU]: ", e)
-            return None
+        return self.last_imu_data
 
 
 if __name__ == "__main__":
@@ -153,8 +144,7 @@ if __name__ == "__main__":
     # imu = Imu(50, upside_down=False)
     while True:
         data = imu.get_data()
-        # print(data)
         print("gyro", np.around(data["gyro"], 3))
-        print("accelero", np.around(data["accelero"], 3))
+        print("quaternion", np.around(data["quaternion"], 3))
         print("---")
         time.sleep(1 / 25)
