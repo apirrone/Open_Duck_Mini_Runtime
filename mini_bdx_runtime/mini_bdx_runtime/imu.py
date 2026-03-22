@@ -35,24 +35,31 @@ class Imu:
         # self.imu.mode = adafruit_bno055.NDOF_MODE
         # self.imu.mode = adafruit_bno055.NDOF_FMC_OFF_MODE
 
-        if upside_down:
-            self.imu.axis_remap = (
-                adafruit_bno055.AXIS_REMAP_Y,
-                adafruit_bno055.AXIS_REMAP_X,
-                adafruit_bno055.AXIS_REMAP_Z,
-                adafruit_bno055.AXIS_REMAP_NEGATIVE,
-                adafruit_bno055.AXIS_REMAP_NEGATIVE,
-                adafruit_bno055.AXIS_REMAP_NEGATIVE,
-            )
-        else:
-            self.imu.axis_remap = (
-                adafruit_bno055.AXIS_REMAP_Y,
-                adafruit_bno055.AXIS_REMAP_X,
-                adafruit_bno055.AXIS_REMAP_Z,
-                adafruit_bno055.AXIS_REMAP_NEGATIVE,
-                adafruit_bno055.AXIS_REMAP_POSITIVE,
-                adafruit_bno055.AXIS_REMAP_POSITIVE,
-            )
+        self.imu.axis_remap = (
+            adafruit_bno055.AXIS_REMAP_Y,
+            adafruit_bno055.AXIS_REMAP_X,
+            adafruit_bno055.AXIS_REMAP_Z,
+            adafruit_bno055.AXIS_REMAP_NEGATIVE,
+            adafruit_bno055.AXIS_REMAP_POSITIVE,
+            adafruit_bno055.AXIS_REMAP_POSITIVE,
+        # if upside_down:
+            # self.imu.axis_remap = (
+                # adafruit_bno055.AXIS_REMAP_Y,
+                # adafruit_bno055.AXIS_REMAP_X,
+                # adafruit_bno055.AXIS_REMAP_Z,
+                # adafruit_bno055.AXIS_REMAP_NEGATIVE,
+                # adafruit_bno055.AXIS_REMAP_NEGATIVE,
+                # adafruit_bno055.AXIS_REMAP_NEGATIVE,
+            # )
+        # else:
+            # self.imu.axis_remap = (
+                # adafruit_bno055.AXIS_REMAP_Y,
+                # adafruit_bno055.AXIS_REMAP_X,
+                # adafruit_bno055.AXIS_REMAP_Z,
+                # adafruit_bno055.AXIS_REMAP_NEGATIVE,
+                # adafruit_bno055.AXIS_REMAP_POSITIVE,
+                # adafruit_bno055.AXIS_REMAP_POSITIVE,
+            # )
 
         self.pitch_bias = self.nominal_pitch_bias + self.user_pitch_bias
 
@@ -81,7 +88,7 @@ class Imu:
             print("Saved", "imu_calib_data.pkl")
             exit()
 
-        if os.path.exists("imu_calib_data.pkl"):
+        if False and os.path.exists("imu_calib_data.pkl"):
             imu_calib_data = pickle.load(open("imu_calib_data.pkl", "rb"))
             self.imu.mode = adafruit_bno055.CONFIG_MODE
             time.sleep(0.1)
