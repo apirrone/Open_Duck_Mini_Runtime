@@ -101,6 +101,7 @@ class LedController:
         self.RED = (255, 0, 0, 0)
         self.GREEN = (0, 255, 0, 0)
         self.BLUE = (0, 0, 255, 0)
+        self.YELLOW = (255, 200, 0, 0)
 
         self._named_colors = {
             "off": self.OFF,
@@ -108,6 +109,7 @@ class LedController:
             "red": self.RED,
             "green": self.GREEN,
             "blue": self.BLUE,
+            "yellow": self.YELLOW,
         }
 
         # On/off state (independent of colour)

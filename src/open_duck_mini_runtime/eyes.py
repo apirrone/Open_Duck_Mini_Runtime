@@ -13,10 +13,9 @@ class Eyes:
         self.min_interval = min_interval
         self.max_interval = max_interval
 
-        # Ensure eyes start ON to mimic previous behavior
+        self._solid = False  # when True, blink thread holds eyes on
 
         self.ctrl.set_eyes_color("white")
-
         self.ctrl.set_eyes(True)
 
         self._stop_event = Event()
@@ -26,9 +25,23 @@ class Eyes:
     def _set_eyes(self, state: bool):
         self.ctrl.set_eyes(state)
 
+    def set_color(self, color: str) -> None:
+        """Change eye color without stopping the blink thread."""
+        self.ctrl.set_eyes_color(color)
+        self.ctrl.set_eyes(True)
+
+    def set_solid(self, solid: bool) -> None:
+        """When solid=True, suppress blinking (eyes stay on)."""
+        self._solid = solid
+        if solid:
+            self.ctrl.set_eyes(True)
+
     def run(self):
         try:
             while not self._stop_event.is_set():
+                if self._solid:
+                    self._stop_event.wait(0.1)
+                    continue
                 self._set_eyes(False)
                 if self._stop_event.wait(self.blink_duration):
                     break
@@ -44,7 +57,6 @@ class Eyes:
         self._stop_event.set()
         self._thread.join()
         self._set_eyes(False)
-        # deinit controller
         self.ctrl.deinit()
 
 

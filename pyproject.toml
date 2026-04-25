@@ -23,6 +23,7 @@ dependencies = [
     "pygame==2.6.0",
     "pypot @ git+https://github.com/pollen-robotics/pypot@support-feetech-sts3215",
     "openai==1.70.0",
+    "pigpio>=1.78",
 ]
 
 [project.urls]

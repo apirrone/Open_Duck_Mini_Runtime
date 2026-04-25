@@ -2,6 +2,7 @@ import argparse
 import random
 import time
 from pathlib import Path
+from threading import Thread
 
 import pygame
 
@@ -28,6 +29,11 @@ def play_sound(path: Path, volume: float = 1.0) -> None:
         time.sleep(0.05)
 
 
+def play_sound_async(path: Path, volume: float = 1.0) -> None:
+    """Start sound playback in a daemon thread so it never blocks the caller."""
+    Thread(target=play_sound, args=(path, volume), daemon=True).start()
+
+
 class Sounds:
     """High-level sound manager used by :class:`~open_duck_mini_runtime.walk.RLWalk`."""
 
@@ -39,17 +45,20 @@ class Sounds:
             assets = find_assets_dir()
         self.wav_files: list[Path] = list_wavs(assets)
         if not pygame.mixer.get_init():
+            # Default to ALSA so SDL routes through /etc/asound.conf to the
+            # MAX98357A. walk_keyboard.py pre-sets this to "dummy" for SSH
+            # sessions without audio hardware, and that value is respected here.
             pygame.mixer.init()
 
     def play_random_sound(self) -> None:
         if not self.wav_files:
             return
         path = random.choice(self.wav_files)
-        play_sound(path, volume=self.volume)
+        play_sound_async(path, volume=self.volume)
 
     def play_sound(self, index: int) -> None:
         if 0 <= index < len(self.wav_files):
-            play_sound(self.wav_files[index], volume=self.volume)
+            play_sound_async(self.wav_files[index], volume=self.volume)
 
 
 def main():

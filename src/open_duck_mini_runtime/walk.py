@@ -255,8 +255,14 @@ class RLWalk:
                         self.paused = not self.paused
                         if self.paused:
                             print("PAUSE")
+                            if self.duck_config.eyes:
+                                self.eyes.set_solid(False)
+                                self.eyes.set_color("yellow")
                         else:
                             print("UNPAUSE")
+                            if self.duck_config.eyes:
+                                self.eyes.set_solid(False)
+                                self.eyes.set_color("white")
 
                     if self.buttons.START.triggered:
                         if self.motors_enabled:
@@ -264,6 +270,9 @@ class RLWalk:
                             self.hwi.turn_off()
                             self.motors_enabled = False
                             self.paused = True
+                            if self.duck_config.eyes:
+                                self.eyes.set_solid(True)
+                                self.eyes.set_color("red")
                         else:
                             print(
                                 "START pressed – turning motors ON and reinitialising"
@@ -272,6 +281,9 @@ class RLWalk:
                             self.motors_enabled = True
                             self.paused = False
                             start_t = time.time()  # reset action-filter warmup timer
+                            if self.duck_config.eyes:
+                                self.eyes.set_solid(False)
+                                self.eyes.set_color("white")
 
                 if self.paused:
                     time.sleep(0.1)
