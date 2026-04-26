@@ -4,6 +4,11 @@ import os
 
 HOME_DIR = os.path.expanduser("~")
 
+# some neopixels are GRBW, some are RGBW, some are RGB...
+# fill in the order of whatever you picked here
+LED_ORDER: str = os.getenv("ODUCK_LED_ORDER", "GRBW").upper()
+LED_WHITE_MODE: str = os.getenv("ODUCK_LED_WHITE_MODE", "W").upper()
+
 
 class DuckConfig:
 
@@ -64,6 +69,8 @@ class DuckConfig:
         self.speaker = expression_features.get("speaker", False)
         self.microphone = expression_features.get("microphone", False)
         self.camera = expression_features.get("camera", False)
+
+        self.led_order = self.json_config.get("led_order", "GRBW")
 
         # default joints offsets are 0.0
         self.joints_offset = self.json_config.get(

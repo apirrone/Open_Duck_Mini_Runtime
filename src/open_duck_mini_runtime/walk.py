@@ -116,6 +116,9 @@ class RLWalk:
         # Optional expression features
         if self.duck_config.eyes:
             self.eyes = Eyes()
+            if self.paused:
+                self.eyes.set_solid(False)
+                self.eyes.set_color("yellow")
         if self.duck_config.projector:
             self.projector = Projector()
         if self.duck_config.speaker:
