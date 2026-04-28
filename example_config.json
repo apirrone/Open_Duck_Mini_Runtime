@@ -3,6 +3,7 @@
     "imu_upside_down": false,
     "phase_frequency_factor_offset": 0.0,
     "controller_type": "xbox",
+    "_controller_type_options": "xbox | dualsense | 8bitdo | generic_usb | keyboard",
     "expression_features": {
         "eyes": false,
         "projector": false,
@@ -10,6 +11,27 @@
         "speaker": false,
         "microphone": false,
         "camera": false
+    },
+    "_generic_usb_controller_comment": "Optional: override axis/button indices for generic_usb or 8bitdo controller types. Run controller_info.py to identify indices.",
+    "generic_usb_controller": {
+        "joystick_index": 0,
+        "axis_map": {
+            "left_x": 0,
+            "left_y": 1,
+            "right_x": 2,
+            "right_y": 3,
+            "left_trigger": 4,
+            "right_trigger": 5
+        },
+        "button_map": {
+            "A": 0,
+            "B": 1,
+            "X": 2,
+            "Y": 3,
+            "LB": 4,
+            "RB": 5,
+            "START": 7
+        }
     },
     "joints_offsets": {
         "left_hip_yaw": 0.0,

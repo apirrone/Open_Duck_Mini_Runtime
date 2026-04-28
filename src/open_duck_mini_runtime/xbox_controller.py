@@ -117,30 +117,32 @@ class XBoxController:
             last_commands[5] = head_yaw
             last_commands[6] = head_roll
 
+        n_buttons = self.p1.get_numbuttons()
+
         for event in pygame.event.get():
             if event.type == pygame.JOYBUTTONDOWN:
 
-                if self.p1.get_button(0):  # A button
+                if n_buttons > 0 and self.p1.get_button(0):  # A button
                     self.A_pressed = True
 
-                if self.p1.get_button(1):  # B button
+                if n_buttons > 1 and self.p1.get_button(1):  # B button
                     self.B_pressed = True
 
-                if self.p1.get_button(3):  # X button
+                if n_buttons > 3 and self.p1.get_button(3):  # X button
                     self.X_pressed = True
 
-                if self.p1.get_button(4):  # Y button
+                if n_buttons > 4 and self.p1.get_button(4):  # Y button
                     self.Y_pressed = True
                     if not self.only_head_control:
                         self.head_control_mode = not self.head_control_mode
 
-                if self.p1.get_button(6):  # LB button
+                if n_buttons > 6 and self.p1.get_button(6):  # LB button
                     self.LB_pressed = True
 
-                if self.p1.get_button(7):  # RB button
+                if n_buttons > 7 and self.p1.get_button(7):  # RB button
                     self.RB_pressed = True
 
-                if self.p1.get_button(11):  # Start / Menu button
+                if n_buttons > 11 and self.p1.get_button(11):  # Start / Menu button
                     self.start_pressed = True
 
             if event.type == pygame.JOYBUTTONUP:
@@ -152,11 +154,7 @@ class XBoxController:
                 self.RB_pressed = False
                 self.start_pressed = False
 
-            # for i in range(self.p1.get_numbuttons()):
-            #     if self.p1.get_button(i):
-            #         print(f"Button {i} pressed")
-
-        up_down = self.p1.get_hat(0)[1]
+        up_down = self.p1.get_hat(0)[1] if self.p1.get_numhats() > 0 else 0
         pygame.event.pump()  # process event queue
 
         return (

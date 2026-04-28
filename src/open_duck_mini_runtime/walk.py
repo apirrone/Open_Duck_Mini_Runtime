@@ -138,7 +138,39 @@ class RLWalk:
                 GenericUSBController,
             )
 
-            return GenericUSBController(self.command_freq)
+            cfg_overrides = self.duck_config.json_config.get(
+                "generic_usb_controller", {}
+            )
+            return GenericUSBController(self.command_freq, config_overrides=cfg_overrides)
+        elif ctype == "8bitdo":
+            from open_duck_mini_runtime.generic_usb_controller import (
+                GenericUSBController,
+            )
+
+            _8BITDO_PRESET = {
+                "axis_map": {
+                    "left_x": 0,
+                    "left_y": 1,
+                    "right_x": 2,
+                    "right_y": 3,
+                    "left_trigger": 4,
+                    "right_trigger": 5,
+                },
+                "button_map": {"A": 0, "B": 1, "X": 2, "Y": 3, "LB": 4, "RB": 5, "START": 7},
+            }
+            user_overrides = self.duck_config.json_config.get(
+                "generic_usb_controller", {}
+            )
+            cfg_overrides = {
+                **_8BITDO_PRESET,
+                **{
+                    k: {**_8BITDO_PRESET.get(k, {}), **v}
+                    for k, v in user_overrides.items()
+                    if isinstance(v, dict)
+                },
+                **{k: v for k, v in user_overrides.items() if not isinstance(v, dict)},
+            }
+            return GenericUSBController(self.command_freq, config_overrides=cfg_overrides)
         elif ctype == "keyboard":
             from open_duck_mini_runtime.keyboard_controller import KeyboardController
 
