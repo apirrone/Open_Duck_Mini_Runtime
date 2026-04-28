@@ -29,7 +29,7 @@ NUM_PIXELS: int = 10
 
 # Allow pixel order / brightness overrides via environment variables so they
 # can be set in a systemd unit or SSH session without touching the code.
-_ORDER_NAME: str = os.getenv("ODUCK_LED_ORDER", "RGBW").upper()
+_ORDER_NAME: str = os.getenv("ODUCK_LED_ORDER", "GRBW").upper()
 BRIGHTNESS: float = float(os.getenv("ODUCK_LED_BRIGHTNESS", "1.0"))
 WHITE_MODE: str = os.getenv("ODUCK_LED_WHITE_MODE", "W").upper()
 
@@ -152,17 +152,13 @@ class LedController:
             self._pixels.show()
 
     def _to_order(self, color_rgba: Tuple) -> Tuple:
-        """Convert logical (R, G, B, W) to the configured NeoPixel ORDER tuple."""
+        """Strip the W channel for non-W strips; the neopixel library handles byte reordering."""
         r, g, b, w = color_rgba
         neopixel = self._neopixel
         try:
             if self._order in (neopixel.RGB, neopixel.GRB):
-                return (r, g, b) if self._order == neopixel.RGB else (g, r, b)
-            mapping = {
-                neopixel.RGBW: (r, g, b, w),
-                neopixel.GRBW: (g, r, b, w),
-            }
-            return mapping.get(self._order, (r, g, b, w))
+                return (r, g, b)
+            return (r, g, b, w)
         except Exception:
             return (r, g, b, w)
 

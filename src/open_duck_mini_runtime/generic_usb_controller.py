@@ -105,6 +105,9 @@ class GenericUSBController:
 
         self.cmd_queue: Queue = Queue(maxsize=1)
 
+        self._validate_maps()
+        self._axis_zero = self._sample_axis_zero()
+
         self._A_pressed = False
         self._B_pressed = False
         self._X_pressed = False
@@ -121,6 +124,46 @@ class GenericUSBController:
     # Internal helpers
     # ------------------------------------------------------------------
 
+    def _validate_maps(self) -> None:
+        n_axes = self.p1.get_numaxes()
+        n_buttons = self.p1.get_numbuttons()
+        prefix = "[GenericUSBController] WARNING"
+
+        _STICK_AXES = {"left_x", "left_y", "right_x", "right_y"}
+        _TRIGGER_AXES = {"left_trigger", "right_trigger"}
+
+        stick_indices = {self.axis_map[k] for k in _STICK_AXES}
+        trigger_indices = {self.axis_map[k] for k in _TRIGGER_AXES}
+        overlap = stick_indices & trigger_indices
+        if overlap:
+            print(
+                f"{prefix}: trigger axis indices {overlap} overlap with stick axes. "
+                "Triggers will incorrectly drive head/body movement. "
+                "Fix 'axis_map' in duck_config.json or run controller_info.py to identify correct indices."
+            )
+
+        for name, idx in self.axis_map.items():
+            if idx >= n_axes:
+                print(
+                    f"{prefix}: axis '{name}' mapped to index {idx} but controller only has {n_axes} axes."
+                )
+
+        for name, idx in self.button_map.items():
+            if idx >= n_buttons:
+                print(
+                    f"{prefix}: button '{name}' mapped to index {idx} but controller only has {n_buttons} buttons."
+                )
+
+    def _sample_axis_zero(self) -> dict:
+        """Sample resting axis positions so sticks read 0 at centre regardless of controller quirks."""
+        pygame.event.pump()
+        _STICK_AXES = {"left_x", "left_y", "right_x", "right_y"}
+        zero = {}
+        for name in _STICK_AXES:
+            idx = self.axis_map.get(name, -1)
+            zero[name] = self.p1.get_axis(idx) if 0 <= idx < self.p1.get_numaxes() else 0.0
+        return zero
+
     def _commands_worker(self) -> None:
         while True:
             self.cmd_queue.put(self._get_commands())
@@ -129,7 +172,7 @@ class GenericUSBController:
     def _read_axis(self, name: str) -> float:
         idx = self.axis_map[name]
         if idx < self.p1.get_numaxes():
-            return self.p1.get_axis(idx)
+            return self.p1.get_axis(idx) - self._axis_zero.get(name, 0.0)
         return 0.0
 
     def _read_button(self, name: str) -> bool:

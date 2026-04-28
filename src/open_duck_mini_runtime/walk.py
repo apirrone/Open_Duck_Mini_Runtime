@@ -126,9 +126,37 @@ class RLWalk:
         if self.duck_config.antennas:
             self.antennas = Antennas()
 
+    def _detect_controller_type(self) -> str:
+        """Detect the connected joystick and return the best matching controller type."""
+        import pygame
+
+        pygame.init()
+        pygame.joystick.init()
+
+        if pygame.joystick.get_count() == 0:
+            print("[auto] No joystick detected — falling back to keyboard")
+            return "keyboard"
+
+        js = pygame.joystick.Joystick(0)
+        name = js.get_name().lower()
+
+        if any(k in name for k in ("xbox", "xinput", "microsoft x")):
+            detected = "xbox"
+        elif any(k in name for k in ("dualsense", "ps5", "playstation 5")):
+            detected = "dualsense"
+        elif "8bitdo" in name:
+            detected = "8bitdo"
+        else:
+            detected = "generic_usb"
+
+        print(f"[auto] Detected '{js.get_name()}' → using '{detected}' profile")
+        return detected
+
     def _make_controller(self, controller_type: str):
         """Instantiate the correct controller based on duck_config.controller_type."""
         ctype = controller_type.lower()
+        if ctype == "auto":
+            ctype = self._detect_controller_type()
         if ctype == "dualsense":
             from open_duck_mini_runtime.dualsense_controller import DualSenseController
 
