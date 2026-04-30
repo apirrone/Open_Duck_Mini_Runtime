@@ -6,19 +6,19 @@ Axis and button indices can be overridden via duck_config.json under the
 "generic_usb_controller" key so you can adapt to any physical device.
 
 Default mapping (standard Linux HID / SDL2 gamepad profile):
-  Axis 0  – Left stick X   (strafe)
-  Axis 1  – Left stick Y   (forward/back)
-  Axis 2  – Right stick X  (yaw)
-  Axis 3  – Right stick Y  (unused)
-  Axis 4  – L2 / Left trigger
-  Axis 5  – R2 / Right trigger
+  Axis 0  -> Left stick X   (strafe)
+  Axis 1  -> Left stick Y   (forward/back)
+  Axis 2  -> Right stick X  (yaw)
+  Axis 3  -> Right stick Y  (unused)
+  Axis 4  -> L2 / Left trigger
+  Axis 5  -> R2 / Right trigger
 
-  Button 0 – A / Cross     (pause / unpause)
-  Button 1 – B / Circle    (sound)
-  Button 2 – X / Square    (projector)
-  Button 3 – Y / Triangle  (toggle head-control mode)
-  Button 4 – LB / L1       (speed boost while held)
-  Button 5 – RB / R1
+  Button 0 -> A / Cross     (pause / unpause)
+  Button 1 -> B / Circle    (sound)
+  Button 2 -> X / Square    (projector)
+  Button 3 -> Y / Triangle  (toggle head-control mode)
+  Button 4 -> LB / L1       (speed boost while held)
+  Button 5 -> RB / R1
 """
 
 import pygame

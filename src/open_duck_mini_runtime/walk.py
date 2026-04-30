@@ -101,6 +101,8 @@ class RLWalk:
         if self.commands:
             ctype = controller_type_override or self.duck_config.controller_type
             self.controller = self._make_controller(ctype)
+            self.paused = True  # always start paused; wait for controller input to resume
+            self._last_reconnect_t = 0.0
 
         # Reference motion, but we only really need the length of one phase
         self.PRM = PolyReferenceMotion(
@@ -118,7 +120,7 @@ class RLWalk:
             self.eyes = Eyes()
             if self.paused:
                 self.eyes.set_solid(False)
-                self.eyes.set_color("yellow")
+                self.eyes.set_color((255, 105, 180))  # hot pink
         if self.duck_config.projector:
             self.projector = Projector()
         if self.duck_config.speaker:
@@ -134,8 +136,8 @@ class RLWalk:
         pygame.joystick.init()
 
         if pygame.joystick.get_count() == 0:
-            print("[auto] No joystick detected — falling back to keyboard")
-            return "keyboard"
+            print("[auto] No joystick detected — will retry connection in main loop")
+            return "xbox"
 
         js = pygame.joystick.Joystick(0)
         name = js.get_name().lower()
@@ -293,6 +295,20 @@ class RLWalk:
                 t = time.time()
 
                 if self.commands:
+                    if hasattr(self.controller, "connected") and not self.controller.connected:
+                        if not self.paused:
+                            self.paused = True
+                            print("[controller] Disconnected — pausing")
+                            if self.duck_config.eyes:
+                                self.eyes.set_solid(False)
+                                self.eyes.set_color("yellow")
+                        now = time.time()
+                        if now - self._last_reconnect_t >= 10.0:
+                            self._last_reconnect_t = now
+                            print("[controller] Attempting reconnect...")
+                            if self.controller.try_reconnect():
+                                print("[controller] Reconnected — press A to resume")
+
                     self.last_commands, self.buttons, left_trigger, right_trigger = (
                         self.controller.get_last_command()
                     )
@@ -320,7 +336,7 @@ class RLWalk:
                             print("PAUSE")
                             if self.duck_config.eyes:
                                 self.eyes.set_solid(False)
-                                self.eyes.set_color("yellow")
+                                self.eyes.set_color((255, 105, 180))  # hot pink
                         else:
                             print("UNPAUSE")
                             if self.duck_config.eyes:
@@ -460,7 +476,7 @@ def main():
         default=f"{HOME_DIR}/duck_config.json",
     )
     parser.add_argument("-a", "--action_scale", type=float, default=0.25)
-    parser.add_argument("-p", type=int, default=30)
+    parser.add_argument("-p", type=int, default=22)
     parser.add_argument("-i", type=int, default=0)
     parser.add_argument("-d", type=int, default=0)
     parser.add_argument("-c", "--control_freq", type=int, default=50)
@@ -485,7 +501,7 @@ def main():
         default=None,
         help="replay the observations from a previous run (can be from the robot or from mujoco)",
     )
-    parser.add_argument("--cutoff_frequency", type=float, default=None)
+    parser.add_argument("--cutoff_frequency", type=float, default=40)
 
     args = parser.parse_args()
     pid = [args.p, args.i, args.d]

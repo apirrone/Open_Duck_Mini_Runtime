@@ -25,10 +25,10 @@ class XBoxController:
         self.last_commands = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.last_left_trigger = 0.0
         self.last_right_trigger = 0.0
+        self.connected = False
+        self.p1 = None
         pygame.init()
-        self.p1 = pygame.joystick.Joystick(0)
-        self.p1.init()
-        print(f"Loaded joystick with {self.p1.get_numaxes()} axes.")
+        self._try_init_joystick()
         self.cmd_queue = Queue(maxsize=1)
 
         self.A_pressed = False
@@ -43,12 +43,42 @@ class XBoxController:
 
         Thread(target=self.commands_worker, daemon=True).start()
 
+    def _try_init_joystick(self) -> bool:
+        pygame.joystick.quit()
+        pygame.joystick.init()
+        if pygame.joystick.get_count() == 0:
+            print("[xbox] No joystick detected")
+            self.connected = False
+            self.p1 = None
+            return False
+        self.p1 = pygame.joystick.Joystick(0)
+        self.p1.init()
+        print(f"[xbox] Connected: {self.p1.get_name()} ({self.p1.get_numaxes()} axes)")
+        self.connected = True
+        return True
+
+    def try_reconnect(self) -> bool:
+        return self._try_init_joystick()
+
     def commands_worker(self):
         while True:
-            self.cmd_queue.put(self.get_commands())
+            if self.connected:
+                try:
+                    self.cmd_queue.put(self.get_commands())
+                except Exception as e:
+                    print(f"[xbox] Controller error: {e} — disconnected")
+                    self.connected = False
+                    self.p1 = None
             time.sleep(1 / self.command_freq)
 
     def get_commands(self):
+        if not self.connected or self.p1 is None:
+            return (
+                np.around(self.last_commands, 3),
+                False, False, False, False, False, False, False,
+                0.0, 0.0, 0,
+            )
+
         last_commands = self.last_commands
         left_trigger = self.last_left_trigger
         right_trigger = self.last_right_trigger
