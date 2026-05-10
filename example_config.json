@@ -2,8 +2,17 @@
     "start_paused": true,
     "imu_upside_down": false,
     "phase_frequency_factor_offset": 0.0,
+    "log_level": "INFO",
+
     "fall_detection": true,
     "fall_threshold_deg": 45.0,
+
+    "eye_colors": {
+        "_comment": "Colors as [R, G, B] (0-255) or a CSS color name string.",
+        "start":  [255, 255, 255],
+        "paused": [255, 105, 180],
+        "off":    [255, 0, 0]
+    },
 
     "expression_features": {
         "eyes": false,
@@ -13,6 +22,7 @@
         "microphone": false,
         "camera": false
     },
+
     "_generic_usb_controller_comment": "Optional: override axis/button indices for generic_usb or 8bitdo controller types. Run controller_info.py to identify indices.",
     "generic_usb_controller": {
         "joystick_index": 0,
@@ -34,6 +44,7 @@
             "START": 7
         }
     },
+
     "joints_offsets": {
         "left_hip_yaw": 0.0,
         "left_hip_roll": 0.0,

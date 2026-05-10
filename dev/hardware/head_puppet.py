@@ -4,15 +4,15 @@ Sets up the robot in init position, you control the head with the xbox controlle
 
 import time
 import numpy as np
-from open_duck_mini_runtime.hwi import HWI
+from open_duck_mini_runtime.hardware.hwi import HWI
 from open_duck_mini_runtime.duck_config import DuckConfig
-from open_duck_mini_runtime.xbox_controller import XBoxController
+from open_duck_mini_runtime.controller.xbox_controller import XBoxController
 
 
-from open_duck_mini_runtime.eyes import Eyes
-from open_duck_mini_runtime.sounds import Sounds
-from open_duck_mini_runtime.antennas import Antennas
-from open_duck_mini_runtime.projector import Projector
+from open_duck_mini_runtime.hardware.eyes import Eyes
+from open_duck_mini_runtime.hardware.sounds import Sounds
+from open_duck_mini_runtime.hardware.antennas import Antennas
+from open_duck_mini_runtime.hardware.projector import Projector
 
 
 from importlib.resources import files

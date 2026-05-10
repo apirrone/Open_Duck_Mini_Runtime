@@ -3,7 +3,7 @@ import time
 
 import numpy as np
 import rustypot
-from open_duck_mini_runtime.duck_config import DuckConfig
+from open_duck_mini_runtime.duck_config import DuckConfig  # top-level, not in hardware/
 
 logger = logging.getLogger(__name__)
 

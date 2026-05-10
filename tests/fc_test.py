@@ -12,7 +12,7 @@ import base64
 from v2_rl_walk_mujoco import RLWalk  # TODO
 from threading import Thread
 import cv2
-from open_duck_mini_runtime.camera import Cam
+from open_duck_mini_runtime.hardware.camera import Cam
 
 # TODO mission : find an object ?
 

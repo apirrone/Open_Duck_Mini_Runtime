@@ -4,7 +4,7 @@ from threading import Thread
 from queue import Queue
 import time
 import numpy as np
-from open_duck_mini_runtime.buttons import Buttons
+from open_duck_mini_runtime.controller.buttons import Buttons
 
 logger = logging.getLogger(__name__)
 

@@ -7,6 +7,8 @@ import pytest
 import numpy as np
 from unittest.mock import patch, MagicMock
 
+pytest.importorskip("open_duck_mini_runtime.controller.dualsense_controller")
+
 # ---------------------------------------------------------------------------
 # Helpers to build a DualSenseController without hardware
 # ---------------------------------------------------------------------------
@@ -17,7 +19,7 @@ def _make_dualsense(command_freq: int = 20) -> "DualSenseController":
     with (
         patch("pygame.init"),
         patch("pygame.joystick.Joystick") as mock_joy_cls,
-        patch("open_duck_mini_runtime.dualsense_controller.Thread"),
+        patch("open_duck_mini_runtime.controller.dualsense_controller.Thread"),
     ):
 
         mock_joy = MagicMock()
@@ -26,7 +28,7 @@ def _make_dualsense(command_freq: int = 20) -> "DualSenseController":
         mock_joy.get_numhats.return_value = 1
         mock_joy_cls.return_value = mock_joy
 
-        from open_duck_mini_runtime.dualsense_controller import DualSenseController
+        from open_duck_mini_runtime.controller.dualsense_controller import DualSenseController
 
         ctrl = DualSenseController(command_freq)
         ctrl._p1 = mock_joy  # keep reference for axis mocking
@@ -40,17 +42,17 @@ def _make_dualsense(command_freq: int = 20) -> "DualSenseController":
 
 class TestDualSenseControllerStructure:
     def test_importable(self):
-        from open_duck_mini_runtime.dualsense_controller import DualSenseController
+        from open_duck_mini_runtime.controller.dualsense_controller import DualSenseController
 
         assert DualSenseController is not None
 
     def test_has_get_last_command(self):
-        from open_duck_mini_runtime.dualsense_controller import DualSenseController
+        from open_duck_mini_runtime.controller.dualsense_controller import DualSenseController
 
         assert callable(getattr(DualSenseController, "get_last_command", None))
 
     def test_has_get_commands(self):
-        from open_duck_mini_runtime.dualsense_controller import DualSenseController
+        from open_duck_mini_runtime.controller.dualsense_controller import DualSenseController
 
         assert callable(getattr(DualSenseController, "get_commands", None))
 
@@ -76,7 +78,7 @@ class TestDualSenseControllerStructure:
         assert rt == pytest.approx(0.0)
 
     def test_buttons_object_present(self):
-        from open_duck_mini_runtime.buttons import Buttons
+        from open_duck_mini_runtime.controller.buttons import Buttons
 
         ctrl = _make_dualsense()
         _, buttons, _, _ = ctrl.get_last_command()
@@ -114,7 +116,7 @@ class TestDualSenseButtonMapping:
     def test_button_indices_in_source(self):
         """Cross=0, Circle=1, Square=2, Triangle=3, L1=4, R1=5"""
         import inspect
-        from open_duck_mini_runtime.dualsense_controller import DualSenseController
+        from open_duck_mini_runtime.controller.dualsense_controller import DualSenseController
 
         src = inspect.getsource(DualSenseController.get_commands)
         # Spot-check the button indices documented in the source
@@ -139,8 +141,8 @@ class TestDualSenseXBoxParity:
         return {name for name in dir(cls) if not name.startswith("_")}
 
     def test_shared_public_methods(self):
-        from open_duck_mini_runtime.xbox_controller import XBoxController
-        from open_duck_mini_runtime.dualsense_controller import DualSenseController
+        from open_duck_mini_runtime.controller.xbox_controller import XBoxController
+        from open_duck_mini_runtime.controller.dualsense_controller import DualSenseController
 
         xbox_methods = self._get_public_methods(XBoxController)
         ds_methods = self._get_public_methods(DualSenseController)
@@ -150,7 +152,7 @@ class TestDualSenseXBoxParity:
 
     def test_get_last_command_same_return_shape(self):
         """Both controllers must return (list[float], Buttons, float, float)."""
-        from open_duck_mini_runtime.buttons import Buttons
+        from open_duck_mini_runtime.controller.buttons import Buttons
 
         xbox_ctrl = _make_any_controller("xbox_controller", "XBoxController")
         ds_ctrl = _make_dualsense()

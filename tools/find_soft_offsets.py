@@ -2,7 +2,7 @@
 Find the offsets to set in self.joints_offsets in hwi_feetech_pwm_control.py
 """
 
-from open_duck_mini_runtime.hwi import HWI
+from open_duck_mini_runtime.hardware.hwi import HWI
 from open_duck_mini_runtime.duck_config import DuckConfig
 import time
 

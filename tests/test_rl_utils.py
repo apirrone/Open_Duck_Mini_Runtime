@@ -4,7 +4,7 @@ Tests for rl_utils – pure-Python utility functions that need no hardware.
 
 import numpy as np
 import pytest
-from open_duck_mini_runtime.rl_utils import (
+from open_duck_mini_runtime.rl_walk.rl_utils import (
     make_action_dict,
     LowPassActionFilter,
     ActionFilter,

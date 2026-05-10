@@ -52,7 +52,7 @@ SOUND_INDEX = 0  # beep1.wav (first alphabetically)
 def hwi():
     """Open the HWI (applies duck_config offsets), home to init, yield, then off."""
     try:
-        from open_duck_mini_runtime.hwi import HWI
+        from open_duck_mini_runtime.hardware.hwi import HWI
         from open_duck_mini_runtime.duck_config import DuckConfig
     except ImportError as exc:
         pytest.skip(f"HWI/DuckConfig not importable: {exc}")
@@ -89,7 +89,7 @@ def hwi():
 @pytest.fixture(scope="module")
 def led_ctrl():
     try:
-        from open_duck_mini_runtime.led_controller import get_controller
+        from open_duck_mini_runtime.hardware.led_controller import get_controller
         ctrl = get_controller()
     except Exception as exc:
         pytest.skip(f"LED controller unavailable: {exc}")
@@ -104,7 +104,7 @@ def led_ctrl():
 @pytest.fixture(scope="module")
 def antennas():
     try:
-        from open_duck_mini_runtime.antennas import Antennas
+        from open_duck_mini_runtime.hardware.antennas import Antennas
         ant = Antennas()
     except Exception as exc:
         pytest.skip(f"Antennas unavailable: {exc}")
@@ -120,7 +120,7 @@ def sounds():
         import pygame
         if not pygame.mixer.get_init():
             pygame.mixer.init()
-        from open_duck_mini_runtime.sounds import Sounds
+        from open_duck_mini_runtime.hardware.sounds import Sounds
         snd = Sounds()
     except Exception as exc:
         pytest.skip(f"Sound system unavailable: {exc}")
@@ -267,7 +267,7 @@ def test_antennas_sweep(antennas):
 @pytest.mark.hardware
 def test_sound_plays(sounds):
     """Play one repeatable sound (blocking) to confirm audio output."""
-    from open_duck_mini_runtime.sounds import play_sound as _play_blocking
+    from open_duck_mini_runtime.hardware.sounds import play_sound as _play_blocking
     path = sounds.wav_files[SOUND_INDEX]
     print(f"\n  Playing: {path.name}")
     _play_blocking(path, volume=sounds.volume)
@@ -276,7 +276,7 @@ def test_sound_plays(sounds):
 @pytest.mark.hardware
 def test_sound_non_blocking(sounds):
     """Confirm play_sound returns immediately (< 0.1 s) without blocking."""
-    from open_duck_mini_runtime.sounds import play_sound_async
+    from open_duck_mini_runtime.hardware.sounds import play_sound_async
     path = sounds.wav_files[SOUND_INDEX]
     t0 = time.monotonic()
     play_sound_async(path, volume=sounds.volume)

@@ -30,6 +30,8 @@ Runtime software for the [Open Duck Mini](https://github.com/apirrone/Open_Duck_
 - [Controls Reference](#controls-reference)
   - [Xbox / DualSense Controls](#xbox--dualsense-controls)
   - [Keyboard Controls (SSH)](#keyboard-controls-ssh)
+- [Code Structure](#code-structure)
+- [System Flow](#system-flow)
 - [Running Tests](#running-tests)
 
 ---
@@ -136,15 +138,21 @@ cp example_config.json ~/duck_config.json
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `start_paused` | bool | `false` | Start the walk loop in a paused state |
-| `imu_upside_down` | bool | `false` | Flip IMU orientation (robot upside-down mount) |
-| `phase_frequency_factor_offset` | float | `0.0` | Offset added to gait phase frequency |
-| `controller_type` | string | `"xbox"` | Which controller to use. See [Controller Types](#controller-types) |
-| `expression_features.enable_eyes` | bool | `false` | Enable NeoPixel eye LEDs |
-| `expression_features.enable_projector` | bool | `false` | Enable NeoPixel projector LED |
-| `expression_features.enable_sounds` | bool | `false` | Enable audio playback |
-| `expression_features.enable_antennas` | bool | `false` | Enable servo-driven antennas |
-| `joints_offset` | object | `{}` | Per-joint offset corrections (radians) |
+| `start_paused` | bool | `false` | Start the walk loop paused — press **A** to begin walking |
+| `imu_upside_down` | bool | `false` | Flip IMU orientation for inverted mounting |
+| `phase_frequency_factor_offset` | float | `0.0` | Offset added to the gait phase frequency |
+| `log_level` | string | `"INFO"` | Logging verbosity: `TRACE`, `DEBUG`, `INFO`, `WARNING`, `ERROR` |
+| `fall_detection` | bool | `true` | Enable automatic motor cut-off on detected fall |
+| `fall_threshold_deg` | float | `45.0` | Tilt angle (degrees) that triggers fall detection |
+| `eye_colors.start` | `[R,G,B]` or string | `[255,255,255]` | Eye color when walking/unpaused |
+| `eye_colors.paused` | `[R,G,B]` or string | `[255,105,180]` | Eye color when paused (motors on) |
+| `eye_colors.off` | `[R,G,B]` or string | `[255,0,0]` | Eye color when motors are disabled |
+| `controller_type` | string | `"xbox"` | Which controller to use — see [Controller Types](#controller-types) |
+| `expression_features.eyes` | bool | `false` | Enable NeoPixel eye LEDs |
+| `expression_features.projector` | bool | `false` | Enable NeoPixel projector LED |
+| `expression_features.sounds` | bool | `false` | Enable audio playback |
+| `expression_features.antennas` | bool | `false` | Enable servo-driven antennas |
+| `joints_offsets` | object | all `0.0` | Per-joint offset corrections (radians) |
 
 ### Controller Types
 
@@ -204,7 +212,7 @@ Follow the [Adafruit MAX98357 I2S Class-D Mono Amp](https://learn.adafruit.com/a
 
 ```bash
 # Quick sanity check
-python3 src/open_duck_mini_runtime/raw_imu.py
+python3 src/open_duck_mini_runtime/hardware/raw_imu.py
 
 # Visualise IMU data (server on robot, client on your machine)
 python3 dev/hardware/imu_server.py                   # on the robot
@@ -215,7 +223,7 @@ Use `ifconfig` on the robot to find its IP address.
 
 ### Find Joint Offsets
 
-This script guides you through finding the correct resting-position offsets for each servo. Add the reported values to `~/duck_config.json` under `joints_offset`.
+This script guides you through finding the correct resting-position offsets for each servo. Add the reported values to `~/duck_config.json` under `joints_offsets`.
 
 ```bash
 python3 tools/find_soft_offsets.py
@@ -235,6 +243,7 @@ Use an Xbox One, Xbox Series, or DualSense controller paired over Bluetooth (or 
 uv run walk                           # uses ~/duck_config.json
 uv run walk --help                    # show all options
 uv run walk --onnx_model_path /path/to/model.onnx
+uv run walk --log-level DEBUG         # verbose logging (overrides config)
 ```
 
 **Xbox One Controller Bluetooth Pairing**
@@ -269,10 +278,12 @@ The terminal switches to raw mode while running. Press **Space** to pause, **Ctr
 
 | Input | Action |
 |---|---|
-| **Left stick** | Forward / Back / Turn |
-| **Right stick X** | Strafe left / right |
+| **Left stick** | Forward / Back / Strafe |
+| **Right stick X** | Turn left / right |
 | **LB (hold)** | Sprint (increase walk frequency) |
-| **A** | Pause / Unpause |
+| **D-pad up / down** | Increase / decrease phase frequency offset |
+| **A** | Pause / Unpause walking |
+| **START** | Toggle motors on/off (re-enables in paused state; press A to walk) |
 | **X** | Toggle projector |
 | **B** | Play a random sound |
 | **Y** | Toggle head control *(experimental)* |
@@ -294,6 +305,89 @@ The terminal switches to raw mode while running. Press **Space** to pause, **Ctr
 
 ---
 
+## Code Structure
+
+The package is organised into three submodules plus shared top-level utilities:
+
+```
+src/open_duck_mini_runtime/
+│
+├── duck_config.py          # Config loading (shared by all submodules)
+├── log.py                  # Logging setup + custom TRACE level
+│
+├── hardware/               # Physical hardware drivers
+│   ├── hwi.py              #   Motor hardware interface (Feetech servos)
+│   ├── raw_imu.py          #   BNO055 IMU — gyro, accelerometer, gravity
+│   ├── imu.py              #   BNO055 IMU — quaternion/Euler mode
+│   ├── feet_contacts.py    #   GPIO foot contact sensors
+│   ├── eyes.py             #   NeoPixel eye LEDs with blink thread
+│   ├── led_controller.py   #   Low-level NeoPixel controller
+│   ├── projector.py        #   NeoPixel projector LED
+│   ├── antennas.py         #   PWM servo antennas
+│   ├── sounds.py           #   Audio playback (pygame mixer)
+│   └── camera.py           #   Camera capture
+│
+├── controller/             # Gamepad / keyboard input
+│   ├── xbox_controller.py  #   Xbox / generic pygame joystick
+│   └── buttons.py          #   Button debounce state machine
+│
+└── rl_walk/                # RL policy and main walk loop
+    ├── walk.py             #   RLWalk — main 50 Hz control loop
+    ├── onnx_infer.py       #   ONNX model inference wrapper
+    ├── poly_reference_motion.py  # Polynomial gait reference
+    └── rl_utils.py         #   Action filters, coordinate helpers
+```
+
+---
+
+## System Flow
+
+```mermaid
+flowchart TD
+    A([uv run walk]) --> B[Parse args & load duck_config.json]
+    B --> C[setup_logging]
+    C --> D[RLWalk.__init__]
+
+    D --> E[HWI — connect motors]
+    D --> F[Imu — start IMU thread @ 50 Hz]
+    D --> G[FeetContacts — GPIO sensors]
+    D --> H[XBoxController — start input thread @ 20 Hz]
+    D --> I{start_paused?}
+    I -- yes --> J[State: PAUSED\neyes = paused color]
+    I -- no  --> K[State: WALKING\neyes = start color]
+
+    J & K --> L[run — main loop @ 50 Hz]
+
+    L --> M{motors_enabled?}
+    M -- no --> N[Poll controller only\nwait 0.1 s]
+    N --> L
+
+    M -- yes --> O{paused?}
+    O -- yes --> P[_update_fall_calibration\naccumulate gravity samples]
+    P --> L
+
+    O -- no --> Q[get_obs\nIMU + joints + feet + commands]
+    Q --> R[ONNX policy.infer obs]
+    R --> S[Compute motor targets\napply action filter]
+    S --> T[hwi.set_position_all]
+    T --> U{fall_detected?\ntilt > threshold for 3 frames}
+    U -- yes --> V[hwi.turn_off\nState: MOTORS OFF\neyes = off color]
+    V --> L
+    U -- no  --> L
+
+    L --> W{Controller events}
+    W -- A button --> X{motors_enabled?}
+    X -- yes --> Y[Toggle PAUSED / WALKING]
+    X -- no  --> Z[Ignore — press START first]
+    W -- START button --> AA{motors_enabled?}
+    AA -- yes --> AB[hwi.turn_off\nState: MOTORS OFF]
+    AA -- no  --> AC[start — reinit motors\nState: PAUSED]
+
+    L -- KeyboardInterrupt\nor SIGTERM --> AD[Cleanup peripherals\nhwi.turn_off\nExit]
+```
+
+---
+
 ## Running Tests
 
 ### Unit Tests (no hardware required)
@@ -302,7 +396,7 @@ The terminal switches to raw mode while running. Press **Space** to pause, **Ctr
 uv run pytest
 ```
 
-85 tests covering duck_config parsing, button state machine, keyboard controller commands, controller dispatch, RL utilities, and DualSense API parity. No connected robot needed.
+Covers duck_config parsing, button state machine, keyboard controller commands, controller dispatch, and RL utilities. No connected robot needed.
 
 ### Hardware Integration Tests
 

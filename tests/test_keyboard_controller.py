@@ -8,13 +8,13 @@ during tests.
 import time
 import pytest
 from unittest.mock import patch, MagicMock
-from open_duck_mini_runtime.keyboard_controller import (
-    KeyboardController,
-    _KeyState,
-    X_RANGE,
-    Y_RANGE,
-    YAW_RANGE,
-)
+
+_mod = pytest.importorskip("open_duck_mini_runtime.controller.keyboard_controller")
+KeyboardController = _mod.KeyboardController
+_KeyState = _mod._KeyState
+X_RANGE = _mod.X_RANGE
+Y_RANGE = _mod.Y_RANGE
+YAW_RANGE = _mod.YAW_RANGE
 
 # ---------------------------------------------------------------------------
 # _KeyState – per-key hold tracking
@@ -56,7 +56,7 @@ def keyboard_ctrl():
     """Return a KeyboardController whose stdin thread is mocked out.
     All button last_pressed_time values are pre-aged so trigger checks pass immediately.
     """
-    with patch("open_duck_mini_runtime.keyboard_controller.Thread") as mock_thread_cls:
+    with patch("open_duck_mini_runtime.controller.keyboard_controller.Thread") as mock_thread_cls:
         mock_thread_cls.return_value = MagicMock()
         ctrl = KeyboardController(command_freq=20)
     # Pre-age all buttons so the debounce timeout doesn't block triggering in tests

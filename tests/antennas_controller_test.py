@@ -1,5 +1,5 @@
-from open_duck_mini_runtime.xbox_controller import XBoxController
-from open_duck_mini_runtime.antennas import Antennas
+from open_duck_mini_runtime.controller.xbox_controller import XBoxController
+from open_duck_mini_runtime.hardware.antennas import Antennas
 import time
 
 controller = XBoxController(60)

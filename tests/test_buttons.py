@@ -5,7 +5,7 @@ Tests for the Button / Buttons state machine.
 import time
 import pytest
 from unittest.mock import patch
-from open_duck_mini_runtime.buttons import Button, Buttons
+from open_duck_mini_runtime.controller.buttons import Button, Buttons
 
 # ---------------------------------------------------------------------------
 # Button – single button state machine
