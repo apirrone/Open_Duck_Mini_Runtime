@@ -57,10 +57,6 @@ class DuckConfig:
             "phase_frequency_factor_offset", 0.0
         )
 
-        # Controller selection: "auto" | "xbox" | "dualsense" | "8bitdo" | "generic_usb" | "keyboard"
-        # "auto" detects the connected joystick by name and picks the best profile.
-        self.controller_type = self.json_config.get("controller_type", "auto")
-
         expression_features = self.json_config.get("expression_features", {})
 
         self.eyes = expression_features.get("eyes", False)

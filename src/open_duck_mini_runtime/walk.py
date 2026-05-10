@@ -8,6 +8,7 @@ from open_duck_mini_runtime.onnx_infer import OnnxInfer
 from open_duck_mini_runtime.raw_imu import Imu
 from open_duck_mini_runtime.poly_reference_motion import PolyReferenceMotion
 from open_duck_mini_runtime.feet_contacts import FeetContacts
+from open_duck_mini_runtime.xbox_controller import XBoxController
 from open_duck_mini_runtime.eyes import Eyes
 from open_duck_mini_runtime.sounds import Sounds
 from open_duck_mini_runtime.antennas import Antennas
@@ -37,8 +38,8 @@ class RLWalk:
         save_obs=False,
         replay_obs=None,
         cutoff_frequency=None,
-        controller_type_override: str = None,
     ):
+
         self.duck_config = DuckConfig(config_json_path=duck_config_path)
 
         self.commands = commands
@@ -99,10 +100,7 @@ class RLWalk:
 
         self.command_freq = 20  # hz
         if self.commands:
-            ctype = controller_type_override or self.duck_config.controller_type
-            self.controller = self._make_controller(ctype)
-            self.paused = True  # always start paused; wait for controller input to resume
-            self._last_reconnect_t = 0.0
+            self.xbox_controller = XBoxController(self.command_freq)
 
         # Reference motion, but we only really need the length of one phase
         self.PRM = PolyReferenceMotion(
@@ -128,89 +126,8 @@ class RLWalk:
         if self.duck_config.antennas:
             self.antennas = Antennas()
 
-    def _detect_controller_type(self) -> str:
-        """Detect the connected joystick and return the best matching controller type."""
-        import pygame
-
-        pygame.init()
-        pygame.joystick.init()
-
-        if pygame.joystick.get_count() == 0:
-            print("[auto] No joystick detected — will retry connection in main loop")
-            return "xbox"
-
-        js = pygame.joystick.Joystick(0)
-        name = js.get_name().lower()
-
-        if any(k in name for k in ("xbox", "xinput", "microsoft x")):
-            detected = "xbox"
-        elif any(k in name for k in ("dualsense", "ps5", "playstation 5")):
-            detected = "dualsense"
-        elif "8bitdo" in name:
-            detected = "8bitdo"
-        else:
-            detected = "generic_usb"
-
-        print(f"[auto] Detected '{js.get_name()}' → using '{detected}' profile")
-        return detected
-
-    def _make_controller(self, controller_type: str):
-        """Instantiate the correct controller based on duck_config.controller_type."""
-        ctype = controller_type.lower()
-        if ctype == "auto":
-            ctype = self._detect_controller_type()
-        if ctype == "dualsense":
-            from open_duck_mini_runtime.dualsense_controller import DualSenseController
-
-            return DualSenseController(self.command_freq)
-        elif ctype == "generic_usb":
-            from open_duck_mini_runtime.generic_usb_controller import (
-                GenericUSBController,
-            )
-
-            cfg_overrides = self.duck_config.json_config.get(
-                "generic_usb_controller", {}
-            )
-            return GenericUSBController(self.command_freq, config_overrides=cfg_overrides)
-        elif ctype == "8bitdo":
-            from open_duck_mini_runtime.generic_usb_controller import (
-                GenericUSBController,
-            )
-
-            _8BITDO_PRESET = {
-                "axis_map": {
-                    "left_x": 0,
-                    "left_y": 1,
-                    "right_x": 2,
-                    "right_y": 3,
-                    "left_trigger": 4,
-                    "right_trigger": 5,
-                },
-                "button_map": {"A": 0, "B": 1, "X": 2, "Y": 3, "LB": 4, "RB": 5, "START": 7},
-            }
-            user_overrides = self.duck_config.json_config.get(
-                "generic_usb_controller", {}
-            )
-            cfg_overrides = {
-                **_8BITDO_PRESET,
-                **{
-                    k: {**_8BITDO_PRESET.get(k, {}), **v}
-                    for k, v in user_overrides.items()
-                    if isinstance(v, dict)
-                },
-                **{k: v for k, v in user_overrides.items() if not isinstance(v, dict)},
-            }
-            return GenericUSBController(self.command_freq, config_overrides=cfg_overrides)
-        elif ctype == "keyboard":
-            from open_duck_mini_runtime.keyboard_controller import KeyboardController
-
-            return KeyboardController(self.command_freq)
-        else:  # default: "xbox"
-            from open_duck_mini_runtime.xbox_controller import XBoxController
-
-            return XBoxController(self.command_freq)
-
     def get_obs(self):
+
         imu_data = self.imu.get_data()
 
         dof_pos = self.hwi.get_present_positions(
@@ -274,6 +191,7 @@ class RLWalk:
         time.sleep(2)
 
     def get_phase_frequency_factor(self, x_velocity):
+
         max_phase_frequency = 1.2
         min_phase_frequency = 1.0
 
@@ -295,23 +213,20 @@ class RLWalk:
                 t = time.time()
 
                 if self.commands:
-                    if hasattr(self.controller, "connected") and not self.controller.connected:
-                        if not self.paused:
-                            self.paused = True
-                            print("[controller] Disconnected — pausing")
-                            if self.duck_config.eyes:
-                                self.eyes.set_solid(False)
-                                self.eyes.set_color("yellow")
-                        now = time.time()
-                        if now - self._last_reconnect_t >= 10.0:
-                            self._last_reconnect_t = now
-                            print("[controller] Attempting reconnect...")
-                            if self.controller.try_reconnect():
-                                print("[controller] Reconnected — press A to resume")
-
                     self.last_commands, self.buttons, left_trigger, right_trigger = (
-                        self.controller.get_last_command()
+                        self.xbox_controller.get_last_command()
                     )
+                    if self.buttons.dpad_up.triggered:
+                        self.phase_frequency_factor_offset += 0.05
+                        print(
+                            f"Phase frequency factor offset {round(self.phase_frequency_factor_offset, 3)}"
+                        )
+
+                    if self.buttons.dpad_down.triggered:
+                        self.phase_frequency_factor_offset -= 0.05
+                        print(
+                            f"Phase frequency factor offset {round(self.phase_frequency_factor_offset, 3)}"
+                        )
 
                     if self.buttons.LB.is_pressed:
                         self.phase_frequency_factor = 1.3
@@ -476,7 +391,7 @@ def main():
         default=f"{HOME_DIR}/duck_config.json",
     )
     parser.add_argument("-a", "--action_scale", type=float, default=0.25)
-    parser.add_argument("-p", type=int, default=22)
+    parser.add_argument("-p", type=int, default=30)
     parser.add_argument("-i", type=int, default=0)
     parser.add_argument("-d", type=int, default=0)
     parser.add_argument("-c", "--control_freq", type=int, default=50)
@@ -501,7 +416,7 @@ def main():
         default=None,
         help="replay the observations from a previous run (can be from the robot or from mujoco)",
     )
-    parser.add_argument("--cutoff_frequency", type=float, default=40)
+    parser.add_argument("--cutoff_frequency", type=float, default=None)
 
     args = parser.parse_args()
     pid = [args.p, args.i, args.d]
