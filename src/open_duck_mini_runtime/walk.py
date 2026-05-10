@@ -131,13 +131,21 @@ class RLWalk:
             self.eyes = Eyes()
             if self.paused:
                 self.eyes.set_solid(False)
-                self.eyes.set_color((255, 105, 180))  # hot pink
+                self.eyes.set_color(self._ec(self.duck_config.eye_color_paused))
+            else:
+                self.eyes.set_solid(False)
+                self.eyes.set_color(self._ec(self.duck_config.eye_color_start))
         if self.duck_config.projector:
             self.projector = Projector()
         if self.duck_config.speaker:
             self.sounds = Sounds(volume=1.0, sound_directory=ASSETS_ROOT_PATH)
         if self.duck_config.antennas:
             self.antennas = Antennas()
+
+    @staticmethod
+    def _ec(color):
+        """Normalize an eye color from config (list or string) to what Eyes.set_color accepts."""
+        return tuple(color) if isinstance(color, list) else color
 
     def get_obs(self):
 
@@ -322,13 +330,13 @@ class RLWalk:
                                 logger.info("PAUSE")
                                 if self.duck_config.eyes:
                                     self.eyes.set_solid(False)
-                                    self.eyes.set_color((255, 105, 180))  # hot pink
+                                    self.eyes.set_color(self._ec(self.duck_config.eye_color_paused))
                             else:
                                 self._fall_consecutive = 0
                                 logger.info("UNPAUSE")
                                 if self.duck_config.eyes:
                                     self.eyes.set_solid(False)
-                                    self.eyes.set_color("white")
+                                    self.eyes.set_color(self._ec(self.duck_config.eye_color_start))
 
                     if self.buttons.START.triggered:
                         if self.motors_enabled:
@@ -338,7 +346,7 @@ class RLWalk:
                             self.paused = True
                             if self.duck_config.eyes:
                                 self.eyes.set_solid(True)
-                                self.eyes.set_color("red")
+                                self.eyes.set_color(self._ec(self.duck_config.eye_color_off))
                         else:
                             logger.info("START – turning motors ON and reinitialising")
                             self.start()
@@ -347,7 +355,7 @@ class RLWalk:
                             start_t = time.time()  # reset action-filter warmup timer
                             if self.duck_config.eyes:
                                 self.eyes.set_solid(False)
-                                self.eyes.set_color((255, 105, 180))  # hot pink = paused
+                                self.eyes.set_color(self._ec(self.duck_config.eye_color_paused))
 
                 # Fall detection — only while actively walking (motors on, not paused)
                 if self.duck_config.fall_detection and self.motors_enabled and not self.paused and self._fall_detected():
@@ -360,7 +368,7 @@ class RLWalk:
                     self.paused = True
                     if self.duck_config.eyes:
                         self.eyes.set_solid(True)
-                        self.eyes.set_color("red")
+                        self.eyes.set_color(self._ec(self.duck_config.eye_color_off))
 
                 if self.paused:
                     if self.motors_enabled and self.duck_config.fall_detection:
@@ -508,12 +516,24 @@ def main():
     parser.add_argument(
         "--log-level",
         type=str,
-        default="INFO",
-        help="Logging level: TRACE, DEBUG, INFO, WARNING, ERROR",
+        default=None,
+        help="Override log level from config: TRACE, DEBUG, INFO, WARNING, ERROR",
     )
 
     args = parser.parse_args()
-    setup_logging(args.log_level)
+
+    # Resolve log level: CLI flag > duck_config.json > "INFO"
+    log_level = "INFO"
+    try:
+        import json as _json
+        _cfg = _json.load(open(args.duck_config_path))
+        log_level = _cfg.get("log_level", log_level)
+    except Exception:
+        pass
+    if args.log_level:
+        log_level = args.log_level
+    setup_logging(log_level)
+
     pid = [args.p, args.i, args.d]
 
     logger.debug("Args: %s", args)

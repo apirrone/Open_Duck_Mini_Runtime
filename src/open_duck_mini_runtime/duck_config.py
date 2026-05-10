@@ -48,6 +48,7 @@ class DuckConfig:
                 logger.info("Exiting at user request")
                 exit(1)
 
+        self.log_level = self.json_config.get("log_level", "INFO")
         self.start_paused = self.json_config.get("start_paused", False)
         self.imu_upside_down = self.json_config.get("imu_upside_down", False)
         self.fall_detection = self.json_config.get("fall_detection", True)
@@ -55,6 +56,11 @@ class DuckConfig:
         self.phase_frequency_factor_offset = self.json_config.get(
             "phase_frequency_factor_offset", 0.0
         )
+
+        eye_colors = self.json_config.get("eye_colors", {})
+        self.eye_color_start = eye_colors.get("start", [255, 255, 255])   # white — walking
+        self.eye_color_paused = eye_colors.get("paused", [255, 105, 180]) # hot pink — paused
+        self.eye_color_off = eye_colors.get("off", [255, 0, 0])           # red — motors off
 
         expression_features = self.json_config.get("expression_features", {})
 
