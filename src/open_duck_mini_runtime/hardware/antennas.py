@@ -6,8 +6,8 @@ import time
 
 logger = logging.getLogger(__name__)
 
-LEFT_ANTENNA_PIN = board.D13
-RIGHT_ANTENNA_PIN = board.D12
+LEFT_ANTENNA_PIN = board.D12
+RIGHT_ANTENNA_PIN = board.D13
 LEFT_SIGN = 1
 RIGHT_SIGN = -1
 MIN_UPDATE_INTERVAL = 1 / 50  # 20ms
