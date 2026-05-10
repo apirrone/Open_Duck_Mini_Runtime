@@ -90,10 +90,10 @@ class Imu:
 
         # self.tare_x()
 
-        self.last_imu_data = [0, 0, 0, 0]
         self.last_imu_data = {
             "gyro": [0, 0, 0],
             "accelero": [0, 0, 0],
+            "gravity": [0, 0, 0],
         }
         self.imu_queue = Queue(maxsize=1)
         Thread(target=self.imu_worker, daemon=True).start()
@@ -126,14 +126,15 @@ class Imu:
             try:
                 gyro = np.array(self.imu.gyro).copy()
                 accelero = np.array(self.imu.acceleration).copy()
+                gravity = np.array(self.imu.gravity).copy()
             except Exception as e:
                 print("[IMU]:", e)
                 continue
 
-            if gyro is None or accelero is None:
+            if gyro is None or accelero is None or gravity is None:
                 continue
 
-            if gyro.any() is None or accelero.any() is None:
+            if gyro.any() is None or accelero.any() is None or gravity.any() is None:
                 continue
 
             accelero[0] -= self.x_offset
@@ -141,6 +142,7 @@ class Imu:
             data = {
                 "gyro": gyro,
                 "accelero": accelero,
+                "gravity": gravity,
             }
 
             self.imu_queue.put(data)

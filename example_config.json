@@ -1,6 +1,10 @@
 {
+    "start_paused": true,
     "imu_upside_down": false,
     "phase_frequency_factor_offset": 0.0,
+    "fall_detection": true,
+    "fall_threshold_deg": 45.0,
+
     "expression_features": {
         "eyes": false,
         "projector": false,

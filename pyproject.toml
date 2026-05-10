@@ -8,6 +8,7 @@ version = "1.0.0"
 description = "Runtime code for Open Duck Mini"
 authors = [
     { name = "Antoine Pirrone", email = "antoine.pirrone@gmail.com" },
+    { name = "Ethan Wyant", email = "wyantethan@gmail.com" },
 ]
 readme = "README.md"
 requires-python = ">=3.11"

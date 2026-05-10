@@ -17,6 +17,7 @@ from open_duck_mini_runtime.rl_utils import make_action_dict, LowPassActionFilte
 from open_duck_mini_runtime.duck_config import DuckConfig
 
 import os
+import signal
 from pathlib import Path
 
 HOME_DIR = os.path.expanduser("~")
@@ -97,6 +98,14 @@ class RLWalk:
 
         self.paused = self.duck_config.start_paused
         self.motors_enabled = True
+
+        # Fall detection: calibrate "up" from gravity samples collected while paused
+        self._up_vector: np.ndarray | None = None
+        self._up_calib_acc = np.zeros(3)
+        self._up_calib_count = 0
+        self._up_calib_target = 10  # 10 samples × 0.1 s pause loop = ~1 s
+        self._fall_consecutive = 0
+        self._fall_consecutive_required = 3  # frames at 50 Hz before triggering
 
         self.command_freq = 20  # hz
         if self.commands:
@@ -202,7 +211,60 @@ class RLWalk:
 
         return freq
 
+    def _reset_fall_calibration(self):
+        self._up_vector = None
+        self._up_calib_acc = np.zeros(3)
+        self._up_calib_count = 0
+        self._fall_consecutive = 0
+
+    def _update_fall_calibration(self):
+        """Accumulate gravity samples while paused to establish the upright reference."""
+        imu_data = self.imu.get_data()
+        g = np.asarray(imu_data.get("gravity", [0, 0, 0]), dtype=float)
+        g_norm = np.linalg.norm(g)
+        if g_norm < 0.5:
+            return
+        self._up_calib_acc += g / g_norm
+        self._up_calib_count += 1
+        if self._up_calib_count >= self._up_calib_target:
+            up = self._up_calib_acc / self._up_calib_count
+            self._up_vector = up / np.linalg.norm(up)
+            print(f"Fall detection calibrated (up={np.around(self._up_vector, 3)})")
+            # Reset so we keep refreshing the reference each subsequent pause
+            self._up_calib_acc = np.zeros(3)
+            self._up_calib_count = 0
+
+    def _fall_detected(self):
+        if self._up_vector is None:
+            return False
+        imu_data = self.imu.get_data()
+        g = np.asarray(imu_data.get("gravity", [0, 0, 0]), dtype=float)
+        if not np.all(np.isfinite(g)):
+            self._fall_consecutive = 0
+            return False
+        g_norm = np.linalg.norm(g)
+        if g_norm < 0.5:
+            self._fall_consecutive = 0
+            return False
+        cos_angle = np.clip(abs(np.dot(g / g_norm, self._up_vector)), 0.0, 1.0)
+        tilt_deg = np.degrees(np.arccos(cos_angle))
+        if tilt_deg > self.duck_config.fall_threshold_deg:
+            self._fall_consecutive += 1
+            if self._fall_consecutive >= self._fall_consecutive_required:
+                axis_labels = ["X", "Y", "Z"]
+                worst = axis_labels[int(np.argmax(np.abs(g / g_norm - self._up_vector)))]
+                print(
+                    f"  tilt={tilt_deg:.1f}° ({worst}-axis dominant) "
+                    f"gravity={np.around(g, 3)}"
+                )
+                return True
+        else:
+            self._fall_consecutive = 0
+        return False
+
     def run(self):
+        signal.signal(signal.SIGTERM, lambda s, f: (_ for _ in ()).throw(KeyboardInterrupt()))
+
         i = 0
         try:
             print("Starting")
@@ -246,17 +308,21 @@ class RLWalk:
                         self.antennas.set_position_right(left_trigger)
 
                     if self.buttons.A.triggered:
-                        self.paused = not self.paused
-                        if self.paused:
-                            print("PAUSE")
-                            if self.duck_config.eyes:
-                                self.eyes.set_solid(False)
-                                self.eyes.set_color((255, 105, 180))  # hot pink
+                        if not self.motors_enabled:
+                            print("Motors are off – press START to re-enable first")
                         else:
-                            print("UNPAUSE")
-                            if self.duck_config.eyes:
-                                self.eyes.set_solid(False)
-                                self.eyes.set_color("white")
+                            self.paused = not self.paused
+                            if self.paused:
+                                print("PAUSE")
+                                if self.duck_config.eyes:
+                                    self.eyes.set_solid(False)
+                                    self.eyes.set_color((255, 105, 180))  # hot pink
+                            else:
+                                self._fall_consecutive = 0
+                                print("UNPAUSE")
+                                if self.duck_config.eyes:
+                                    self.eyes.set_solid(False)
+                                    self.eyes.set_color("white")
 
                     if self.buttons.START.triggered:
                         if self.motors_enabled:
@@ -273,13 +339,27 @@ class RLWalk:
                             )
                             self.start()
                             self.motors_enabled = True
-                            self.paused = False
+                            self.paused = True  # start paused; press A to begin walking
                             start_t = time.time()  # reset action-filter warmup timer
                             if self.duck_config.eyes:
                                 self.eyes.set_solid(False)
-                                self.eyes.set_color("white")
+                                self.eyes.set_color((255, 105, 180))  # hot pink = paused
+
+                # Fall detection — only while actively walking (motors on, not paused)
+                if self.duck_config.fall_detection and self.motors_enabled and not self.paused and self._fall_detected():
+                    print(
+                        f"FALL DETECTED (tilt > {self.duck_config.fall_threshold_deg}°) – turning off motors"
+                    )
+                    self.hwi.turn_off()
+                    self.motors_enabled = False
+                    self.paused = True
+                    if self.duck_config.eyes:
+                        self.eyes.set_solid(True)
+                        self.eyes.set_color("red")
 
                 if self.paused:
+                    if self.motors_enabled and self.duck_config.fall_detection:
+                        self._update_fall_calibration()
                     time.sleep(0.1)
                     continue
 
@@ -368,10 +448,11 @@ class RLWalk:
             if self.duck_config.projector:
                 self.projector.stop()
             self.feet_contacts.stop()
+            print("TURNING OFF")
+            self.hwi.turn_off()
 
         if self.save_obs:
             pickle.dump(self.saved_obs, open("robot_saved_obs.pkl", "wb"))
-        print("TURNING OFF")
 
 
 def main():

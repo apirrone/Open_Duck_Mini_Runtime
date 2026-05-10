@@ -53,6 +53,8 @@ class DuckConfig:
 
         self.start_paused = self.json_config.get("start_paused", False)
         self.imu_upside_down = self.json_config.get("imu_upside_down", False)
+        self.fall_detection = self.json_config.get("fall_detection", True)
+        self.fall_threshold_deg = self.json_config.get("fall_threshold_deg", 45)
         self.phase_frequency_factor_offset = self.json_config.get(
             "phase_frequency_factor_offset", 0.0
         )
