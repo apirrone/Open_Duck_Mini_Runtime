@@ -1,9 +1,12 @@
+import logging
 import pygame
 from threading import Thread
 from queue import Queue
 import time
 import numpy as np
 from open_duck_mini_runtime.buttons import Buttons
+
+logger = logging.getLogger(__name__)
 
 X_RANGE = [-0.15, 0.15]
 Y_RANGE = [-0.2, 0.2]
@@ -47,13 +50,13 @@ class XBoxController:
         pygame.joystick.quit()
         pygame.joystick.init()
         if pygame.joystick.get_count() == 0:
-            print("[xbox] No joystick detected")
+            logger.warning("No joystick detected")
             self.connected = False
             self.p1 = None
             return False
         self.p1 = pygame.joystick.Joystick(0)
         self.p1.init()
-        print(f"[xbox] Connected: {self.p1.get_name()} ({self.p1.get_numaxes()} axes)")
+        logger.info("Connected: %s (%d axes)", self.p1.get_name(), self.p1.get_numaxes())
         self.connected = True
         return True
 
@@ -66,7 +69,7 @@ class XBoxController:
                 try:
                     self.cmd_queue.put(self.get_commands())
                 except Exception as e:
-                    print(f"[xbox] Controller error: {e} — disconnected")
+                    logger.warning("Controller error: %s — disconnected", e)
                     self.connected = False
                     self.p1 = None
             time.sleep(1 / self.command_freq)

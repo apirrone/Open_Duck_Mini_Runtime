@@ -1,3 +1,4 @@
+import logging
 import adafruit_bno055
 import board
 import busio
@@ -8,6 +9,8 @@ import pickle
 from queue import Queue
 from threading import Thread
 import time
+
+logger = logging.getLogger(__name__)
 
 
 # TODO filter spikes
@@ -51,11 +54,11 @@ class Imu:
             self.imu.mode = adafruit_bno055.NDOF_MODE
             calibrated = self.imu.calibrated
             while not calibrated:
-                print("Calibration status: ", self.imu.calibration_status)
-                print("Calibrated : ", self.imu.calibrated)
+                logger.info("Calibration status: %s", self.imu.calibration_status)
+                logger.info("Calibrated: %s", self.imu.calibrated)
                 calibrated = self.imu.calibrated
                 time.sleep(0.1)
-            print("CALIBRATION DONE")
+            logger.info("IMU calibration done")
             offsets_accelerometer = self.imu.offsets_accelerometer
             offsets_gyroscope = self.imu.offsets_gyroscope
             offsets_magnetometer = self.imu.offsets_magnetometer
@@ -66,11 +69,11 @@ class Imu:
                 "offsets_magnetometer": offsets_magnetometer,
             }
             for k, v in imu_calib_data.items():
-                print(k, v)
+                logger.debug("  %s: %s", k, v)
 
             pickle.dump(imu_calib_data, open("imu_calib_data.pkl", "wb"))
 
-            print("Saved", "imu_calib_data.pkl")
+            logger.info("Saved imu_calib_data.pkl")
             exit()
 
         if os.path.exists("imu_calib_data.pkl"):
@@ -83,8 +86,7 @@ class Imu:
             self.imu.mode = adafruit_bno055.NDOF_MODE
             time.sleep(0.1)
         else:
-            print("imu_calib_data.pkl not found")
-            print("Imu is running uncalibrated")
+            logger.warning("imu_calib_data.pkl not found — IMU running uncalibrated")
 
         self.x_offset = 0
 
@@ -128,7 +130,7 @@ class Imu:
                 accelero = np.array(self.imu.acceleration).copy()
                 gravity = np.array(self.imu.gravity).copy()
             except Exception as e:
-                print("[IMU]:", e)
+                logger.warning("IMU read error: %s", e)
                 continue
 
             if gyro is None or accelero is None or gravity is None:

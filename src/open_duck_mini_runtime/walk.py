@@ -1,3 +1,4 @@
+import logging
 import time
 import pickle
 
@@ -15,10 +16,13 @@ from open_duck_mini_runtime.antennas import Antennas
 from open_duck_mini_runtime.projector import Projector
 from open_duck_mini_runtime.rl_utils import make_action_dict, LowPassActionFilter
 from open_duck_mini_runtime.duck_config import DuckConfig
+from open_duck_mini_runtime.log import setup_logging, TRACE
 
 import os
 import signal
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 HOME_DIR = os.path.expanduser("~")
 # src/assets/ sits two levels above this file (src/open_duck_mini_runtime/walk.py)
@@ -157,11 +161,11 @@ class RLWalk:
             return None
 
         if len(dof_pos) != self.num_dofs:
-            print(f"ERROR len(dof_pos) != {self.num_dofs}")
+            logger.warning("dof_pos length %d != %d", len(dof_pos), self.num_dofs)
             return None
 
         if len(dof_vel) != self.num_dofs:
-            print(f"ERROR len(dof_vel) != {self.num_dofs}")
+            logger.warning("dof_vel length %d != %d", len(dof_vel), self.num_dofs)
             return None
 
         cmds = self.last_commands
@@ -229,7 +233,7 @@ class RLWalk:
         if self._up_calib_count >= self._up_calib_target:
             up = self._up_calib_acc / self._up_calib_count
             self._up_vector = up / np.linalg.norm(up)
-            print(f"Fall detection calibrated (up={np.around(self._up_vector, 3)})")
+            logger.info("Fall detection calibrated (up=%s)", np.around(self._up_vector, 3))
             # Reset so we keep refreshing the reference each subsequent pause
             self._up_calib_acc = np.zeros(3)
             self._up_calib_count = 0
@@ -253,9 +257,9 @@ class RLWalk:
             if self._fall_consecutive >= self._fall_consecutive_required:
                 axis_labels = ["X", "Y", "Z"]
                 worst = axis_labels[int(np.argmax(np.abs(g / g_norm - self._up_vector)))]
-                print(
-                    f"  tilt={tilt_deg:.1f}° ({worst}-axis dominant) "
-                    f"gravity={np.around(g, 3)}"
+                logger.warning(
+                    "tilt=%.1f° (%s-axis dominant) gravity=%s",
+                    tilt_deg, worst, np.around(g, 3),
                 )
                 return True
         else:
@@ -267,7 +271,7 @@ class RLWalk:
 
         i = 0
         try:
-            print("Starting")
+            logger.info("Starting main loop")
             start_t = time.time()
             while True:
                 left_trigger = 0
@@ -280,14 +284,16 @@ class RLWalk:
                     )
                     if self.buttons.dpad_up.triggered:
                         self.phase_frequency_factor_offset += 0.05
-                        print(
-                            f"Phase frequency factor offset {round(self.phase_frequency_factor_offset, 3)}"
+                        logger.info(
+                            "Phase frequency factor offset: %.3f",
+                            self.phase_frequency_factor_offset,
                         )
 
                     if self.buttons.dpad_down.triggered:
                         self.phase_frequency_factor_offset -= 0.05
-                        print(
-                            f"Phase frequency factor offset {round(self.phase_frequency_factor_offset, 3)}"
+                        logger.info(
+                            "Phase frequency factor offset: %.3f",
+                            self.phase_frequency_factor_offset,
                         )
 
                     if self.buttons.LB.is_pressed:
@@ -309,24 +315,24 @@ class RLWalk:
 
                     if self.buttons.A.triggered:
                         if not self.motors_enabled:
-                            print("Motors are off – press START to re-enable first")
+                            logger.info("Motors are off – press START to re-enable first")
                         else:
                             self.paused = not self.paused
                             if self.paused:
-                                print("PAUSE")
+                                logger.info("PAUSE")
                                 if self.duck_config.eyes:
                                     self.eyes.set_solid(False)
                                     self.eyes.set_color((255, 105, 180))  # hot pink
                             else:
                                 self._fall_consecutive = 0
-                                print("UNPAUSE")
+                                logger.info("UNPAUSE")
                                 if self.duck_config.eyes:
                                     self.eyes.set_solid(False)
                                     self.eyes.set_color("white")
 
                     if self.buttons.START.triggered:
                         if self.motors_enabled:
-                            print("START pressed – turning motors OFF")
+                            logger.info("START – turning motors OFF")
                             self.hwi.turn_off()
                             self.motors_enabled = False
                             self.paused = True
@@ -334,9 +340,7 @@ class RLWalk:
                                 self.eyes.set_solid(True)
                                 self.eyes.set_color("red")
                         else:
-                            print(
-                                "START pressed – turning motors ON and reinitialising"
-                            )
+                            logger.info("START – turning motors ON and reinitialising")
                             self.start()
                             self.motors_enabled = True
                             self.paused = True  # start paused; press A to begin walking
@@ -347,8 +351,9 @@ class RLWalk:
 
                 # Fall detection — only while actively walking (motors on, not paused)
                 if self.duck_config.fall_detection and self.motors_enabled and not self.paused and self._fall_detected():
-                    print(
-                        f"FALL DETECTED (tilt > {self.duck_config.fall_threshold_deg}°) – turning off motors"
+                    logger.warning(
+                        "FALL DETECTED (tilt > %d°) – turning off motors",
+                        self.duck_config.fall_threshold_deg,
                     )
                     self.hwi.turn_off()
                     self.motors_enabled = False
@@ -366,6 +371,7 @@ class RLWalk:
                 obs = self.get_obs()
                 if obs is None:
                     continue
+                logger.trace("obs: %s", np.around(obs, 3))
 
                 self.imitation_i += 1 * (
                     self.phase_frequency_factor + self.phase_frequency_factor_offset
@@ -389,10 +395,11 @@ class RLWalk:
                     if i < len(self.replay_obs):
                         obs = self.replay_obs[i]
                     else:
-                        print("BREAKING ")
+                        logger.info("Replay observations exhausted, stopping")
                         break
 
                 action = self.policy.infer(obs)
+                logger.trace("action: %s", np.around(action, 3))
 
                 self.last_last_last_action = self.last_last_action.copy()
                 self.last_last_action = self.last_action.copy()
@@ -427,16 +434,16 @@ class RLWalk:
                     self.motor_targets, list(self.hwi.joints.keys())
                 )
 
+                logger.trace("motor targets: %s", np.around(self.motor_targets, 3))
                 self.hwi.set_position_all(action_dict)
 
                 i += 1
 
                 took = time.time() - t
-                # print("Full loop took", took, "fps : ", np.around(1 / took, 2))
+                logger.trace("Loop %d: %.4fs (%.1f Hz)", i, took, 1 / took if took else 0)
                 if (1 / self.control_freq - took) < 0:
-                    print(
-                        "Policy control budget exceeded by",
-                        np.around(took - 1 / self.control_freq, 3),
+                    logger.debug(
+                        "Control budget exceeded by %.3fs", took - 1 / self.control_freq
                     )
                 time.sleep(max(0, 1 / self.control_freq - took))
 
@@ -448,7 +455,7 @@ class RLWalk:
             if self.duck_config.projector:
                 self.projector.stop()
             self.feet_contacts.stop()
-            print("TURNING OFF")
+            logger.info("Turning off motors")
             self.hwi.turn_off()
 
         if self.save_obs:
@@ -498,11 +505,18 @@ def main():
         help="replay the observations from a previous run (can be from the robot or from mujoco)",
     )
     parser.add_argument("--cutoff_frequency", type=float, default=None)
+    parser.add_argument(
+        "--log-level",
+        type=str,
+        default="INFO",
+        help="Logging level: TRACE, DEBUG, INFO, WARNING, ERROR",
+    )
 
     args = parser.parse_args()
+    setup_logging(args.log_level)
     pid = [args.p, args.i, args.d]
 
-    print("Done parsing args")
+    logger.debug("Args: %s", args)
     rl_walk = RLWalk(
         args.onnx_model_path,
         duck_config_path=args.duck_config_path,
@@ -515,7 +529,7 @@ def main():
         replay_obs=args.replay_obs,
         cutoff_frequency=args.cutoff_frequency,
     )
-    print("Done instantiating RLWalk")
+    logger.debug("RLWalk ready")
     rl_walk.run()
 
 

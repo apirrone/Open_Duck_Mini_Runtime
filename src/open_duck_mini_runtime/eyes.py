@@ -1,8 +1,11 @@
+import logging
 import random
 import time
 from threading import Thread, Event
 
 from open_duck_mini_runtime.led_controller import get_controller
+
+logger = logging.getLogger(__name__)
 
 
 class Eyes:
@@ -50,7 +53,7 @@ class Eyes:
                 if self._stop_event.wait(next_blink):
                     break
         except Exception as err:
-            print(f"Error in eye thread: {err}")
+            logger.error("Eye thread error: %s", err)
             self._stop_event.set()
 
     def stop(self):

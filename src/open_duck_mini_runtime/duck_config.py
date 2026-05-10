@@ -1,6 +1,9 @@
 import json
+import logging
 from typing import Optional
 import os
+
+logger = logging.getLogger(__name__)
 
 HOME_DIR = os.path.expanduser("~")
 
@@ -27,28 +30,22 @@ class DuckConfig:
                 json.load(open(config_json_path, "r")) if config_json_path else {}
             )
         except FileNotFoundError:
-            print(
-                f"Warning : didn't find the config json file at {config_json_path}, using default values"
-            )
+            logger.warning("config json not found at %s, using defaults", config_json_path)
             self.json_config = {}
             self.default = True
 
         if config_json_path is None:
-            print("Warning : didn't provide a config json path, using default values")
+            logger.warning("no config json path provided, using defaults")
             self.default = True
 
         if self.default and not ignore_default:
-            print("")
-            print("")
-            print("")
-            print("")
-            print("======")
-            print(
-                "WARNING : Running with default values probably won't work well. Please make a duck_config.json file and set the parameters."
+            logger.warning(
+                "Running with default values — this probably won't work well. "
+                "Please create a duck_config.json file."
             )
-            res = input("Do you still want to run ? (y/N)")
+            res = input("Do you still want to run? (y/N) ")
             if res.lower() != "y":
-                print("Exiting...")
+                logger.info("Exiting at user request")
                 exit(1)
 
         self.start_paused = self.json_config.get("start_paused", False)

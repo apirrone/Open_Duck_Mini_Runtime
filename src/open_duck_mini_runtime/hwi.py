@@ -1,8 +1,11 @@
+import logging
 import time
 
 import numpy as np
 import rustypot
 from open_duck_mini_runtime.duck_config import DuckConfig
+
+logger = logging.getLogger(__name__)
 
 
 class HWI:
@@ -89,16 +92,16 @@ class HWI:
 
     def turn_on(self):
         self.io.set_kps(list(self.joints.values()), self.low_torque_kps)
-        print("turn on : low KPS set")
+        logger.info("turn on: low kps set")
         time.sleep(1)
 
         self.set_position_all(self.init_pos)
-        print("turn on : init pos set")
+        logger.info("turn on: init pos set")
 
         time.sleep(1)
 
         self.io.set_kps(list(self.joints.values()), self.kps)
-        print("turn on : high kps")
+        logger.info("turn on: high kps set")
 
     def turn_off(self):
         self.io.disable_torque(list(self.joints.values()))
@@ -135,7 +138,7 @@ class HWI:
                 list(self.joints.values())
             )
         except Exception as e:
-            print(e)
+            logger.warning("read_present_position failed: %s", e)
             return None
 
         present_positions = [
@@ -154,7 +157,7 @@ class HWI:
                 list(self.joints.values())
             )
         except Exception as e:
-            print(e)
+            logger.warning("read_present_velocity failed: %s", e)
             return None
 
         present_velocities = [

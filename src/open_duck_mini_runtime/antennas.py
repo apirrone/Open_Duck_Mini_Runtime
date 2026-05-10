@@ -1,7 +1,10 @@
+import logging
 import board
 import pwmio
 import math
 import time
+
+logger = logging.getLogger(__name__)
 
 LEFT_ANTENNA_PIN = board.D13
 RIGHT_ANTENNA_PIN = board.D12
@@ -41,7 +44,7 @@ class Antennas:
             )  # Convert value to duty cycle (1ms-2ms)
             pwm.duty_cycle = duty_cycle
         else:
-            print("Invalid input! Enter a value between -1 and 1.")
+            logger.warning("Antenna position %s out of range [-1, 1]", value)
 
     def stop(self):
         time.sleep(MIN_UPDATE_INTERVAL)

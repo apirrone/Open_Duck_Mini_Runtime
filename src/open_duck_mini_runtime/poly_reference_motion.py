@@ -1,5 +1,8 @@
+import logging
 import numpy as np
 import pickle
+
+logger = logging.getLogger(__name__)
 
 
 class PolyReferenceMotion:
@@ -22,7 +25,7 @@ class PolyReferenceMotion:
         self.process(data)
 
     def process(self, data):
-        print("[Poly ref data] Processing ...")
+        logger.info("Processing polynomial reference data...")
         _data = {}
         for name in data.keys():
             split = name.split("_")
@@ -90,7 +93,7 @@ class PolyReferenceMotion:
 
         self.data_array = self.data_array
 
-        print("[Poly ref data] Done processing")
+        logger.info("Polynomial reference data ready")
 
     def vel_to_index(self, dx, dy, dtheta):
 
