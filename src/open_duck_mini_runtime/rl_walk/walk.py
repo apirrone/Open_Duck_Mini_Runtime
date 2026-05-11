@@ -127,11 +127,13 @@ class RLWalk:
 
         # Optional expression features
         if self.duck_config.eyes:
-            self.eyes = Eyes()
+            self.eyes = Eyes(neopixels=self.duck_config.neopixels)
             if self.paused:
+                self.eyes.set_standby(True)
                 self.eyes.set_solid(False)
                 self.eyes.set_color(self._ec(self.duck_config.eye_color_paused))
             else:
+                self.eyes.set_standby(False)
                 self.eyes.set_solid(False)
                 self.eyes.set_color(self._ec(self.duck_config.eye_color_start))
         if self.duck_config.projector:
@@ -328,12 +330,14 @@ class RLWalk:
                             if self.paused:
                                 logger.info("PAUSE")
                                 if self.duck_config.eyes:
+                                    self.eyes.set_standby(True)
                                     self.eyes.set_solid(False)
                                     self.eyes.set_color(self._ec(self.duck_config.eye_color_paused))
                             else:
                                 self._fall_consecutive = 0
                                 logger.info("UNPAUSE")
                                 if self.duck_config.eyes:
+                                    self.eyes.set_standby(False)
                                     self.eyes.set_solid(False)
                                     self.eyes.set_color(self._ec(self.duck_config.eye_color_start))
 
@@ -344,6 +348,7 @@ class RLWalk:
                             self.motors_enabled = False
                             self.paused = True
                             if self.duck_config.eyes:
+                                self.eyes.set_standby(False)
                                 self.eyes.set_solid(True)
                                 self.eyes.set_color(self._ec(self.duck_config.eye_color_off))
                         else:
@@ -353,6 +358,7 @@ class RLWalk:
                             self.paused = True  # start paused; press A to begin walking
                             start_t = time.time()  # reset action-filter warmup timer
                             if self.duck_config.eyes:
+                                self.eyes.set_standby(True)
                                 self.eyes.set_solid(False)
                                 self.eyes.set_color(self._ec(self.duck_config.eye_color_paused))
 
@@ -366,6 +372,7 @@ class RLWalk:
                     self.motors_enabled = False
                     self.paused = True
                     if self.duck_config.eyes:
+                        self.eyes.set_standby(False)
                         self.eyes.set_solid(True)
                         self.eyes.set_color(self._ec(self.duck_config.eye_color_off))
 

@@ -65,6 +65,9 @@ class DuckConfig:
         expression_features = self.json_config.get("expression_features", {})
 
         self.eyes = expression_features.get("eyes", False)
+        # neopixels=True  → use the NeoPixel LED strip (new hardware, default)
+        # neopixels=False → use original single-colour GPIO eyes (old hardware)
+        self.neopixels = expression_features.get("neopixels", True)
         self.projector = expression_features.get("projector", False)
         self.antennas = expression_features.get("antennas", False)
         self.speaker = expression_features.get("speaker", False)

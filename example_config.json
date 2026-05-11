@@ -8,7 +8,7 @@
     "fall_threshold_deg": 45.0,
 
     "eye_colors": {
-        "_comment": "Colors as [R, G, B] (0-255) or a CSS color name string.",
+        "_comment": "Colors as [R, G, B] (0-255) or a CSS color name string. Only used when neopixels=true.",
         "start":  [255, 255, 255],
         "paused": [255, 105, 180],
         "off":    [255, 0, 0]
@@ -16,6 +16,7 @@
 
     "expression_features": {
         "eyes": false,
+        "neopixels": false,
         "projector": false,
         "antennas": false,
         "speaker": false,
