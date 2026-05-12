@@ -13,13 +13,13 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "RPi.GPIO==0.7.1",
+    "RPi.GPIO==0.7.1; sys_platform == 'linux'",
     "rustypot==0.1.0",
     "onnxruntime==1.18.1",
     "numpy==1.26.4",
     "adafruit-circuitpython-bno055==5.4.13",
     "adafruit-circuitpython-neopixel",
-    "rpi-ws281x==5.0.0",
+    "rpi-ws281x==5.0.0; sys_platform == 'linux'",
     "scipy==1.15.1",
     "pygame==2.6.0",
     "pypot @ git+https://github.com/pollen-robotics/pypot@support-feetech-sts3215",
@@ -32,11 +32,13 @@ dependencies = [
 Homepage = "https://github.com/apirrone/Open_Duck_Mini_Runtime"
 
 [project.scripts]
-walk = "open_duck_mini_runtime.walk_tui:main"
-walk-keyboard = "open_duck_mini_runtime.walk_keyboard:main"
-walk-serve = "open_duck_mini_runtime.walk_tui:serve_main"
-test-hardware = "open_duck_mini_runtime.test_hardware:main"
-test-hw = "open_duck_mini_runtime.hardware_tui:main"
+walk = "open_duck_mini_runtime.rl_walk.walk:main"
+tui-walk = "open_duck_mini_runtime.walk_tui:main"
+walk-watchdog = "open_duck_mini_runtime.watchdog:main"
+
+
+[tool.textual-serve]
+apps = ["open_duck_mini_runtime.walk_tui.DuckTui"]
 
 [dependency-groups]
 dev = [

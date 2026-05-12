@@ -1,6 +1,8 @@
-import threading
+import logging
 import time
 import pickle
+import threading
+import sys
 
 import numpy as np
 from open_duck_mini_runtime.hardware.hwi import HWI
@@ -42,7 +44,12 @@ class RLWalk:
         save_obs=False,
         replay_obs=None,
         cutoff_frequency=None,
+        emulate: bool = False,
     ):
+
+        self.emulate = emulate or sys.platform != "linux"
+        self.telemetry = {}
+        self._telem_lock = threading.Lock()
 
         self.duck_config = DuckConfig(config_json_path=duck_config_path)
 
@@ -73,17 +80,39 @@ class RLWalk:
                 self.control_freq, cutoff_frequency
             )
 
-        self.hwi = HWI(self.duck_config, serial_port)
+        if self.emulate:
+            from open_duck_mini_runtime.hardware.mock_hardware import (
+                MockHWI, MockImu, MockFeetContacts, MockEyes, MockProjector, MockSounds, MockAntennas
+            )
+            HWI_cls = MockHWI
+            Imu_cls = MockImu
+            FeetContacts_cls = MockFeetContacts
+            Eyes_cls = MockEyes
+            Projector_cls = MockProjector
+            Sounds_cls = MockSounds
+            Antennas_cls = MockAntennas
+            hwi_args = (self.duck_config,)
+        else:
+            HWI_cls = HWI
+            Imu_cls = Imu
+            FeetContacts_cls = FeetContacts
+            Eyes_cls = Eyes
+            Projector_cls = Projector
+            Sounds_cls = Sounds
+            Antennas_cls = Antennas
+            hwi_args = (self.duck_config, serial_port)
+
+        self.hwi = HWI_cls(*hwi_args)
 
         self.start()
 
-        self.imu = Imu(
+        self.imu = Imu_cls(
             sampling_freq=int(self.control_freq),
             user_pitch_bias=self.pitch_bias,
             upside_down=self.duck_config.imu_upside_down,
         )
 
-        self.feet_contacts = FeetContacts()
+        self.feet_contacts = FeetContacts_cls()
 
         # Scales
         self.action_scale = action_scale
@@ -127,7 +156,7 @@ class RLWalk:
 
         # Optional expression features
         if self.duck_config.eyes:
-            self.eyes = Eyes(neopixels=self.duck_config.neopixels)
+            self.eyes = Eyes_cls(neopixels=self.duck_config.neopixels)
             if self.paused:
                 self.eyes.set_standby(True)
                 self.eyes.set_solid(False)
@@ -137,50 +166,16 @@ class RLWalk:
                 self.eyes.set_solid(False)
                 self.eyes.set_color(self._ec(self.duck_config.eye_color_start))
         if self.duck_config.projector:
-            self.projector = Projector()
+            self.projector = Projector_cls()
         if self.duck_config.speaker:
-            self.sounds = Sounds(volume=1.0, sound_directory=ASSETS_ROOT_PATH)
+            self.sounds = Sounds_cls(volume=1.0, sound_directory=ASSETS_ROOT_PATH)
         if self.duck_config.antennas:
-            self.antennas = Antennas()
+            self.antennas = Antennas_cls()
 
-        # Shared telemetry for the TUI — updated each control-loop iteration.
-        self.telemetry: dict = {
-            "state": "initializing",
-            "hz": 0.0,
-            "paused": self.paused,
-            "motors_enabled": True,
-            "imu": {"gyro": [0.0, 0.0, 0.0], "accel": [0.0, 0.0, 0.0]},
-            "motor_names": list(self.hwi.joints.keys()),
-            "motor_targets": list(self.motor_targets),
-            "motor_positions": [0.0] * self.num_dofs,
-            "motor_velocities": [0.0] * self.num_dofs,
-            "feet_contacts": [False, False],
-            "phase": 0.0,
-            "commands": list(self.last_commands),
-        }
-        self._telem_lock = threading.Lock()
-
-    def _make_controller(self, controller_type: str):
-        """Instantiate the correct controller based on duck_config.controller_type."""
-        ctype = controller_type.lower()
-        if ctype == "dualsense":
-            from open_duck_mini_runtime.dualsense_controller import DualSenseController
-
-            return DualSenseController(self.command_freq)
-        elif ctype == "generic_usb":
-            from open_duck_mini_runtime.generic_usb_controller import (
-                GenericUSBController,
-            )
-
-            return GenericUSBController(self.command_freq)
-        elif ctype == "keyboard":
-            from open_duck_mini_runtime.keyboard_controller import KeyboardController
-
-            return KeyboardController(self.command_freq)
-        else:  # default: "xbox"
-            from open_duck_mini_runtime.xbox_controller import XBoxController
-
-            return XBoxController(self.command_freq)
+    @staticmethod
+    def _ec(color):
+        """Normalize an eye color from config (list or string) to what Eyes.set_color accepts."""
+        return tuple(color) if isinstance(color, list) else color
 
     def get_obs(self):
 
@@ -411,11 +406,8 @@ class RLWalk:
                         self.eyes.set_color(self._ec(self.duck_config.eye_color_off))
 
                 if self.paused:
-                    with self._telem_lock:
-                        self.telemetry["state"] = "paused"
-                        self.telemetry["paused"] = True
-                        self.telemetry["motors_enabled"] = self.motors_enabled
-                        self.telemetry["commands"] = list(self.last_commands)
+                    if self.motors_enabled and self.duck_config.fall_detection:
+                        self._update_fall_calibration()
                     time.sleep(0.1)
                     continue
 
@@ -491,25 +483,7 @@ class RLWalk:
                 i += 1
 
                 took = time.time() - t
-
-                with self._telem_lock:
-                    self.telemetry.update({
-                        "state": "walking",
-                        "hz": round(1.0 / max(took, 1e-6), 1),
-                        "paused": False,
-                        "motors_enabled": self.motors_enabled,
-                        "imu": {
-                            "gyro": imu_data["gyro"].tolist(),
-                            "accel": imu_data["accelero"].tolist(),
-                        },
-                        "motor_targets": self.motor_targets.tolist(),
-                        "motor_positions": list(dof_pos),
-                        "motor_velocities": list(dof_vel),
-                        "feet_contacts": list(feet_contacts),
-                        "phase": float(self.imitation_i),
-                        "commands": list(self.last_commands),
-                    })
-                # print("Full loop took", took, "fps : ", np.around(1 / took, 2))
+                logger.trace("Loop %d: %.4fs (%.1f Hz)", i, took, 1 / took if took else 0)
                 if (1 / self.control_freq - took) < 0:
                     logger.debug(
                         "Control budget exceeded by %.3fs", took - 1 / self.control_freq

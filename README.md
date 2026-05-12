@@ -413,9 +413,3 @@ To explicitly exclude hardware tests during normal development:
 ```bash
 uv run pytest -m "not hardware"
 ```
-
-nix/pi-zero2w.nix — Uses raspberry-pi-02.base (BCM2710 / Pi Zero 2W silicon). Hostname duck-pi-zero2w.
-
-nix/pi4.nix — Uses raspberry-pi-4.base + raspberry-pi-4.bluetooth. Hostname duck-pi4.
-
-nix/pi5.nix — Uses raspberry-pi-5.base + raspberry-pi-5.page-size-16k. Hostname duck-pi5. Note: RPi.GPIO doesn't support Pi 5 kernel; uv pip install lgpio needed after first boot if using foot contact sensors.
