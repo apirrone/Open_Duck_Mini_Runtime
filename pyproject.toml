@@ -17,8 +17,8 @@ dependencies = [
     "rustypot==0.1.0",
     "onnxruntime==1.18.1",
     "numpy==1.26.4",
-    "adafruit-circuitpython-bno055==5.4.13",
-    "adafruit-circuitpython-neopixel",
+    "adafruit-circuitpython-bno055==5.4.13; sys_platform == 'linux'",
+    "adafruit-circuitpython-neopixel; sys_platform == 'linux'",
     "rpi-ws281x==5.0.0; sys_platform == 'linux'",
     "scipy==1.15.1",
     "pygame==2.6.0",
@@ -26,6 +26,7 @@ dependencies = [
     "openai==1.70.0",
     "textual>=0.80",
     "textual-serve>=0.2",
+    "setuptools",
 ]
 
 [project.urls]
@@ -38,7 +39,7 @@ walk-watchdog = "open_duck_mini_runtime.watchdog:main"
 
 
 [tool.textual-serve]
-apps = ["open_duck_mini_runtime.walk_tui.DuckTui"]
+apps = ["open_duck_mini_runtime.walk_tui.DuckApp"]
 
 [dependency-groups]
 dev = [

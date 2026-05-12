@@ -232,7 +232,7 @@ class DuckApp(App):
 
     def _run_walk(self) -> None:
         try:
-            from open_duck_mini_runtime.walk import RLWalk
+            from open_duck_mini_runtime.rl_walk.walk import RLWalk
             self._rl_walk = RLWalk(**self._rl_walk_kwargs)
             self._rl_walk.run()
         except Exception as exc:

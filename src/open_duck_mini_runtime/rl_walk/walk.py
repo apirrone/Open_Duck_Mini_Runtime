@@ -5,16 +5,9 @@ import threading
 import sys
 
 import numpy as np
-from open_duck_mini_runtime.hardware.hwi import HWI
 from open_duck_mini_runtime.rl_walk.onnx_infer import OnnxInfer
-from open_duck_mini_runtime.hardware.raw_imu import Imu
 from open_duck_mini_runtime.rl_walk.poly_reference_motion import PolyReferenceMotion
-from open_duck_mini_runtime.hardware.feet_contacts import FeetContacts
 from open_duck_mini_runtime.controller.xbox_controller import XBoxController
-from open_duck_mini_runtime.hardware.eyes import Eyes
-from open_duck_mini_runtime.hardware.sounds import Sounds
-from open_duck_mini_runtime.hardware.antennas import Antennas
-from open_duck_mini_runtime.hardware.projector import Projector
 from open_duck_mini_runtime.rl_walk.rl_utils import make_action_dict, LowPassActionFilter
 from open_duck_mini_runtime.duck_config import DuckConfig
 from open_duck_mini_runtime.log import setup_logging, TRACE
@@ -93,6 +86,14 @@ class RLWalk:
             Antennas_cls = MockAntennas
             hwi_args = (self.duck_config,)
         else:
+            from open_duck_mini_runtime.hardware.hwi import HWI
+            from open_duck_mini_runtime.hardware.raw_imu import Imu
+            from open_duck_mini_runtime.hardware.feet_contacts import FeetContacts
+            from open_duck_mini_runtime.hardware.eyes import Eyes
+            from open_duck_mini_runtime.hardware.sounds import Sounds
+            from open_duck_mini_runtime.hardware.antennas import Antennas
+            from open_duck_mini_runtime.hardware.projector import Projector
+
             HWI_cls = HWI
             Imu_cls = Imu
             FeetContacts_cls = FeetContacts
