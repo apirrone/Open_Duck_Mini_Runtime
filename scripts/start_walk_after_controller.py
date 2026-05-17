@@ -5,6 +5,7 @@ import sys
 import time
 
 import pygame
+from mini_bdx_runtime.sounds import Sounds
 
 
 HOME_DIR = os.path.expanduser("~")
@@ -58,6 +59,13 @@ def main():
         help="replay the observations from a previous run (can be from the robot or from mujoco)",
     )
     parser.add_argument("--cutoff_frequency", type=float, default=None)
+    parser.add_argument(
+        "--sound_path",
+        type=str,
+        default=os.path.join(
+            os.path.dirname(SCRIPT_DIR), "mini_bdx_runtime/assets/happy1.wav"
+        ),
+    )
     args = parser.parse_args()
 
     os.chdir(SCRIPT_DIR)
@@ -68,6 +76,17 @@ def main():
     # Call the original turn_on script
     subprocess.run(
         [
+    # Play happy sound after turn on
+    if args.sound_path and os.path.exists(args.sound_path):
+        try:
+            pygame.mixer.init()
+            sound = pygame.mixer.Sound(args.sound_path)
+            sound.play()
+            # We don't necessarily want to block here, but we can wait a tiny bit
+            # if we want to ensure the sound starts playing before wait_for_controller
+        except Exception as e:
+            print(f"Failed to play sound: {e}")
+
             sys.executable,
             turn_on_script,
         ],
