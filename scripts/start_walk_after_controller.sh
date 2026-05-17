@@ -11,6 +11,16 @@
 
 set -euo pipefail
 
+# Ensure HOME is defined (crontab sometimes has a limited environment)
+export HOME="${HOME:-/home/duck0}"
+
+# Initialize Conda for the current shell session
+CONDA_PROFILE="$HOME/miniconda3/etc/profile.d/conda.sh"
+if [ -f "$CONDA_PROFILE" ]; then
+    source "$CONDA_PROFILE"
+    conda activate base
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
