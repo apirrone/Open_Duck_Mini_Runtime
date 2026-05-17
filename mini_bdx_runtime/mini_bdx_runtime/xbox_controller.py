@@ -6,6 +6,8 @@ import numpy as np
 from mini_bdx_runtime.buttons import Buttons
 
 
+AXIS_DEAD_ZONE = 0.1
+
 X_RANGE = [-0.15, 0.15]
 Y_RANGE = [-0.2, 0.2]
 YAW_RANGE = [-1.0, 1.0]
@@ -54,17 +56,22 @@ class XBoxController:
         right_trigger = self.last_right_trigger
 
         l_x = -1 * self.p1.get_axis(0)
+        l_x = l_x if abs(l_x) > AXIS_DEAD_ZONE else 0
+
         l_y = -1 * self.p1.get_axis(1)
+        l_y = l_y if abs(l_y) > AXIS_DEAD_ZONE else 0
+
         r_x = -1 * self.p1.get_axis(2)
+        r_x = r_x if abs(r_x) > AXIS_DEAD_ZONE else 0
+
         r_y = -1 * self.p1.get_axis(3)
+        r_y = r_y if abs(r_y) > AXIS_DEAD_ZONE else 0
 
         right_trigger = np.around((self.p1.get_axis(4) + 1) / 2, 3)
-        left_trigger = np.around((self.p1.get_axis(5) + 1) / 2, 3)
+        right_trigger = right_trigger if right_trigger > AXIS_DEAD_ZONE else 0
 
-        if left_trigger < 0.1:
-            left_trigger = 0
-        if right_trigger < 0.1:
-            right_trigger = 0
+        left_trigger = np.around((self.p1.get_axis(5) + 1) / 2, 3)
+        left_trigger = left_trigger if left_trigger > AXIS_DEAD_ZONE else 0
 
         if not self.head_control_mode:
             lin_vel_y = l_x
