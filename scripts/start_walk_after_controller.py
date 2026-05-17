@@ -76,23 +76,21 @@ def main():
     # Call the original turn_on script
     subprocess.run(
         [
-    # Play happy sound after turn on
-    if args.sound_path and os.path.exists(args.sound_path):
-        try:
-            pygame.mixer.init()
-            sound = pygame.mixer.Sound(args.sound_path)
-            sound.play()
-            # We don't necessarily want to block here, but we can wait a tiny bit
-            # if we want to ensure the sound starts playing before wait_for_controller
-        except Exception as e:
-            print(f"Failed to play sound: {e}")
-
             sys.executable,
             turn_on_script,
         ],
         check=True,
         cwd=SCRIPT_DIR,
     )
+
+    # Play happy sound after turn on
+    if args.sound_path and os.path.exists(args.sound_path):
+        try:
+            pygame.mixer.init()
+            sound = pygame.mixer.Sound(args.sound_path)
+            sound.play()
+        except Exception as e:
+            print(f"Failed to play sound: {e}")
 
     wait_for_controller()
 
