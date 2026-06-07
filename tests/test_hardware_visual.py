@@ -69,7 +69,14 @@ def hwi():
         time.sleep(HOME_SETTLE_S)
         print("  Homed.")
     except Exception as exc:
-        pytest.skip(f"Could not home motors: {exc}")
+        scan = h.scan_servos()
+        missing = [n for n, ok in scan.items() if not ok]
+        present = [n for n, ok in scan.items() if ok]
+        detail = (
+            f"\n  Present  ({len(present):2d}): {', '.join(present) or 'none'}"
+            f"\n  Missing  ({len(missing):2d}): {', '.join(missing) or 'none'}"
+        )
+        pytest.skip(f"Could not home motors: {exc}{detail}")
 
     yield h
 

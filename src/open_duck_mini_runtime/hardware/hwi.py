@@ -128,6 +128,17 @@ class HWI:
             list(self.joints.values()), list(ids_positions.values())
         )
 
+    def scan_servos(self) -> dict:
+        """Ping each servo individually and return {joint_name: present} dict."""
+        results = {}
+        for name, servo_id in self.joints.items():
+            try:
+                result = self.io.read_present_position([servo_id])
+                results[name] = result is not None and len(result) > 0
+            except Exception:
+                results[name] = False
+        return results
+
     def get_present_positions(self, ignore=[]):
         """
         Returns the present positions in radians

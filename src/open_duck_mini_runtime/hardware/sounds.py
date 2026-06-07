@@ -8,10 +8,7 @@ import pygame
 
 
 def find_assets_dir() -> Path:
-    # assets/ is a sibling of the package directory
-    pkg_dir = Path(__file__).resolve().parent
-    src_dir = pkg_dir.parent
-    assets = src_dir / "assets"
+    assets = Path(__file__).resolve().parent.parent / "assets"
     if not assets.exists():
         raise FileNotFoundError(f"Assets directory not found: {assets}")
     return assets

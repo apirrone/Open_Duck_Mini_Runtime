@@ -24,8 +24,7 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 HOME_DIR = os.path.expanduser("~")
-# src/assets/ sits three levels above this file (src/open_duck_mini_runtime/rl_walk/walk.py)
-ASSETS_ROOT_PATH: str = str(Path(__file__).parent.parent.parent / "assets")
+ASSETS_ROOT_PATH: str = str(Path(__file__).parent.parent / "assets")
 
 
 class RLWalk:
