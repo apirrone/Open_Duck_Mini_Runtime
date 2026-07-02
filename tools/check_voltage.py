@@ -1,5 +1,7 @@
 from pypot.feetech import FeetechSTS3215IO
 
+# NOTE! This may need to become `false`
+# if the motors are not responding to commands
 io = FeetechSTS3215IO(
     "/dev/ttyACM0",
     baudrate=1000000,
@@ -25,7 +27,7 @@ joints = {
     "right_ankle": 14,
 }
 
-
+# this gets weird if you don't have them all connect and reply... otherwise it'll just throw an exception and not print anything
 voltages = io.get_present_voltage(list(joints.values()))
 for i, name in enumerate(joints.keys()):
     print(name, round(voltages[i] * 0.1, 2), "V")

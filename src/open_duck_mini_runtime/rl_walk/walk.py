@@ -13,7 +13,10 @@ from open_duck_mini_runtime.hardware.eyes import Eyes
 from open_duck_mini_runtime.hardware.sounds import Sounds
 from open_duck_mini_runtime.hardware.antennas import Antennas
 from open_duck_mini_runtime.hardware.projector import Projector
-from open_duck_mini_runtime.rl_walk.rl_utils import make_action_dict, LowPassActionFilter
+from open_duck_mini_runtime.rl_walk.rl_utils import (
+    make_action_dict,
+    LowPassActionFilter,
+)
 from open_duck_mini_runtime.duck_config import DuckConfig
 from open_duck_mini_runtime.log import setup_logging, TRACE
 
@@ -241,7 +244,9 @@ class RLWalk:
         if self._up_calib_count >= self._up_calib_target:
             up = self._up_calib_acc / self._up_calib_count
             self._up_vector = up / np.linalg.norm(up)
-            logger.info("Fall detection calibrated (up=%s)", np.around(self._up_vector, 3))
+            logger.info(
+                "Fall detection calibrated (up=%s)", np.around(self._up_vector, 3)
+            )
             # Reset so we keep refreshing the reference each subsequent pause
             self._up_calib_acc = np.zeros(3)
             self._up_calib_count = 0
@@ -264,10 +269,14 @@ class RLWalk:
             self._fall_consecutive += 1
             if self._fall_consecutive >= self._fall_consecutive_required:
                 axis_labels = ["X", "Y", "Z"]
-                worst = axis_labels[int(np.argmax(np.abs(g / g_norm - self._up_vector)))]
+                worst = axis_labels[
+                    int(np.argmax(np.abs(g / g_norm - self._up_vector)))
+                ]
                 logger.warning(
                     "tilt=%.1f° (%s-axis dominant) gravity=%s",
-                    tilt_deg, worst, np.around(g, 3),
+                    tilt_deg,
+                    worst,
+                    np.around(g, 3),
                 )
                 return True
         else:
@@ -275,7 +284,9 @@ class RLWalk:
         return False
 
     def run(self):
-        signal.signal(signal.SIGTERM, lambda s, f: (_ for _ in ()).throw(KeyboardInterrupt()))
+        signal.signal(
+            signal.SIGTERM, lambda s, f: (_ for _ in ()).throw(KeyboardInterrupt())
+        )
 
         i = 0
         try:
@@ -323,7 +334,9 @@ class RLWalk:
 
                     if self.buttons.A.triggered:
                         if not self.motors_enabled:
-                            logger.info("Motors are off – press START to re-enable first")
+                            logger.info(
+                                "Motors are off – press START to re-enable first"
+                            )
                         else:
                             self.paused = not self.paused
                             if self.paused:
@@ -331,14 +344,18 @@ class RLWalk:
                                 if self.duck_config.eyes:
                                     self.eyes.set_standby(True)
                                     self.eyes.set_solid(False)
-                                    self.eyes.set_color(self._ec(self.duck_config.eye_color_paused))
+                                    self.eyes.set_color(
+                                        self._ec(self.duck_config.eye_color_paused)
+                                    )
                             else:
                                 self._fall_consecutive = 0
                                 logger.info("UNPAUSE")
                                 if self.duck_config.eyes:
                                     self.eyes.set_standby(False)
                                     self.eyes.set_solid(False)
-                                    self.eyes.set_color(self._ec(self.duck_config.eye_color_start))
+                                    self.eyes.set_color(
+                                        self._ec(self.duck_config.eye_color_start)
+                                    )
 
                     if self.buttons.START.triggered:
                         if self.motors_enabled:
@@ -349,7 +366,9 @@ class RLWalk:
                             if self.duck_config.eyes:
                                 self.eyes.set_standby(False)
                                 self.eyes.set_solid(True)
-                                self.eyes.set_color(self._ec(self.duck_config.eye_color_off))
+                                self.eyes.set_color(
+                                    self._ec(self.duck_config.eye_color_off)
+                                )
                         else:
                             logger.info("START – turning motors ON and reinitialising")
                             self.start()
@@ -359,10 +378,17 @@ class RLWalk:
                             if self.duck_config.eyes:
                                 self.eyes.set_standby(True)
                                 self.eyes.set_solid(False)
-                                self.eyes.set_color(self._ec(self.duck_config.eye_color_paused))
+                                self.eyes.set_color(
+                                    self._ec(self.duck_config.eye_color_paused)
+                                )
 
                 # Fall detection — only while actively walking (motors on, not paused)
-                if self.duck_config.fall_detection and self.motors_enabled and not self.paused and self._fall_detected():
+                if (
+                    self.duck_config.fall_detection
+                    and self.motors_enabled
+                    and not self.paused
+                    and self._fall_detected()
+                ):
                     logger.warning(
                         "FALL DETECTED (tilt > %d°) – turning off motors",
                         self.duck_config.fall_threshold_deg,
@@ -453,7 +479,9 @@ class RLWalk:
                 i += 1
 
                 took = time.time() - t
-                logger.trace("Loop %d: %.4fs (%.1f Hz)", i, took, 1 / took if took else 0)
+                logger.trace(
+                    "Loop %d: %.4fs (%.1f Hz)", i, took, 1 / took if took else 0
+                )
                 if (1 / self.control_freq - took) < 0:
                     logger.debug(
                         "Control budget exceeded by %.3fs", took - 1 / self.control_freq
@@ -531,6 +559,7 @@ def main():
     log_level = "INFO"
     try:
         import json as _json
+
         _cfg = _json.load(open(args.duck_config_path))
         log_level = _cfg.get("log_level", log_level)
     except Exception:

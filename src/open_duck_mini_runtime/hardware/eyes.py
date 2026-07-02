@@ -1,3 +1,12 @@
+"""
+todo: add a "standby" mode for the original GPIO eyes (left/right alternate blink)
+or something like that.
+
+2-todo. split into a separate thread so that the blink loop doesn't block the main thread?
+
+3-todo. maybe split the original eye code and neopixel code into separate files or classes so that the main Eyes class is just a wrapper that picks which one to use based on the hardware.
+"""
+
 import logging
 import random
 import time
@@ -5,22 +14,29 @@ from threading import Thread, Event
 
 logger = logging.getLogger(__name__)
 
+# todo: did i even include support for these in our new runtime? check this.
 # GPIO pins for the original single-colour LED eyes (used when neopixels=False)
 _LEFT_EYE_PIN_NAME = "D24"
 _RIGHT_EYE_PIN_NAME = "D23"
 
+
+# oooo
+# this is an S-O-S
+# don't wanna second guess
+# this is the bottom line it's trueeee
+
 # SOS timing (short = dot, long = dash)
 _SOS_DOT = 0.12
 _SOS_DASH = 0.36
-_SOS_ELEM_GAP = 0.12   # gap between elements within a letter
+_SOS_ELEM_GAP = 0.12  # gap between elements within a letter
 _SOS_LETTER_GAP = 0.36  # gap between letters
-_SOS_CYCLE_GAP = 1.0   # pause after full S-O-S before repeating
+_SOS_CYCLE_GAP = 1.0  # pause after full S-O-S before repeating
 
 # SOS pattern: S = . . .   O = - - -   S = . . .
 _SOS_PATTERN = (
-    [_SOS_DOT, _SOS_DOT, _SOS_DOT],            # S
-    [_SOS_DASH, _SOS_DASH, _SOS_DASH],          # O
-    [_SOS_DOT, _SOS_DOT, _SOS_DOT],            # S
+    [_SOS_DOT, _SOS_DOT, _SOS_DOT],  # S
+    [_SOS_DASH, _SOS_DASH, _SOS_DASH],  # O
+    [_SOS_DOT, _SOS_DOT, _SOS_DOT],  # S
 )
 
 
@@ -72,6 +88,7 @@ class Eyes:
 
     def _init_neopixel(self) -> None:
         from open_duck_mini_runtime.hardware.led_controller import get_controller
+
         self.ctrl = get_controller()
         self.ctrl.set_eyes_color("white")
         self.ctrl.set_eyes(True)
@@ -79,6 +96,7 @@ class Eyes:
     def _init_gpio(self) -> None:
         import board
         import digitalio
+
         left_pin = getattr(board, _LEFT_EYE_PIN_NAME)
         right_pin = getattr(board, _RIGHT_EYE_PIN_NAME)
         self._left_eye = digitalio.DigitalInOut(left_pin)

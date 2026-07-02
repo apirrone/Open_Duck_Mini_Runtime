@@ -14,10 +14,10 @@ All tests are marked @pytest.mark.hardware and are skipped during normal CI.
 import time
 import pytest
 
-MOVE_DELTA_RAD = 0.15   # how far to nudge each joint from init (radians)
-MOVE_HOLD_S = 0.5       # how long to hold the nudged position
-HOME_SETTLE_S = 2.0     # time to wait after homing all joints
-ANTENNA_HOLD_S = 0.7    # how long to hold each antenna position
+MOVE_DELTA_RAD = 0.15  # how far to nudge each joint from init (radians)
+MOVE_HOLD_S = 0.5  # how long to hold the nudged position
+HOME_SETTLE_S = 2.0  # time to wait after homing all joints
+ANTENNA_HOLD_S = 0.7  # how long to hold each antenna position
 
 # Joint names in the same order HWI uses — used for parametrize
 JOINT_NAMES = [
@@ -97,6 +97,7 @@ def hwi():
 def led_ctrl():
     try:
         from open_duck_mini_runtime.hardware.led_controller import get_controller
+
         ctrl = get_controller()
     except Exception as exc:
         pytest.skip(f"LED controller unavailable: {exc}")
@@ -112,6 +113,7 @@ def led_ctrl():
 def antennas():
     try:
         from open_duck_mini_runtime.hardware.antennas import Antennas
+
         ant = Antennas()
     except Exception as exc:
         pytest.skip(f"Antennas unavailable: {exc}")
@@ -125,9 +127,11 @@ def antennas():
 def sounds():
     try:
         import pygame
+
         if not pygame.mixer.get_init():
             pygame.mixer.init()
         from open_duck_mini_runtime.hardware.sounds import Sounds
+
         snd = Sounds()
     except Exception as exc:
         pytest.skip(f"Sound system unavailable: {exc}")
@@ -275,6 +279,7 @@ def test_antennas_sweep(antennas):
 def test_sound_plays(sounds):
     """Play one repeatable sound (blocking) to confirm audio output."""
     from open_duck_mini_runtime.hardware.sounds import play_sound as _play_blocking
+
     path = sounds.wav_files[SOUND_INDEX]
     print(f"\n  Playing: {path.name}")
     _play_blocking(path, volume=sounds.volume)
@@ -284,6 +289,7 @@ def test_sound_plays(sounds):
 def test_sound_non_blocking(sounds):
     """Confirm play_sound returns immediately (< 0.1 s) without blocking."""
     from open_duck_mini_runtime.hardware.sounds import play_sound_async
+
     path = sounds.wav_files[SOUND_INDEX]
     t0 = time.monotonic()
     play_sound_async(path, volume=sounds.volume)

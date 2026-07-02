@@ -1,3 +1,9 @@
+"""
+todo: get these foot contact switches OUT of the model
+because its such a complex thing that isn't even really required,
+just made the sim model train faster. but now its a pain to deal with in the real world.
+"""
+
 import board
 import digitalio
 import time

@@ -1,3 +1,8 @@
+"""
+todo: make this thing not twitch the dang servos so much
+might be a hardware fix with a denoiser
+"""
+
 import logging
 import board
 import pwmio
@@ -6,6 +11,8 @@ import time
 
 logger = logging.getLogger(__name__)
 
+# honestly i can't remember if i flipped these or not
+# so this is where to check if the antenna reversed
 LEFT_ANTENNA_PIN = board.D12
 RIGHT_ANTENNA_PIN = board.D13
 LEFT_SIGN = 1

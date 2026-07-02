@@ -56,7 +56,9 @@ class XBoxController:
             return False
         self.p1 = pygame.joystick.Joystick(0)
         self.p1.init()
-        logger.info("Connected: %s (%d axes)", self.p1.get_name(), self.p1.get_numaxes())
+        logger.info(
+            "Connected: %s (%d axes)", self.p1.get_name(), self.p1.get_numaxes()
+        )
         self.connected = True
         return True
 
@@ -78,8 +80,16 @@ class XBoxController:
         if not self.connected or self.p1 is None:
             return (
                 np.around(self.last_commands, 3),
-                False, False, False, False, False, False, False,
-                0.0, 0.0, 0,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                0.0,
+                0.0,
+                0,
             )
 
         last_commands = self.last_commands

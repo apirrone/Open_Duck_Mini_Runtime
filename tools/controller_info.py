@@ -6,6 +6,7 @@ Run with:  uv run src/open_duck_mini_runtime/controller_info.py
 Prints real-time axis and button state for the connected joystick so you can
 identify which index maps to each physical button/axis and build a custom
 button_map / axis_map for duck_config.json.
+
 """
 
 import pygame

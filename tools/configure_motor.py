@@ -1,3 +1,21 @@
+"""
+This may end up being deprecated in favor of using a better configuration tool.
+
+Right now, since all our motors have id "1" when they pop out of the packaging,
+it's annoying to have to set them up one by one.
+
+I'm working on another version of this which will (...hopefully) work with a fully
+assembled droid, and it'll just call out either via the speaker or via the console
+which motor to set up next, and then you will move motor forward and back
+
+so it'll be like "move the left hip forward and back, then press enter to continue"
+and it'll check for that movement and then assign the correct ID that way, then apply
+the correct configuration for that motor.
+
+todo: maybe make this work on more than just linux dev. would be nice to
+have this run on first boot for the pi and have it configure itself & store
+"""
+
 import sys
 import time
 import argparse
@@ -14,7 +32,9 @@ parser.add_argument(
     help="The port the motor is connected to. Default is /dev/ttyACM0. Use `ls /dev/cu.* | grep usb` on macOS to find the port.",
     default="/dev/ttyACM0",
 )
-parser.add_argument("--id", help="The id to assign to the motor.", type=int, required=True)
+parser.add_argument(
+    "--id", help="The id to assign to the motor.", type=int, required=True
+)
 args = parser.parse_args()
 
 print(f"Opening port {args.port} ...")

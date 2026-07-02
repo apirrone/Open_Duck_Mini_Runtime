@@ -26,6 +26,8 @@ def play_sound(path: Path, volume: float = 1.0) -> None:
         time.sleep(0.05)
 
 
+# i hate this. but i hate pygame not being thread-safe even more.
+# todo: get rid of pygame when i swap to rust
 def play_sound_async(path: Path, volume: float = 1.0) -> None:
     """Start sound playback in a daemon thread so it never blocks the caller."""
     Thread(target=play_sound, args=(path, volume), daemon=True).start()

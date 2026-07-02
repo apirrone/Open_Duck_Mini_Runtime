@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)
 
 HOME_DIR = os.path.expanduser("~")
 
+# todo did i ever actually implement this? i think i did, but check. if not, implement it.
 # some neopixels are GRBW, some are RGBW, some are RGB...
 # fill in the order of whatever you picked here
 LED_ORDER: str = os.getenv("ODUCK_LED_ORDER", "GRBW").upper()
@@ -30,7 +31,9 @@ class DuckConfig:
                 json.load(open(config_json_path, "r")) if config_json_path else {}
             )
         except FileNotFoundError:
-            logger.warning("config json not found at %s, using defaults", config_json_path)
+            logger.warning(
+                "config json not found at %s, using defaults", config_json_path
+            )
             self.json_config = {}
             self.default = True
 
@@ -58,9 +61,13 @@ class DuckConfig:
         )
 
         eye_colors = self.json_config.get("eye_colors", {})
-        self.eye_color_start = eye_colors.get("start", [255, 255, 255])   # white — walking
-        self.eye_color_paused = eye_colors.get("paused", [255, 105, 180]) # hot pink — paused
-        self.eye_color_off = eye_colors.get("off", [255, 0, 0])           # red — motors off
+        self.eye_color_start = eye_colors.get(
+            "start", [255, 255, 255]
+        )  # white — walking
+        self.eye_color_paused = eye_colors.get(
+            "paused", [255, 105, 180]
+        )  # hot pink — paused. why? because my fiance likes hot pink and i like her, so hot pink it is. todo: configure from json
+        self.eye_color_off = eye_colors.get("off", [255, 0, 0])  # red — motors off
 
         expression_features = self.json_config.get("expression_features", {})
 
