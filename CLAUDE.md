@@ -24,11 +24,13 @@ uv run walk-watchdog                               # auto-restarts walk on crash
 # Tests (hardware tests excluded by default — see pyproject.toml addopts)
 uv run pytest                                      # unit tests only
 uv run pytest tests/test_motor_controller.py       # requires connected robot
+uv run pytest -m hardware                          # motor EEPROM config check (test_motor_config.py)
 
 # Calibration tools
-python3 tools/find_soft_offsets.py   # find joint offsets interactively
-python3 tools/controller_info.py     # identify gamepad axis/button indices
-python3 tools/check_voltage.py       # verify servo bus voltage
+python3 tools/find_soft_offsets.py    # find joint offsets interactively
+python3 tools/controller_info.py      # identify gamepad axis/button indices
+python3 tools/check_voltage.py        # verify servo bus voltage
+python3 tools/batch_reconfigure.py    # verify/fix motor EEPROM config (PID, mode, sync-read/write settings)
 ```
 
 ## Architecture
@@ -72,6 +74,8 @@ Loaded from `~/duck_config.json` (not in the repo). If absent, `DuckConfig` uses
 ## Notes
 
 - `uv run walk` requires a valid ONNX model — there is no bundled default. Pass `--onnx_model_path` or set it in config.
-- Hardware tests in `tests/test_motor_controller.py` are excluded from the default pytest run via `addopts` in `pyproject.toml`, not by marker alone.
+- Hardware tests in `tests/test_motor_controller.py` are excluded from the default pytest run via `addopts` in `pyproject.toml`, not by marker alone. `tests/test_motor_config.py` uses the `hardware` marker instead — it's still collected by default `uv run pytest` but self-skips (via the fixture) if `/dev/ttyACM0` can't be opened, so it shows as skipped rather than excluded.
 - Assets (ONNX models, reference motions) are resolved relative to the installed package at `src/assets/`.
 - The `TRACE` log level (below DEBUG) is defined in `log.py` for per-frame diagnostics.
+- Every servo must have `return_delay_time=0` and `response_status_level=1` in EEPROM — nonzero delay breaks SYNC_READ, and `response_status_level=2` (respond to all commands) breaks SYNC_WRITE. This is the source-of-truth `EXPECTED` config asserted by `tests/test_motor_config.py` and applied by `tools/batch_reconfigure.py`.
+- Motor batch scripts/tests use dict-based bulk operations keyed by motor ID (e.g. `{motor_id: value for motor_id in joint_ids}`) rather than per-motor loops — matches how the STS3215 protocol addresses all motors together.
