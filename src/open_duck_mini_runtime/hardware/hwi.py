@@ -81,17 +81,23 @@ class HWI:
 
     def set_kps(self, kps):
         self.kps = kps
-        self.io.set_kps(list(self.joints.values()), self.kps)
+        joint_ids = list(self.joints.values())
+        for i, motor_id in enumerate(joint_ids):
+            self.io.set_kps([motor_id], [self.kps[i]])
 
     def set_kds(self, kds):
         self.kds = kds
-        self.io.set_kds(list(self.joints.values()), self.kds)
+        joint_ids = list(self.joints.values())
+        for i, motor_id in enumerate(joint_ids):
+            self.io.set_kds([motor_id], [self.kds[i]])
 
     def set_kp(self, id, kp):
         self.io.set_kps([id], [kp])
 
     def turn_on(self):
-        self.io.set_kps(list(self.joints.values()), self.low_torque_kps)
+        joint_ids = list(self.joints.values())
+        for i, motor_id in enumerate(joint_ids):
+            self.io.set_kps([motor_id], [self.low_torque_kps[i]])
         logger.info("turn on: low kps set")
         time.sleep(1)
 
@@ -100,11 +106,13 @@ class HWI:
 
         time.sleep(1)
 
-        self.io.set_kps(list(self.joints.values()), self.kps)
+        for i, motor_id in enumerate(joint_ids):
+            self.io.set_kps([motor_id], [self.kps[i]])
         logger.info("turn on: high kps set")
 
     def turn_off(self):
-        self.io.disable_torque(list(self.joints.values()))
+        for motor_id in self.joints.values():
+            self.io.disable_torque([motor_id])
 
     def set_position(self, joint_name, pos):
         """
@@ -119,14 +127,10 @@ class HWI:
         joints_positions is a dictionary with joint names as keys and joint positions as values
         Warning: expects radians
         """
-        ids_positions = {
-            self.joints[joint]: position + self.joints_offsets[joint]
-            for joint, position in joints_positions.items()
-        }
-
-        self.io.write_goal_position(
-            list(self.joints.values()), list(ids_positions.values())
-        )
+        for joint, position in joints_positions.items():
+            motor_id = self.joints[joint]
+            pos = position + self.joints_offsets[joint]
+            self.io.write_goal_position([motor_id], [pos])
 
     def scan_servos(self) -> dict:
         """Ping each servo individually and return {joint_name: present} dict."""
@@ -143,38 +147,36 @@ class HWI:
         """
         Returns the present positions in radians
         """
-
-        try:
-            present_positions = self.io.read_present_position(
-                list(self.joints.values())
-            )
-        except Exception as e:
-            logger.warning("read_present_position failed: %s", e)
-            return None
-
-        present_positions = [
-            pos - self.joints_offsets[joint]
-            for joint, pos in zip(self.joints.keys(), present_positions)
-            if joint not in ignore
-        ]
-        return np.array(np.around(present_positions, 3))
+        positions = []
+        for joint, motor_id in self.joints.items():
+            if joint in ignore:
+                continue
+            try:
+                result = self.io.read_present_position([motor_id])
+                if result is None or len(result) == 0:
+                    logger.warning("read_present_position empty for %s", joint)
+                    return None
+                positions.append(result[0] - self.joints_offsets[joint])
+            except Exception as e:
+                logger.warning("read_present_position failed for %s: %s", joint, e)
+                return None
+        return np.array(np.around(positions, 3))
 
     def get_present_velocities(self, rad_s=True, ignore=[]):
         """
         Returns the present velocities in rad/s (default) or rev/min
         """
-        try:
-            present_velocities = self.io.read_present_velocity(
-                list(self.joints.values())
-            )
-        except Exception as e:
-            logger.warning("read_present_velocity failed: %s", e)
-            return None
-
-        present_velocities = [
-            vel
-            for joint, vel in zip(self.joints.keys(), present_velocities)
-            if joint not in ignore
-        ]
-
-        return np.array(np.around(present_velocities, 3))
+        velocities = []
+        for joint, motor_id in self.joints.items():
+            if joint in ignore:
+                continue
+            try:
+                result = self.io.read_present_velocity([motor_id])
+                if result is None or len(result) == 0:
+                    logger.warning("read_present_velocity empty for %s", joint)
+                    return None
+                velocities.append(result[0])
+            except Exception as e:
+                logger.warning("read_present_velocity failed for %s: %s", joint, e)
+                return None
+        return np.array(np.around(velocities, 3))
