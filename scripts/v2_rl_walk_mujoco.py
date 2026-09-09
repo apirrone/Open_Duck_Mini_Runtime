@@ -2,6 +2,7 @@ import time
 import pickle
 
 import numpy as np
+import pygame
 from mini_bdx_runtime.rustypot_position_hwi import HWI
 from mini_bdx_runtime.onnx_infer import OnnxInfer
 
@@ -92,11 +93,15 @@ class RLWalk:
 
         self.last_commands = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
-        self.paused = self.duck_config.start_paused
+        self.user_paused = self.duck_config.start_paused  # User's desired pause state (config or A button)
+        self.paused = self.user_paused  # Actual pause state (can be forced by missing controller)
 
         self.command_freq = 20  # hz
+        self.xbox_controller = None
+        self.last_controller_check = 0
+        self.controller_check_interval = 1.0  # Check for controller every second when disconnected
         if self.commands:
-            self.xbox_controller = XBoxController(self.command_freq)
+            self._try_connect_controller()
 
         # Reference motion, but we only really need the length of one phase
         # TODO
@@ -119,6 +124,48 @@ class RLWalk:
             )
         if self.duck_config.antennas:
             self.antennas = Antennas()
+
+    def _try_connect_controller(self, silent=False):
+        """Try to connect to the Xbox controller. Returns True if successful."""
+        try:
+            # Initialize pygame if not already done
+            if not pygame.get_init():
+                pygame.init()
+
+            # Reinit joystick subsystem to detect newly connected controllers
+            pygame.joystick.quit()
+            pygame.joystick.init()
+
+            if pygame.joystick.get_count() == 0:
+                if not silent:
+                    print("No controller detected. Waiting for controller...")
+                self.xbox_controller = None
+                self.paused = True
+                return False
+
+            self.xbox_controller = XBoxController(self.command_freq)
+            print("Controller connected!")
+            self.paused = self.user_paused  # Restore user's desired pause state
+            if self.paused:
+                print("Droid is paused (start_paused=True). Press A to unpause.")
+            else:
+                print("Unpausing droid.")
+            return True
+        except Exception as e:
+            if not silent:
+                print(f"WARNING: Could not initialize Xbox controller: {e}")
+                print("Pausing droid. Waiting for controller...")
+            self.xbox_controller = None
+            self.paused = True
+            return False
+
+    def _handle_controller_disconnect(self):
+        """Handle controller disconnection."""
+        print("Controller disconnected! Pausing droid...")
+        self.xbox_controller = None
+        self.user_paused = True  # Require manual unpause after reconnection
+        self.paused = True
+        self.last_commands = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
     def get_obs(self):
 
@@ -206,7 +253,18 @@ class RLWalk:
                 right_trigger = 0
                 t = time.time()
 
-                if self.commands:
+                # Check for controller connection (only when paused and no controller)
+                if self.commands and self.paused and self.xbox_controller is None:
+                    if t - self.last_controller_check >= self.controller_check_interval:
+                        self.last_controller_check = t
+                        self._try_connect_controller(silent=True)
+
+                # Check if controller is still connected
+                if self.commands and self.xbox_controller is not None:
+                    if not self.xbox_controller.is_connected:
+                        self._handle_controller_disconnect()
+
+                if self.commands and self.xbox_controller is not None:
                     self.last_commands, self.buttons, left_trigger, right_trigger = (
                         self.xbox_controller.get_last_command()
                     )
@@ -240,7 +298,8 @@ class RLWalk:
                         self.antennas.set_position_right(left_trigger)
 
                     if self.buttons.A.triggered:
-                        self.paused = not self.paused
+                        self.user_paused = not self.user_paused
+                        self.paused = self.user_paused
                         if self.paused:
                             print("PAUSE")
                         else:
